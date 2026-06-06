@@ -1,0 +1,14 @@
+title: PII Sanitization Agent for Autonomous AI Pipelines
+author: teodorofodocrispin-cmyk <teodorofodocrispin@gmail.com>
+language: python
+license: MIT
+tags:
+  - pii
+  - privacy
+  - security
+  - gdpr
+  - eu-ai-act
+  - autonomous-agents
+  - llm
+entrypoint: run_demo.py
+requirements: requirements.txt
