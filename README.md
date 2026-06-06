@@ -82,6 +82,10 @@ Choosing a framework? Here's when to use each:
 - Building code-writing / research agents → **AutoGen**
 - Enterprise document pipelines → **LlamaIndex**
 
+| **PII Sanitization Agent**            | Privacy/Compliance | Sanitizes PII from text before it reaches LLMs — emails, IDs, credentials across 8 languages. x402 native, Proof of Sanitization on Solana. | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/teodorofodocrispin-cmyk/TrustBoost-PII-Sanitizer) |
+
+## Framework wise Usecases
+
 ---
 
 ## 🏭 Industry Use Cases
