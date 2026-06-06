@@ -227,6 +227,8 @@ Whether you're a developer, researcher, or business enthusiast, this repository 
 | :------------------------------------------------------------ | :---------------- | :------------------------------------------------------------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 🏗️ Automatically Build Multi-agent System with AgentBuilder | 🤖 AI Development | Explains how to automatically build multi-agent systems using the AgentBuilder tool.  | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/autobuild_basic.ipynb)         |
 | 📚 Automatically Build Multi-agent System from Agent Library  | 🤖 AI Development | Shows how to construct multi-agent systems by leveraging a pre-defined agent library. | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/autobuild_agent_library.ipynb) |
+| 🏭 Predictive Maintenance Agent | 🏭 Manufacturing / Industry 4.0 | Machine learning system that predicts equipment failures using historical sensor and maintenance data to reduce downtime and maintenance costs. | [![ML Project - Python](https://img.shields.io/static/v1?label=ML+Project&message=Python&color=blue)](https://github.com/DishaChakraborty-11/Predictive-Maintenance-ML) |
+
 
 > **Observability**
 
