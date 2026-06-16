@@ -272,6 +272,14 @@ State-machine framework for complex, stateful agent workflows and RAG pipelines.
 
 ---
 
+## 🛠️ Agent Infrastructure & Execution Backends
+
+| Tool | Description |
+|---|---|
+| 🔗 [cowork-to-code-bridge](https://github.com/abhinaykrupa/cowork-to-code-bridge) | MCP server exposing a Claude Code subscription as a local execution backend for agents. Zero network ports, token-authenticated, production-ready. Enables agents to execute code locally without API key management or separate billing. |
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! 🎉 This repo grows through community contributions.
