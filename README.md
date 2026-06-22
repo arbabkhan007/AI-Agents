@@ -62,28 +62,6 @@ python agent.py
 | Add my own agent | [Contributing](CONTRIBUTION.md) |
 | Learn with a course | [`crewai_mcp_course/`](crewai_mcp_course/) |
 
----
-
-## 📊 Framework Comparison
-
-Choosing a framework? Here's when to use each:
-
-| Framework | Best For | Complexity | Multi-Agent | Streaming | Local LLM |
-|---|---|---|---|---|---|
-| **LangGraph** | Stateful workflows, RAG pipelines, complex graphs | ⭐⭐⭐ | ✅ | ✅ | ✅ |
-| **CrewAI** | Role-based teams, business automation, rapid prototyping | ⭐⭐ | ✅ | ✅ | ✅ |
-| **AutoGen** | Code generation, research, self-healing workflows | ⭐⭐⭐ | ✅ | ✅ | ✅ |
-| **Agno** | Lightweight single agents, tool integration, fast iteration | ⭐ | ✅ | ✅ | ✅ |
-| **LlamaIndex** | Document Q&A, enterprise RAG, data pipelines | ⭐⭐ | ⚠️ | ✅ | ✅ |
-
-**Quick decision guide:**
-- Just starting out → **Agno** or **CrewAI**
-- Need stateful graphs + RAG → **LangGraph**
-- Building code-writing / research agents → **AutoGen**
-- Enterprise document pipelines → **LlamaIndex**
-
----
-
 ## 🏭 Industry Use Cases
 
 ![Industry Mind Map](images/industry_usecase1.png)
