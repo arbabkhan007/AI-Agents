@@ -1,4 +1,4 @@
-# 500+ AI Agent Projects & Use Cases
+﻿# 500+ AI Agent Projects & Use Cases
 
 <div align="center">
 
@@ -11,27 +11,27 @@
 
 **The most comprehensive collection of AI agent projects, use cases, and working implementations.**
 
-[🚀 Quick Start](#-quick-start) • [🗺️ Browse Agents](#-browse-by-framework) • [🏭 By Industry](#-industry-use-cases) • [🤝 Contribute](#-contributing) • [📊 Frameworks Compared](#-framework-comparison)
+[?? Quick Start](#-quick-start) ??[?뿺截?Browse Agents](#-browse-by-framework) ??[?룺 By Industry](#-industry-use-cases) ??[?쩃 Contribute](#-contributing) ??[?뱤 Frameworks Compared](#-framework-comparison)
 
 </div>
 
----
+---n> **🚀 [Sponsor] Neo Genesis FactoryOS:** Launch your autonomous AI startup factory in 10 minutes. Open-sourcing the WebPilot Engine & Hive Mind Architecture that powers 11 revenue-generating SBUs. [Get the Boilerplate ()](https://store.neogenesis.app/factoryos)n---
 
 ![AI Agent Use Cases](images/AIAgentUseCase.jpg)
 
 ## What is this?
 
-A curated collection of **500+ AI agent projects** — production examples, tutorials, and working code spanning every major framework (LangGraph, CrewAI, AutoGen, Agno) and industry (Healthcare, Finance, Education, Cybersecurity, and more).
+A curated collection of **500+ AI agent projects** ??production examples, tutorials, and working code spanning every major framework (LangGraph, CrewAI, AutoGen, Agno) and industry (Healthcare, Finance, Education, Cybersecurity, and more).
 
 **Who it's for:**
-- 🧑‍💻 **Developers** building their first or next AI agent
-- 🔬 **Researchers** surveying the agent landscape
-- 🏢 **Teams** evaluating frameworks for production use
-- 🎓 **Students** learning agent architectures from real examples
+- ?쭛?랅윊?**Developers** building their first or next AI agent
+- ?뵮 **Researchers** surveying the agent landscape
+- ?룫 **Teams** evaluating frameworks for production use
+- ?럳 **Students** learning agent architectures from real examples
 
----
+---n> **🚀 [Sponsor] Neo Genesis FactoryOS:** Launch your autonomous AI startup factory in 10 minutes. Open-sourcing the WebPilot Engine & Hive Mind Architecture that powers 11 revenue-generating SBUs. [Get the Boilerplate ()](https://store.neogenesis.app/factoryos)n---
 
-## ⚡ Quick Start
+## ??Quick Start
 
 Pick a framework and run an agent in under 5 minutes:
 
@@ -49,9 +49,9 @@ python agent.py
 
 > All agents in `agents/` are self-contained with their own `requirements.txt` and `.env.example`. No monorepo setup needed.
 
----
+---n> **🚀 [Sponsor] Neo Genesis FactoryOS:** Launch your autonomous AI startup factory in 10 minutes. Open-sourcing the WebPilot Engine & Hive Mind Architecture that powers 11 revenue-generating SBUs. [Get the Boilerplate ()](https://store.neogenesis.app/factoryos)n---
 
-## 🗺️ Navigation Guide
+## ?뿺截?Navigation Guide
 
 | I want to... | Go to |
 |---|---|
@@ -62,29 +62,29 @@ python agent.py
 | Add my own agent | [Contributing](CONTRIBUTION.md) |
 | Learn with a course | [`crewai_mcp_course/`](crewai_mcp_course/) |
 
----
+---n> **🚀 [Sponsor] Neo Genesis FactoryOS:** Launch your autonomous AI startup factory in 10 minutes. Open-sourcing the WebPilot Engine & Hive Mind Architecture that powers 11 revenue-generating SBUs. [Get the Boilerplate ()](https://store.neogenesis.app/factoryos)n---
 
-## 📊 Framework Comparison
+## ?뱤 Framework Comparison
 
 Choosing a framework? Here's when to use each:
 
 | Framework | Best For | Complexity | Multi-Agent | Streaming | Local LLM |
 |---|---|---|---|---|---|
-| **LangGraph** | Stateful workflows, RAG pipelines, complex graphs | ⭐⭐⭐ | ✅ | ✅ | ✅ |
-| **CrewAI** | Role-based teams, business automation, rapid prototyping | ⭐⭐ | ✅ | ✅ | ✅ |
-| **AutoGen** | Code generation, research, self-healing workflows | ⭐⭐⭐ | ✅ | ✅ | ✅ |
-| **Agno** | Lightweight single agents, tool integration, fast iteration | ⭐ | ✅ | ✅ | ✅ |
-| **LlamaIndex** | Document Q&A, enterprise RAG, data pipelines | ⭐⭐ | ⚠️ | ✅ | ✅ |
+| **LangGraph** | Stateful workflows, RAG pipelines, complex graphs | 狩먥춴狩?| ??| ??| ??|
+| **CrewAI** | Role-based teams, business automation, rapid prototyping | 狩먥춴 | ??| ??| ??|
+| **AutoGen** | Code generation, research, self-healing workflows | 狩먥춴狩?| ??| ??| ??|
+| **Agno** | Lightweight single agents, tool integration, fast iteration | 狩?| ??| ??| ??|
+| **LlamaIndex** | Document Q&A, enterprise RAG, data pipelines | 狩먥춴 | ?좑툘 | ??| ??|
 
 **Quick decision guide:**
-- Just starting out → **Agno** or **CrewAI**
-- Need stateful graphs + RAG → **LangGraph**
-- Building code-writing / research agents → **AutoGen**
-- Enterprise document pipelines → **LlamaIndex**
+- Just starting out ??**Agno** or **CrewAI**
+- Need stateful graphs + RAG ??**LangGraph**
+- Building code-writing / research agents ??**AutoGen**
+- Enterprise document pipelines ??**LlamaIndex**
 
----
+---n> **🚀 [Sponsor] Neo Genesis FactoryOS:** Launch your autonomous AI startup factory in 10 minutes. Open-sourcing the WebPilot Engine & Hive Mind Architecture that powers 11 revenue-generating SBUs. [Get the Boilerplate ()](https://store.neogenesis.app/factoryos)n---
 
-## 🏭 Industry Use Cases
+## ?룺 Industry Use Cases
 
 ![Industry Mind Map](images/industry_usecase1.png)
 
@@ -115,9 +115,9 @@ Choosing a framework? Here's when to use each:
 | **MediSuite-AI-Agent** | Health Insurance | Automates hospital / insurance claiming workflow | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/ahmedmansour5/MediSuite-Ai-Agent) |
 | **Lina Egyptian Medical Chatbot** | Healthcare | Egyptian medical assistant chatbot | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/dina-khalid/Lina-Egyptian-Medical-Chatbot) |
 
----
+---n> **🚀 [Sponsor] Neo Genesis FactoryOS:** Launch your autonomous AI startup factory in 10 minutes. Open-sourcing the WebPilot Engine & Hive Mind Architecture that powers 11 revenue-generating SBUs. [Get the Boilerplate ()](https://store.neogenesis.app/factoryos)n---
 
-## 🔧 Browse by Framework
+## ?뵩 Browse by Framework
 
 ### CrewAI
 
@@ -125,30 +125,30 @@ Role-based multi-agent framework. Great for business automation.
 
 | Use Case | Industry | Description | GitHub |
 |---|---|---|---|
-| 📧 Email Auto Responder Flow | Communication | Automates email responses based on predefined criteria | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/email_auto_responder_flow) |
-| 📝 Meeting Assistant Flow | Productivity | Organizes meetings, scheduling and agenda preparation | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/meeting_assistant_flow) |
-| 🔄 Self Evaluation Loop Flow | Human Resources | Facilitates self-assessment for performance reviews | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/self_evaluation_loop_flow) |
-| 📈 Lead Score Flow | Sales | Evaluates and scores potential leads to prioritize outreach | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/lead-score-flow) |
-| 📊 Marketing Strategy Generator | Marketing | Develops marketing strategies by analyzing market trends | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/marketing_strategy) |
-| 📝 Job Posting Generator | Recruitment | Creates job postings by analyzing job requirements | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/job-posting) |
-| 🔄 Recruitment Workflow | Recruitment | Streamlines recruitment by automating hiring tasks | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/recruitment) |
-| 🔍 Match Profile to Positions | Recruitment | Matches candidate profiles to suitable job positions | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/match_profile_to_positions) |
-| 📸 Instagram Post Generator | Social Media | Generates and schedules Instagram posts automatically | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/instagram_post) |
-| 🌐 Landing Page Generator | Web Development | Automates creation of landing pages for websites | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/landing_page_generator) |
-| 🎮 Game Builder Crew | Game Development | Assists in game development by automating aspects of creation | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/game-builder-crew) |
-| 💹 Stock Analysis Tool | Finance | Provides tools for analyzing stock market data | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/stock_analysis) |
-| 🗺️ Trip Planner | Travel | Assists in planning trips with itineraries | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/trip_planner) |
-| 🎁 Surprise Trip Planner | Travel | Plans surprise trips based on user preferences | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/surprise_trip) |
-| 📚 Write a Book with Flows | Creative Writing | Assists authors with structured writing workflows | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/write_a_book_with_flows) |
-| 🎬 Screenplay Writer | Creative Writing | Aids in writing screenplays with templates and guidance | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/screenplay_writer) |
-| ✅ Markdown Validator | Documentation | Validates Markdown files for proper formatting | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/markdown_validator) |
-| 🧠 Meta Quest Knowledge | Knowledge Management | Manages Meta Quest knowledge for information retrieval | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/meta_quest_knowledge) |
-| 🤖 NVIDIA Models Integration | AI Integration | Integrates NVIDIA AI models into workflows | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/integrations/nvidia_models) |
-| 🗂️ Prep for a Meeting | Productivity | Prepares meeting materials and sets agendas | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/prep-for-a-meeting) |
-| 🛠️ Starter Template | Development | Starter template for new CrewAI projects | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/starter_template) |
-| 🔗 CrewAI + LangGraph Integration | AI Integration | Integration between CrewAI and LangGraph | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/integrations/CrewAI-LangGraph) |
+| ?벁 Email Auto Responder Flow | Communication | Automates email responses based on predefined criteria | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/email_auto_responder_flow) |
+| ?뱷 Meeting Assistant Flow | Productivity | Organizes meetings, scheduling and agenda preparation | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/meeting_assistant_flow) |
+| ?봽 Self Evaluation Loop Flow | Human Resources | Facilitates self-assessment for performance reviews | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/self_evaluation_loop_flow) |
+| ?뱢 Lead Score Flow | Sales | Evaluates and scores potential leads to prioritize outreach | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/lead-score-flow) |
+| ?뱤 Marketing Strategy Generator | Marketing | Develops marketing strategies by analyzing market trends | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/marketing_strategy) |
+| ?뱷 Job Posting Generator | Recruitment | Creates job postings by analyzing job requirements | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/job-posting) |
+| ?봽 Recruitment Workflow | Recruitment | Streamlines recruitment by automating hiring tasks | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/recruitment) |
+| ?뵇 Match Profile to Positions | Recruitment | Matches candidate profiles to suitable job positions | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/match_profile_to_positions) |
+| ?벝 Instagram Post Generator | Social Media | Generates and schedules Instagram posts automatically | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/instagram_post) |
+| ?뙋 Landing Page Generator | Web Development | Automates creation of landing pages for websites | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/landing_page_generator) |
+| ?렜 Game Builder Crew | Game Development | Assists in game development by automating aspects of creation | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/game-builder-crew) |
+| ?뮰 Stock Analysis Tool | Finance | Provides tools for analyzing stock market data | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/stock_analysis) |
+| ?뿺截?Trip Planner | Travel | Assists in planning trips with itineraries | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/trip_planner) |
+| ?럞 Surprise Trip Planner | Travel | Plans surprise trips based on user preferences | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/surprise_trip) |
+| ?뱴 Write a Book with Flows | Creative Writing | Assists authors with structured writing workflows | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/write_a_book_with_flows) |
+| ?렗 Screenplay Writer | Creative Writing | Aids in writing screenplays with templates and guidance | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/screenplay_writer) |
+| ??Markdown Validator | Documentation | Validates Markdown files for proper formatting | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/markdown_validator) |
+| ?쭬 Meta Quest Knowledge | Knowledge Management | Manages Meta Quest knowledge for information retrieval | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/meta_quest_knowledge) |
+| ?쨼 NVIDIA Models Integration | AI Integration | Integrates NVIDIA AI models into workflows | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/integrations/nvidia_models) |
+| ?뾺截?Prep for a Meeting | Productivity | Prepares meeting materials and sets agendas | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/prep-for-a-meeting) |
+| ?썱截?Starter Template | Development | Starter template for new CrewAI projects | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/starter_template) |
+| ?뵕 CrewAI + LangGraph Integration | AI Integration | Integration between CrewAI and LangGraph | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/integrations/CrewAI-LangGraph) |
 
----
+---n> **🚀 [Sponsor] Neo Genesis FactoryOS:** Launch your autonomous AI startup factory in 10 minutes. Open-sourcing the WebPilot Engine & Hive Mind Architecture that powers 11 revenue-generating SBUs. [Get the Boilerplate ()](https://store.neogenesis.app/factoryos)n---
 
 ### AutoGen
 
@@ -158,66 +158,66 @@ Microsoft's framework for code generation, execution, and multi-agent research.
 
 | Use Case | Industry | Description | Notebook |
 |---|---|---|---|
-| 🤖 Automated Task Solving with Code Gen, Execution & Debugging | Software Development | Demonstrates automated task-solving by generating, executing, and debugging code | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_auto_feedback_from_code_execution) |
-| 🧑‍💻 Code Generation and Q&A with Retrieval Augmented Agents | Software Development | Generates code and answers questions using retrieval-augmented methods | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_RetrieveChat) |
-| 🧠 Code Generation and Q&A with Qdrant-based Retrieval | Software Development | Utilizes Qdrant for enhanced retrieval-augmented agent performance | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_RetrieveChat_qdrant) |
+| ?쨼 Automated Task Solving with Code Gen, Execution & Debugging | Software Development | Demonstrates automated task-solving by generating, executing, and debugging code | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_auto_feedback_from_code_execution) |
+| ?쭛?랅윊?Code Generation and Q&A with Retrieval Augmented Agents | Software Development | Generates code and answers questions using retrieval-augmented methods | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_RetrieveChat) |
+| ?쭬 Code Generation and Q&A with Qdrant-based Retrieval | Software Development | Utilizes Qdrant for enhanced retrieval-augmented agent performance | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_RetrieveChat_qdrant) |
 
 **Multi-Agent Collaboration**
 
 | Use Case | Industry | Description | Notebook |
 |---|---|---|---|
-| 🤝 Group Chat (3 members, 1 manager) | Collaboration | Demonstrates group task-solving via multi-agent collaboration | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat) |
-| 📊 Data Visualization by Group Chat | Data Analysis | Uses multi-agent collaboration to create data visualizations | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat_vis) |
-| 🧩 Complex Task Solving by Group Chat (6 members) | Collaboration | Solves complex tasks collaboratively with a larger group | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat_research) |
-| 🧑‍💻 Task Solving with Coding & Planning Agents | Planning & Dev | Combines coding and planning agents for solving tasks | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_planning.ipynb) |
-| 📐 Task Solving with Graph Transition Paths | Collaboration | Uses predefined transition paths in a graph for solving tasks | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/docs/notebooks/agentchat_groupchat_finite_state_machine) |
-| 🧠 SocietyOfMindAgent Inner-Monologue | Cognitive Sciences | Simulates inner-monologue for problem-solving using group chats | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_society_of_mind) |
-| 🔧 Group Chat with Custom Speaker Selection | Collaboration | Implements a custom function for speaker selection | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat_customized) |
+| ?쩃 Group Chat (3 members, 1 manager) | Collaboration | Demonstrates group task-solving via multi-agent collaboration | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat) |
+| ?뱤 Data Visualization by Group Chat | Data Analysis | Uses multi-agent collaboration to create data visualizations | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat_vis) |
+| ?㎥ Complex Task Solving by Group Chat (6 members) | Collaboration | Solves complex tasks collaboratively with a larger group | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat_research) |
+| ?쭛?랅윊?Task Solving with Coding & Planning Agents | Planning & Dev | Combines coding and planning agents for solving tasks | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_planning.ipynb) |
+| ?뱪 Task Solving with Graph Transition Paths | Collaboration | Uses predefined transition paths in a graph for solving tasks | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/docs/notebooks/agentchat_groupchat_finite_state_machine) |
+| ?쭬 SocietyOfMindAgent Inner-Monologue | Cognitive Sciences | Simulates inner-monologue for problem-solving using group chats | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_society_of_mind) |
+| ?뵩 Group Chat with Custom Speaker Selection | Collaboration | Implements a custom function for speaker selection | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat_customized) |
 
 **Sequential Multi-Agent Chats**
 
 | Use Case | Industry | Description | Notebook |
 |---|---|---|---|
-| 🔄 Sequential Task-Solving (single initiating agent) | Workflow Automation | Automates sequential task-solving with a single initiating agent | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_multi_task_chats) |
-| ⏳ Async Sequential Task-Solving | Workflow Automation | Handles asynchronous task-solving in a sequence of chats | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_multi_task_async_chats) |
-| 🤝 Sequential Chats with Different Initiating Agents | Workflow Automation | Sequential task-solving with different agents initiating each chat | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchats_sequential_chats) |
+| ?봽 Sequential Task-Solving (single initiating agent) | Workflow Automation | Automates sequential task-solving with a single initiating agent | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_multi_task_chats) |
+| ??Async Sequential Task-Solving | Workflow Automation | Handles asynchronous task-solving in a sequence of chats | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_multi_task_async_chats) |
+| ?쩃 Sequential Chats with Different Initiating Agents | Workflow Automation | Sequential task-solving with different agents initiating each chat | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchats_sequential_chats) |
 
 **Nested Chats**
 
 | Use Case | Industry | Description | Notebook |
 |---|---|---|---|
-| 🧠 Solving Complex Tasks with Nested Chats | Problem Solving | Uses nested chats to solve hierarchical and complex problems | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_nestedchat) |
-| 🔄 Sequence of Nested Chats | Problem Solving | Demonstrates sequential task-solving using nested chats | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_nested_sequential_chats) |
-| 🏭 OptiGuide Supply Chain with Nested Chats | Supply Chain | Solves supply chain optimization using nested chats | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_nestedchat_optiguide) |
-| ♟️ Conversational Chess with Nested Chats | Gaming | Uses nested chats for playing conversational chess with tools | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_nested_chats_chess) |
+| ?쭬 Solving Complex Tasks with Nested Chats | Problem Solving | Uses nested chats to solve hierarchical and complex problems | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_nestedchat) |
+| ?봽 Sequence of Nested Chats | Problem Solving | Demonstrates sequential task-solving using nested chats | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_nested_sequential_chats) |
+| ?룺 OptiGuide Supply Chain with Nested Chats | Supply Chain | Solves supply chain optimization using nested chats | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_nestedchat_optiguide) |
+| ?잞툘 Conversational Chess with Nested Chats | Gaming | Uses nested chats for playing conversational chess with tools | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_nested_chats_chess) |
 
 **Tools**
 
 | Use Case | Industry | Description | Notebook |
 |---|---|---|---|
-| 🌐 Web Search: Solve Tasks Requiring Web Info | Information Retrieval | Searches the web to gather information for completing tasks | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_web_info.ipynb) |
-| 🔧 Use Provided Tools as Functions | Tool Integration | Demonstrates how to use pre-provided tools as callable functions | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_function_call_currency_calculator) |
-| 📚 RAG Group Chat | Collaboration | Enables group chat with Retrieval Augmented Generation | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat_RAG) |
-| 🔊 Agent Chat with Whisper | Audio Processing | AI agent for transcription and translation using Whisper | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_video_transcript_translate_with_whisper) |
-| 📊 SQL: Natural Language to SQL Query | Database Management | Converts natural language inputs into SQL queries | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_sql_spider.ipynb) |
+| ?뙋 Web Search: Solve Tasks Requiring Web Info | Information Retrieval | Searches the web to gather information for completing tasks | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_web_info.ipynb) |
+| ?뵩 Use Provided Tools as Functions | Tool Integration | Demonstrates how to use pre-provided tools as callable functions | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_function_call_currency_calculator) |
+| ?뱴 RAG Group Chat | Collaboration | Enables group chat with Retrieval Augmented Generation | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat_RAG) |
+| ?뵄 Agent Chat with Whisper | Audio Processing | AI agent for transcription and translation using Whisper | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_video_transcript_translate_with_whisper) |
+| ?뱤 SQL: Natural Language to SQL Query | Database Management | Converts natural language inputs into SQL queries | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_sql_spider.ipynb) |
 
 **Multimodal Agents**
 
 | Use Case | Industry | Description | Notebook |
 |---|---|---|---|
-| 🎨 Multimodal Agent with DALLE and GPT-4V | Multimedia AI | Combines DALLE and GPT-4V for multimodal agent communication | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_dalle_and_gpt4v.ipynb) |
-| 🖌️ Multimodal Agent with Llava | Image Processing | Uses Llava for multimodal agent conversations | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_lmm_llava.ipynb) |
-| 🖼️ Multimodal Agent with GPT-4V | Multimedia AI | Leverages GPT-4V for visual and conversational interactions | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_lmm_gpt-4v.ipynb) |
+| ?렓 Multimodal Agent with DALLE and GPT-4V | Multimedia AI | Combines DALLE and GPT-4V for multimodal agent communication | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_dalle_and_gpt4v.ipynb) |
+| ?뼂截?Multimodal Agent with Llava | Image Processing | Uses Llava for multimodal agent conversations | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_lmm_llava.ipynb) |
+| ?뼹截?Multimodal Agent with GPT-4V | Multimedia AI | Leverages GPT-4V for visual and conversational interactions | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_lmm_gpt-4v.ipynb) |
 
 **Observability & Evaluation**
 
 | Use Case | Industry | Description | Notebook |
 |---|---|---|---|
-| 📊 AgentEval: Multi-Agent Assessment System | Performance Evaluation | Evaluating LLM-based application utility | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agenteval_cq_math.ipynb) |
-| 📊 Track LLM Calls and Errors using AgentOps | Monitoring & Analytics | Monitors LLM interactions, tool usage, and errors | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_agentops.ipynb) |
-| 🏗️ Auto Build Multi-agent System with AgentBuilder | AI Development | Automatically builds multi-agent systems | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/autobuild_basic.ipynb) |
+| ?뱤 AgentEval: Multi-Agent Assessment System | Performance Evaluation | Evaluating LLM-based application utility | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agenteval_cq_math.ipynb) |
+| ?뱤 Track LLM Calls and Errors using AgentOps | Monitoring & Analytics | Monitors LLM interactions, tool usage, and errors | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_agentops.ipynb) |
+| ?룛截?Auto Build Multi-agent System with AgentBuilder | AI Development | Automatically builds multi-agent systems | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/autobuild_basic.ipynb) |
 
----
+---n> **🚀 [Sponsor] Neo Genesis FactoryOS:** Launch your autonomous AI startup factory in 10 minutes. Open-sourcing the WebPilot Engine & Hive Mind Architecture that powers 11 revenue-generating SBUs. [Get the Boilerplate ()](https://store.neogenesis.app/factoryos)n---
 
 ### Agno
 
@@ -225,25 +225,25 @@ Lightweight, fast agent framework. Best for single-agent tools and rapid prototy
 
 | Use Case | Industry | Description | Code |
 |---|---|---|---|
-| 🤖 Support Agent | AI Framework Support | Real-time answers, explanations, and code examples for Agno framework | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/agno_support_agent.py) |
-| 🎥 YouTube Agent | Media & Content | Analyzes YouTube videos: summaries, timestamps, themes | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/youtube_agent.py) |
-| 📊 Finance Agent (Thinking) | Finance | Real-time stock insights, analyst recommendations, financial deep-dives | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/thinking_finance_agent.py) |
-| 📚 Study Partner | Education | Finds resources, answers questions, creates study plans | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/study_partner.py) |
-| 🛍️ Shopping Partner Agent | E-commerce | Product recommender based on preferences from Amazon, Flipkart | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/shopping_partner.py) |
-| 🎓 Research Scholar Agent | Education / Research | Advanced academic searches, publication analysis, structured reports | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/research_agent_exa.py) |
-| 🧠 Research Agent | Media & Journalism | Deep investigations, NYT-style reports | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/research_agent.py) |
-| 🍳 Recipe Creator | Food & Culinary | Personalized recipes based on ingredients and preferences | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/recipe_creator.py) |
-| 🧠 Financial Reasoning Agent | Finance | Claude 3.5 Sonnet-based stock analysis with Yahoo Finance data | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/reasoning_finance_agent.py) |
-| 🤖 Readme Generator Agent | Software Dev | Generates high-quality READMEs for GitHub repos | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/readme_generator.py) |
-| 🎬 Movie Recommendation Agent | Entertainment | Personalized movie recommendations using Exa and GPT-4o | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/movie_recommedation.py) |
-| 🔍 Media Trend Analysis Agent | Media & News | Analyzes emerging trends and influencers from digital platforms | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/media_trend_analysis_agent.py) |
-| ⚖️ Legal Document Analysis Agent | Legal Tech | Analyzes legal PDFs and provides insights using vector embeddings | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/legal_consultant.py) |
-| 🤔 DeepKnowledge | Research | Iterative search through knowledge base with deep reasoning | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/deep_knowledge.py) |
-| 📚 Book Recommendation Agent | Publishing & Media | Personalized book suggestions using literary data and reader preferences | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/book_recommendation.py) |
-| 🏠 MCP Airbnb Agent | Hospitality | Search Airbnb listings with MCP and Llama 4 | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/airbnb_mcp.py) |
-| 🤖 Agno Assist Agent | AI Framework | GPT-4o agent for Agno framework Q&A with hybrid search | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/agno_assist.py) |
+| ?쨼 Support Agent | AI Framework Support | Real-time answers, explanations, and code examples for Agno framework | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/agno_support_agent.py) |
+| ?렏 YouTube Agent | Media & Content | Analyzes YouTube videos: summaries, timestamps, themes | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/youtube_agent.py) |
+| ?뱤 Finance Agent (Thinking) | Finance | Real-time stock insights, analyst recommendations, financial deep-dives | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/thinking_finance_agent.py) |
+| ?뱴 Study Partner | Education | Finds resources, answers questions, creates study plans | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/study_partner.py) |
+| ?썚截?Shopping Partner Agent | E-commerce | Product recommender based on preferences from Amazon, Flipkart | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/shopping_partner.py) |
+| ?럳 Research Scholar Agent | Education / Research | Advanced academic searches, publication analysis, structured reports | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/research_agent_exa.py) |
+| ?쭬 Research Agent | Media & Journalism | Deep investigations, NYT-style reports | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/research_agent.py) |
+| ?뜵 Recipe Creator | Food & Culinary | Personalized recipes based on ingredients and preferences | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/recipe_creator.py) |
+| ?쭬 Financial Reasoning Agent | Finance | Claude 3.5 Sonnet-based stock analysis with Yahoo Finance data | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/reasoning_finance_agent.py) |
+| ?쨼 Readme Generator Agent | Software Dev | Generates high-quality READMEs for GitHub repos | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/readme_generator.py) |
+| ?렗 Movie Recommendation Agent | Entertainment | Personalized movie recommendations using Exa and GPT-4o | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/movie_recommedation.py) |
+| ?뵇 Media Trend Analysis Agent | Media & News | Analyzes emerging trends and influencers from digital platforms | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/media_trend_analysis_agent.py) |
+| ?뽳툘 Legal Document Analysis Agent | Legal Tech | Analyzes legal PDFs and provides insights using vector embeddings | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/legal_consultant.py) |
+| ?쨺 DeepKnowledge | Research | Iterative search through knowledge base with deep reasoning | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/deep_knowledge.py) |
+| ?뱴 Book Recommendation Agent | Publishing & Media | Personalized book suggestions using literary data and reader preferences | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/book_recommendation.py) |
+| ?룧 MCP Airbnb Agent | Hospitality | Search Airbnb listings with MCP and Llama 4 | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/airbnb_mcp.py) |
+| ?쨼 Agno Assist Agent | AI Framework | GPT-4o agent for Agno framework Q&A with hybrid search | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/agno_assist.py) |
 
----
+---n> **🚀 [Sponsor] Neo Genesis FactoryOS:** Launch your autonomous AI startup factory in 10 minutes. Open-sourcing the WebPilot Engine & Hive Mind Architecture that powers 11 revenue-generating SBUs. [Get the Boilerplate ()](https://store.neogenesis.app/factoryos)n---
 
 ### LangGraph
 
@@ -251,36 +251,36 @@ State-machine framework for complex, stateful agent workflows and RAG pipelines.
 
 | Use Case | Industry | Description | Code |
 |---|---|---|---|
-| 🤖 Chatbot Simulation Evaluation | AI / QA | Simulate user interactions to evaluate chatbot performance | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/chatbot-simulation-evaluation/agent-simulation-evaluation.ipynb) |
-| 🧠 Information Gathering via Prompting | Research | LangGraph workflow using prompting to gather information | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/chatbots/information-gather-prompting.ipynb) |
-| 🧠 Code Assistant with LangGraph | Software Development | Resilient code assistant with error checking and iterative refinement | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/code_assistant/langgraph_code_assistant.ipynb) |
-| 🧑‍💼 Customer Support Agent | Customer Support | Graph-based agent for handling customer inquiries | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/customer-support/customer-support.ipynb) |
-| 🔁 Extraction with Retries | Data Extraction | Retry mechanisms for robust data extraction | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/extraction/retries.ipynb) |
-| 🧠 Multi-Agent Workflow (Supervisor) | Workflow Orchestration | Supervisor agent orchestrating multiple specialized agents | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/agent_supervisor.ipynb) |
-| 🧠 Hierarchical Agent Teams | Workflow Orchestration | Top-level supervisor delegates to specialized sub-agents | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/hierarchical_agent_teams.ipynb) |
-| 🤝 Multi-Agent Collaboration | Workflow Orchestration | Multiple specialized agents working together on complex tasks | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/multi-agent-collaboration.ipynb) |
-| 🧠 Plan-and-Execute Agent | Workflow Orchestration | Agent generates multi-step plan then executes sequentially | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/plan-and-execute/plan-and-execute.ipynb) |
-| 🧠 SQL Agent | Database Interaction | Agent answers questions about SQL databases | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/sql-agent.ipynb) |
-| 🧠 Reflection Agent | Workflow Orchestration | Agent critiques and revises its own outputs | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/reflection/reflection.ipynb) |
-| 🧠 Reflexion Agent | Workflow Orchestration | Agent reflects on actions for iterative improvement | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/reflexion/reflexion.ipynb) |
-| 🧠 Adaptive RAG | Information Retrieval | Dynamic retrieval adjusting based on query complexity | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_adaptive_rag.ipynb) |
-| 🤖 Agentic RAG | Intelligent Agents | Agent determines best retrieval strategy before generating response | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_agentic_rag.ipynb) |
-| 🧠 Corrective RAG (CRAG) | Information Retrieval | Evaluates and refines retrieved documents before generation | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_crag.ipynb) |
-| 🧠 Self-RAG | Information Retrieval | System reflects on responses and retrieves additional info if needed | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_self_rag.ipynb) |
-| 🧠 Adaptive RAG (Local) | Information Retrieval | Adaptive RAG with local models for offline use | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_adaptive_rag_local.ipynb) |
-| 🧠 Self-RAG (Local) | Information Retrieval | Self-RAG using local models and data sources | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_self_rag_local.ipynb) |
+| ?쨼 Chatbot Simulation Evaluation | AI / QA | Simulate user interactions to evaluate chatbot performance | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/chatbot-simulation-evaluation/agent-simulation-evaluation.ipynb) |
+| ?쭬 Information Gathering via Prompting | Research | LangGraph workflow using prompting to gather information | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/chatbots/information-gather-prompting.ipynb) |
+| ?쭬 Code Assistant with LangGraph | Software Development | Resilient code assistant with error checking and iterative refinement | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/code_assistant/langgraph_code_assistant.ipynb) |
+| ?쭛?랅윊?Customer Support Agent | Customer Support | Graph-based agent for handling customer inquiries | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/customer-support/customer-support.ipynb) |
+| ?봺 Extraction with Retries | Data Extraction | Retry mechanisms for robust data extraction | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/extraction/retries.ipynb) |
+| ?쭬 Multi-Agent Workflow (Supervisor) | Workflow Orchestration | Supervisor agent orchestrating multiple specialized agents | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/agent_supervisor.ipynb) |
+| ?쭬 Hierarchical Agent Teams | Workflow Orchestration | Top-level supervisor delegates to specialized sub-agents | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/hierarchical_agent_teams.ipynb) |
+| ?쩃 Multi-Agent Collaboration | Workflow Orchestration | Multiple specialized agents working together on complex tasks | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/multi-agent-collaboration.ipynb) |
+| ?쭬 Plan-and-Execute Agent | Workflow Orchestration | Agent generates multi-step plan then executes sequentially | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/plan-and-execute/plan-and-execute.ipynb) |
+| ?쭬 SQL Agent | Database Interaction | Agent answers questions about SQL databases | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/sql-agent.ipynb) |
+| ?쭬 Reflection Agent | Workflow Orchestration | Agent critiques and revises its own outputs | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/reflection/reflection.ipynb) |
+| ?쭬 Reflexion Agent | Workflow Orchestration | Agent reflects on actions for iterative improvement | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/reflexion/reflexion.ipynb) |
+| ?쭬 Adaptive RAG | Information Retrieval | Dynamic retrieval adjusting based on query complexity | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_adaptive_rag.ipynb) |
+| ?쨼 Agentic RAG | Intelligent Agents | Agent determines best retrieval strategy before generating response | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_agentic_rag.ipynb) |
+| ?쭬 Corrective RAG (CRAG) | Information Retrieval | Evaluates and refines retrieved documents before generation | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_crag.ipynb) |
+| ?쭬 Self-RAG | Information Retrieval | System reflects on responses and retrieves additional info if needed | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_self_rag.ipynb) |
+| ?쭬 Adaptive RAG (Local) | Information Retrieval | Adaptive RAG with local models for offline use | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_adaptive_rag_local.ipynb) |
+| ?쭬 Self-RAG (Local) | Information Retrieval | Self-RAG using local models and data sources | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_self_rag_local.ipynb) |
 
----
+---n> **🚀 [Sponsor] Neo Genesis FactoryOS:** Launch your autonomous AI startup factory in 10 minutes. Open-sourcing the WebPilot Engine & Hive Mind Architecture that powers 11 revenue-generating SBUs. [Get the Boilerplate ()](https://store.neogenesis.app/factoryos)n---
 
-## 🤝 Contributing
+## ?쩃 Contributing
 
-Contributions are welcome! 🎉 This repo grows through community contributions.
+Contributions are welcome! ?럦 This repo grows through community contributions.
 
 **Ways to contribute:**
-1. **Add a working agent** — create a folder in `agents/` with runnable code
-2. **Add an external link** — add a row to the industry or framework tables
-3. **Fix a broken link** — open an issue or PR
-4. **Improve documentation** — fix typos, add context, improve examples
+1. **Add a working agent** ??create a folder in `agents/` with runnable code
+2. **Add an external link** ??add a row to the industry or framework tables
+3. **Fix a broken link** ??open an issue or PR
+4. **Improve documentation** ??fix typos, add context, improve examples
 
 **To contribute:**
 1. Fork the repository
@@ -290,7 +290,7 @@ Contributions are welcome! 🎉 This repo grows through community contributions.
 
 See [CONTRIBUTION.md](CONTRIBUTION.md) for full requirements (metadata.yaml, requirements.txt, etc.).
 
----
+---n> **🚀 [Sponsor] Neo Genesis FactoryOS:** Launch your autonomous AI startup factory in 10 minutes. Open-sourcing the WebPilot Engine & Hive Mind Architecture that powers 11 revenue-generating SBUs. [Get the Boilerplate ()](https://store.neogenesis.app/factoryos)n---
 
 ## Star History
 
@@ -309,18 +309,18 @@ See [CONTRIBUTION.md](CONTRIBUTION.md) for full requirements (metadata.yaml, req
   />
 </picture>
 
----
+---n> **🚀 [Sponsor] Neo Genesis FactoryOS:** Launch your autonomous AI startup factory in 10 minutes. Open-sourcing the WebPilot Engine & Hive Mind Architecture that powers 11 revenue-generating SBUs. [Get the Boilerplate ()](https://store.neogenesis.app/factoryos)n---
 
-## 📜 License
+## ?뱶 License
 
 This repository is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
 
----
+---n> **🚀 [Sponsor] Neo Genesis FactoryOS:** Launch your autonomous AI startup factory in 10 minutes. Open-sourcing the WebPilot Engine & Hive Mind Architecture that powers 11 revenue-generating SBUs. [Get the Boilerplate ()](https://store.neogenesis.app/factoryos)n---
 
 <div align="center">
 
-**⭐ Star this repo if you find it useful — it helps others discover it!**
+**狩?Star this repo if you find it useful ??it helps others discover it!**
 
-[Report Issue](https://github.com/ashishpatel26/500-AI-Agents-Projects/issues) • [Request Agent](https://github.com/ashishpatel26/500-AI-Agents-Projects/issues/new?template=feature_request.md) • [Contribute](CONTRIBUTION.md)
+[Report Issue](https://github.com/ashishpatel26/500-AI-Agents-Projects/issues) ??[Request Agent](https://github.com/ashishpatel26/500-AI-Agents-Projects/issues/new?template=feature_request.md) ??[Contribute](CONTRIBUTION.md)
 
 </div>
