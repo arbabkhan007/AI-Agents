@@ -1,0 +1,1823 @@
+# ══════════════════════════════════════════════════════════════════
+#  NOVALITY PREMIUM FAMILY BUDGET — FULL SOURCE CODE
+#  Author: Novality Store
+#  Each module is separated by a banner. This is the raw source that
+#  generates Novality_Family_Budget_Premium.xlsx.
+# ══════════════════════════════════════════════════════════════════
+
+
+# ════════════════════════════════════════════════════════════════════════
+#  FILE: common.py
+# ════════════════════════════════════════════════════════════════════════
+
+"""Shared constants and helpers for building the Novality Family Budget workbook."""
+import datetime as dt
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, Protection
+
+
+# ---- Theme ------------------------------------------------------------------
+TITLE_FILL   = "0B3D2E"   # deep emerald
+HEADER_FILL  = "1F7A5C"   # primary green
+HEADER_FILL2 = "2E8B6E"
+SECTION_FILL = "DCEFE4"   # soft green section header
+INPUT_FILL   = "FFF9EC"   # warm cream input cells
+CALC_FILL    = "EAF6EF"   # formula / auto calc cells
+TOTAL_FILL   = "CBE6D4"
+ALT_FILL     = "F4F8F5"
+GOOD_FILL    = "C6EFCE"
+WARN_FILL    = "FFEB9C"
+BAD_FILL     = "FFC7CE"
+GOOD_FONT    = "006100"
+WARN_FONT    = "9C6500"
+BAD_FONT     = "9C0006"
+
+# ---- Styles -----------------------------------------------------------------
+THIN = Side(style="thin", color="B7C9C0")
+MED  = Side(style="medium", color="0B3D2E")
+BOX  = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
+
+
+def font(bold=False, size=11, color="000000", italic=False):
+    return Font(name="Calibri", size=size, bold=bold, color=color, italic=italic)
+
+
+def fill(hexcolor):
+    return PatternFill("solid", fgColor=hexcolor)
+
+
+def align(horizontal="left", vertical="center", wrap=False):
+    return Alignment(horizontal=horizontal, vertical=vertical, wrap_text=wrap)
+
+
+def cell(ws, row, col, value=None, bold=False, size=11, color="000000",
+         bg=None, horizontal="left", vertical="center", wrap=False,
+         numfmt=None, locked=True, border=BOX, italic=False):
+    c = ws.cell(row=row, column=col)
+    if value is not None:
+        c.value = value
+    c.font = font(bold=bold, size=size, color=color, italic=italic)
+    if bg is not None:
+        c.fill = fill(bg)
+    c.alignment = align(horizontal=horizontal, vertical=vertical, wrap=wrap)
+    if numfmt is not None:
+        c.number_format = numfmt
+    c.protection = Protection(locked=locked)
+    if border is not None:
+        c.border = border
+    return c
+
+
+# Currency / date / percent formats
+USD  = '"$"#,##0.00'
+USD0 = '"$"#,##0'
+PCT  = '0.0%'
+PCT0 = '0%'
+DATE = 'mm/dd/yyyy'
+NUM  = '#,##0'
+DAYSTR = 'dddd'
+PASSWORD = "premium"
+# ---------------------------------------------------------------------------
+# Tab (sheet) names
+# ---------------------------------------------------------------------------
+DASH = "🏠 Dashboard"
+INC  = "💰 Income"
+TXN  = "💳 Transactions"
+BUD  = "📋 Budget"
+BIL  = "🧾 Bills & Subs"
+ACC  = "🏦 Accounts"
+DBT  = "💸 Debt Manager"
+GOL  = "🎯 Goals & Funds"
+INV  = "📈 Savings & Invest"
+HOM  = "🏡 Home & Mortgage"
+VEH  = "🚗 Vehicles"
+FAM  = "👨‍👩‍👧‍👦 Family & Kids"
+HEA  = "🏥 Healthcare"
+TAX  = "🇺🇸 Tax Center"
+ANA  = "📊 Analytics"
+CAL  = "📅 Calendar"
+SET  = "⚙️ Settings"
+INS  = "📖 Instructions"
+
+
+
+def q(name):
+    """Quote a sheet name for a formula reference."""
+    return "'" + name + "'"
+
+
+def T(sheet):
+    """Return a quoted-sheet-name string usable in formulas, e.g. 'Transactions'."""
+    return q(sheet)
+
+
+# ---- Master budget structure --------------------------------------------------
+BUDGET = {
+    "Housing": ["Mortgage/Rent", "Property Tax", "HOA", "Home Insurance",
+                "Repairs/Maintenance", "Utilities", "Other Housing"],
+    "Transportation": ["Car Payments", "Gas", "Auto Insurance", "Maintenance/Repairs",
+                       "Registration", "Parking/Tolls", "Public Transportation"],
+    "Food": ["Groceries", "Restaurants", "Takeout/Delivery", "Coffee", "Other Food"],
+    "Family": ["Childcare", "School", "Activities/Sports", "Clothing", "Allowances",
+               "Baby Expenses", "College Savings", "Other Family"],
+    "Healthcare": ["Health Insurance", "Dental", "Vision", "Prescriptions",
+                   "Medical Expenses", "Other Healthcare"],
+    "Lifestyle": ["Entertainment", "Subscriptions", "Travel", "Hobbies",
+                  "Personal Care", "Shopping", "Other Lifestyle"],
+    "Financial": ["Credit Cards", "Student Loans", "Auto Loans", "Personal Loans",
+                  "Savings", "Investments", "Retirement", "Other Financial"],
+    "Giving": ["Charity", "Gifts", "Tithe", "Other Giving"],
+    "Pets": ["Food", "Vet", "Grooming", "Supplies", "Other Pets"],
+    "Travel": ["Transport", "Lodging", "Food & Dining", "Activities", "Other Travel"],
+    "Miscellaneous": ["Fees", "Gifts", "Other Misc"],
+}
+
+CATEGORIES = list(BUDGET.keys())
+SUBCATEGORIES = [s for v in BUDGET.values() for s in v]
+
+# Default monthly budget limits (USD) - edit these in the Budget tab.
+DEFAULT_BUDGET = {
+    ('Housing', 'Mortgage/Rent'): 1250,
+    ('Housing', 'Property Tax'): 185,
+    ('Housing', 'HOA'): 35,
+    ('Housing', 'Home Insurance'): 90,
+    ('Housing', 'Repairs/Maintenance'): 85,
+    ('Housing', 'Utilities'): 235,
+    ('Transportation', 'Car Payments'): 265,
+    ('Transportation', 'Gas'): 140,
+    ('Transportation', 'Auto Insurance'): 85,
+    ('Transportation', 'Maintenance/Repairs'): 65,
+    ('Transportation', 'Registration'): 25,
+    ('Transportation', 'Parking/Tolls'): 35,
+    ('Transportation', 'Public Transportation'): 20,
+    ('Food', 'Groceries'): 435,
+    ('Food', 'Restaurants'): 140,
+    ('Food', 'Takeout/Delivery'): 45,
+    ('Food', 'Coffee'): 35,
+    ('Family', 'Childcare'): 585,
+    ('Family', 'School'): 60,
+    ('Family', 'Activities/Sports'): 75,
+    ('Family', 'Clothing'): 65,
+    ('Family', 'Allowances'): 25,
+    ('Family', 'Baby Expenses'): 40,
+    ('Family', 'College Savings'): 125,
+    ('Healthcare', 'Health Insurance'): 290,
+    ('Healthcare', 'Dental'): 20,
+    ('Healthcare', 'Vision'): 15,
+    ('Healthcare', 'Prescriptions'): 35,
+    ('Healthcare', 'Medical Expenses'): 65,
+    ('Lifestyle', 'Entertainment'): 90,
+    ('Lifestyle', 'Subscriptions'): 60,
+    ('Lifestyle', 'Travel'): 150,
+    ('Lifestyle', 'Hobbies'): 45,
+    ('Lifestyle', 'Personal Care'): 40,
+    ('Lifestyle', 'Shopping'): 90,
+    ('Financial', 'Credit Cards'): 150,
+    ('Financial', 'Student Loans'): 165,
+    ('Financial', 'Auto Loans'): 210,
+    ('Financial', 'Personal Loans'): 75,
+    ('Financial', 'Savings'): 210,
+    ('Financial', 'Investments'): 125,
+    ('Financial', 'Retirement'): 250,
+    ('Giving', 'Charity'): 85,
+    ('Giving', 'Gifts'): 35,
+    ('Pets', 'Food'): 60,
+    ('Pets', 'Vet'): 35,
+    ('Pets', 'Supplies'): 20,
+    ('Miscellaneous', 'Fees'): 25,
+}
+
+# ---- Settings dropdown lists --------------------------------------------------
+FAMILY = ["Parent 1", "Parent 2", "Child 1", "Child 2", "Household", "Other"]
+INCOME_SOURCES = ["Salary", "Hourly", "Bonus", "Overtime", "Commission",
+                  "Freelance/Side Hustle", "Child Support", "Social Security",
+                  "Retirement", "Government Benefits", "Other"]
+PAY_FREQ = ["Weekly", "Biweekly", "Twice Monthly", "Monthly", "Irregular"]
+ACCOUNT_TYPES = ["Checking", "Savings", "HYSA", "Cash", "Credit Card", "401(k)",
+                 "403(b)", "IRA", "Roth IRA", "Brokerage", "529", "HSA", "FSA",
+                 "CD", "Other Investment", "Other"]
+PAY_METHODS = ["Checking", "Savings", "Credit Card", "Cash", "Autopay",
+               "Debit Card", "Other"]
+TX_TYPES = ["Expense", "Income", "Transfer"]
+BILL_FREQ = ["Weekly", "Biweekly", "Twice Monthly", "Monthly", "Quarterly",
+             "Annually", "One-time"]
+YES_NO = ["Yes", "No"]
+ESS_DISC = ["Essential", "Discretionary"]
+MONTHS = ["January", "February", "March", "April", "May", "June", "July",
+          "August", "September", "October", "November", "December"]
+FILING = ["Single", "Married Filing Jointly", "Married Filing Separately",
+          "Head of Household", "Qualifying Surviving Spouse"]
+DEBT_TYPES = ["Credit Card", "Student Loan", "Auto Loan", "Personal Loan", "Mortgage", "Other"]
+GOAL_TYPES = ["Emergency Fund", "Vacation", "Christmas", "Birthdays", "Car Repairs",
+              "Home Repairs", "Insurance", "Property Taxes", "College", "Major Purchase", "Custom"]
+INVEST_TYPES = ["401(k)", "403(b)", "IRA", "Roth IRA", "Brokerage", "HSA",
+                "529", "CD", "HYSA", "Cash", "Emergency Fund"]
+
+
+# ---------------------------------------------------------------------------
+# Workbook-level helpers shared by every tab builder
+# ---------------------------------------------------------------------------
+LISTS = {}          # list display name -> Settings range string
+from openpyxl.worksheet.protection import SheetProtection
+
+
+def protect(sheet, allow_sort=True, allow_filter=True):
+    sp = SheetProtection(sheet=True, password=PASSWORD, objects=True, scenarios=True,
+                         formatCells=False, formatColumns=False, formatRows=False,
+                         insertColumns=False, insertRows=False, insertHyperlinks=False,
+                         deleteColumns=False, deleteRows=False, selectLockedCells=True,
+                         selectUnlockedCells=True, sort=allow_sort, autoFilter=allow_filter,
+                         pivotTables=False)
+    sheet.protection = sp
+
+
+def title_band(sheet, text, sub, span_cols):
+    sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=span_cols)
+    c = cell(sheet, 1, 1, text, bold=True, size=16, color="FFFFFF", bg=TITLE_FILL,
+             horizontal="left", border=None, locked=False)
+    c.alignment = Alignment(horizontal="left", vertical="center")
+    sheet.row_dimensions[1].height = 30
+    if sub:
+        sheet.merge_cells(start_row=2, start_column=1, end_row=2, end_column=span_cols)
+        c2 = cell(sheet, 2, 1, sub, size=9, italic=True, color="3D4A46",
+                  bg="EAF3EE", border=None, locked=False)
+        c2.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+        sheet.row_dimensions[2].height = 28
+
+
+def header_row(sheet, row, labels, bg=HEADER_FILL, start=1):
+    for i, lab in enumerate(labels):
+        cell(sheet, row, start + i, lab, bold=True, size=10, color="FFFFFF",
+             bg=bg, horizontal="center", wrap=True, locked=False)
+
+
+def add_dv(sheet, dv_type, formula1, ranges, allow_blank=True, error=True,
+           prompt=None, error_style=None):
+    # Normalize formula1: named ranges / cell ranges must not start with '='.
+    if isinstance(formula1, str) and formula1.startswith("=") and not formula1.startswith('="'):
+        formula1 = formula1[1:]
+    dv = DataValidation(type=dv_type, formula1=formula1, allow_blank=allow_blank)
+    if prompt:
+        dv.promptTitle = prompt
+        dv.prompt = prompt
+    dv.showErrorMessage = error
+    dv.showInputMessage = bool(prompt)
+    dv.showDropDown = False
+    if error_style:
+        dv.errorStyle = error_style
+    sheet.add_data_validation(dv)
+    if isinstance(ranges, str):
+        ranges = [x.strip() for x in ranges.split(",") if x.strip()]
+    for r in ranges:
+        dv.add(r)
+
+
+def set_widths(sheet, widths):
+    for i, w in enumerate(widths, start=1):
+        sheet.column_dimensions[get_column_letter(i)].width = w
+
+
+def money_col(ws, col_letter, first, last, extra=USD):
+    for r in range(first, last + 1):
+        ws[f"{col_letter}{r}"].number_format = extra
+
+
+
+# ════════════════════════════════════════════════════════════════════════
+#  FILE: settings.py
+# ════════════════════════════════════════════════════════════════════════
+
+"""Settings tab."""
+import re
+from openpyxl.workbook.defined_name import DefinedName
+from common import (cell, font, fill, align, q, T, USD, USD0, PCT, PCT0, DATE, NUM,
+                    SET, PASSWORD, LISTS, title_band, header_row, protect, set_widths,
+                    TITLE_FILL, HEADER_FILL, SECTION_FILL, INPUT_FILL, CALC_FILL,
+                    FAMILY, ACCOUNT_TYPES, CATEGORIES, SUBCATEGORIES, INCOME_SOURCES,
+                    PAY_FREQ, PAY_METHODS, TX_TYPES, BILL_FREQ, YES_NO, ESS_DISC,
+                    MONTHS, FILING, DEBT_TYPES, GOAL_TYPES, INVEST_TYPES)
+
+
+def name_for(display):
+    name = re.sub(r"[^A-Za-z0-9]+", "_", display)
+    return "L_" + name.strip("_")
+
+
+def build_settings(wb):
+    s = wb.create_sheet(SET)
+    s.sheet_view.showGridLines = False
+    set_widths(s, [24, 12, 20, 12, 20, 12, 20, 12, 20, 12, 20, 12, 20, 12,
+                   20, 12, 20, 12, 20, 12, 20, 12, 20, 12, 22])
+    title_band(s, "⚙️ Settings / Setup",
+               "Set once — every dropdown, formula and chart reads from here. Only the cream cells are editable.", 25)
+
+    cell(s, 4, 1, "REPORTING CONTROL", bold=True, bg=SECTION_FILL, locked=False)
+    cell(s, 4, 2, "", bg=SECTION_FILL, locked=False)
+    ctrl = [("Current Date", "=TODAY()", DATE),
+            ("Current Month", "=MONTH(B5)", NUM),
+            ("Current Year", "=YEAR(B5)", NUM)]
+    r = 5
+    for lab, formula, fmt in ctrl:
+        cell(s, r, 1, lab, bold=True, locked=False)
+        c = cell(s, r, 2, formula, bg=INPUT_FILL, numfmt=fmt, locked=True, horizontal="center")
+        c.font = font(bold=True, color="0B3D2E")
+        r += 1
+    cell(s, 8, 1, "Tip: the Dashboard uses 'Current Month' & 'Current Year' to pick the",
+         italic=True, size=9, color="3D4A46", locked=False, border=None)
+    cell(s, 9, 1, "reporting period automatically. Change the date to re-baseline it.",
+         italic=True, size=9, color="3D4A46", locked=False, border=None)
+
+    lists_spec = [
+        ("Family Members", FAMILY), ("Account Master", ACCOUNT_TYPES),
+        ("Categories", CATEGORIES), ("Subcategories", SUBCATEGORIES),
+        ("Income Sources", INCOME_SOURCES), ("Pay Frequencies", PAY_FREQ),
+        ("Account Types", ACCOUNT_TYPES), ("Payment Methods", PAY_METHODS),
+        ("Transaction Types", TX_TYPES), ("Bill Frequencies", BILL_FREQ),
+        ("Yes / No", YES_NO), ("Essential / Discretionary", ESS_DISC),
+        ("Months", MONTHS), ("Filing Status", FILING), ("Debt Types", DEBT_TYPES),
+        ("Goal Types", GOAL_TYPES), ("Investment Types", INVEST_TYPES),
+    ]
+    start_col, start_row = 1, 12
+    for i, (name, items) in enumerate(lists_spec):
+        col = start_col + i * 2
+        hdr_col = get_col(col)
+        cell(s, start_row, col, name, bold=True, bg=SECTION_FILL, horizontal="left", locked=False)
+        rr = start_row + 1
+        for item in items:
+            cell(s, rr, col, item, bg=INPUT_FILL, locked=False, size=9)
+            rr += 1
+        rng = f"{q(SET)}!${hdr_col}${start_row+1}:${hdr_col}${rr-1}"
+        LISTS[name] = rng
+        wb.defined_names.add(DefinedName(name_for(name), attr_text=rng))
+
+    wb.defined_names.add(DefinedName("C_Date", attr_text=f"{q(SET)}!$B$5"))
+    wb.defined_names.add(DefinedName("C_Month", attr_text=f"{q(SET)}!$B$6"))
+    wb.defined_names.add(DefinedName("C_Year", attr_text=f"{q(SET)}!$B$7"))
+
+    s.freeze_panes = "A3"
+    protect(s, allow_sort=False, allow_filter=False)
+    return s
+
+
+def get_col(idx):
+    from openpyxl.utils import get_column_letter
+    return get_column_letter(idx)
+
+
+
+# ════════════════════════════════════════════════════════════════════════
+#  FILE: ledger.py
+# ════════════════════════════════════════════════════════════════════════
+
+"""Income, Transactions, Bills & Accounts ledger tabs."""
+import datetime as dt
+from openpyxl.styles import PatternFill
+from common import (cell, font, fill, align, q, T, TXN, INC, BIL, ACC,
+                    USD, USD0, PCT, PCT0, DATE, NUM, PASSWORD, LISTS,
+                    title_band, header_row, protect, set_widths, add_dv, money_col,
+                    TITLE_FILL, HEADER_FILL, HEADER_FILL2, SECTION_FILL, INPUT_FILL,
+                    CALC_FILL, TOTAL_FILL, ALT_FILL, BOX, FAMILY, PAY_FREQ, ACCOUNT_TYPES,
+                    PAY_METHODS, TX_TYPES, BILL_FREQ, YES_NO, ESS_DISC, MONTHS,
+                    INCOME_SOURCES, CATEGORIES, SUBCATEGORIES)
+
+# data row counts
+TXN_LAST = 403
+INC_LAST = 203
+BIL_LAST = 303
+ACC_LAST = 103
+
+
+# ---------------------------------------------------------------------------
+# TRANSACTIONS
+# ---------------------------------------------------------------------------
+def build_transactions(wb):
+    s = wb.create_sheet(TXN)
+    set_widths(s, [11, 10, 16, 20, 22, 11, 15, 12, 11, 10, 14, 28, 11, 11, 7, 7, 7])
+    title_band(s, "💳 Transaction Ledger", "Your single source of truth. Enter each transaction once — the Dashboard, Budget and Analytics read from here. Cream cells are input.",
+               17)
+    hdr = ["Date", "Type", "Category", "Subcategory", "Merchant", "Amount",
+           "Account", "Payment Method", "Family Member", "Recurring?",
+           "Ess/Discretionary", "Notes", "Tax Deductible?", "Reimbursable?", "Month", "Year", "Day"]
+    header_row(s, 3, hdr)
+    s.freeze_panes = "A4"
+
+    # data rows + formulas
+    for r in range(4, TXN_LAST + 1):
+        cell(s, r, 1, None, bg=INPUT_FILL, numfmt=DATE, locked=False)
+        for c in range(2, 15):
+            cell(s, r, c, None, bg=INPUT_FILL, locked=False, wrap=(c == 12))
+        cell(s, r, 3, None, bg=INPUT_FILL, locked=False)
+        # Month / Year / Day formulas
+        cell(s, r, 15, f'=IF(A{r}="","",MONTH(A{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+        cell(s, r, 16, f'=IF(A{r}="","",YEAR(A{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+        cell(s, r, 17, f'=IF(A{r}="","",DAY(A{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+    money_col(s, "F", 4, TXN_LAST)
+
+    # validation
+    add_dv(s, "list", f"=L_Transaction_Types", f"B4:B{TXN_LAST}", allow_blank=True)
+    add_dv(s, "list", f"=L_Categories", f"C4:C{TXN_LAST}", allow_blank=True)
+    add_dv(s, "list", f"=L_Subcategories", f"D4:D{TXN_LAST}", allow_blank=True)
+    add_dv(s, "list", f"=L_Account_Types", f"G4:G{TXN_LAST}", allow_blank=True)
+    add_dv(s, "list", f"=L_Payment_Methods", f"H4:H{TXN_LAST}", allow_blank=True)
+    add_dv(s, "list", f"=L_Family_Members", f"I4:I{TXN_LAST}", allow_blank=True)
+    add_dv(s, "list", "L_Yes_No", f"J4:J{TXN_LAST},M4:M{TXN_LAST},N4:N{TXN_LAST}", allow_blank=True)
+    add_dv(s, "list", f"=L_Essential_Discretionary", f"K4:K{TXN_LAST}", allow_blank=True)
+
+    s.auto_filter.ref = f"A3:Q{TXN_LAST}"
+    add_cf(s)
+    protect(s, allow_sort=True, allow_filter=True)
+    add_sample_transactions(s)
+    return s
+
+
+def add_cf(s):
+    from openpyxl.formatting.rule import CellIsRule, FormulaRule, ColorScaleRule, DataBarRule
+    rng = f"F4:F{TXN_LAST}"
+    s.conditional_formatting.add(rng, DataBarRule(start_type="num", start_value=0,
+                                                  end_type="max", color="1F7A5C"))
+    # color the type cell by value
+    s.conditional_formatting.add(f"B4:B{TXN_LAST}",
+                                 CellIsRule(operator="equal", formula=['"Expense"'],
+                                            fill=PatternFill("solid", fgColor="F4CCCC"),
+                                            font=font(color="9C0006")))
+    s.conditional_formatting.add(f"B4:B{TXN_LAST}",
+                                 CellIsRule(operator="equal", formula=['"Income"'],
+                                            fill=PatternFill("solid", fgColor="D9EAD3"),
+                                            font=font(color="006100")))
+
+
+def add_sample_transactions(s):
+    random = __import__("random"); random.seed(7)
+    today = dt.date.today()
+    y, m = today.year, today.month
+    # months to cover: current + previous 4, plus some of previous year
+    months = []
+    for back in range(6):
+        yy, mm = y, m - back
+        while mm <= 0:
+            mm += 12; yy -= 1
+        months.append((yy, mm))
+    # use only months of the current year for YTD coherence
+    months = [x for x in months if x[0] == y or (x[0] == y - 1 and x[1] >= 12)]
+    if y == today.year and (today.month - 5) <= 0:
+        months = [(y, mm) for mm in range(1, m + 1)]
+
+    merchants = {
+        "Housing": [("Mortgage/Rent", "Home Mortgage"), ("Utilities", "Utility Co"),
+                    ("Utilities", "Water & Sewer"), ("Utilities", "Electric Co"),
+                    ("Home Insurance", "HomeSure Insurance"), ("Repairs/Maintenance", "Handyman")],
+        "Transportation": [("Gas", "Shell"), ("Auto Insurance", "GEICO"),
+                           ("Maintenance/Repairs", "Auto Shop"), ("Car Payments", "Auto Finance"),
+                           ("Parking/Tolls", "City Parking")],
+        "Food": [("Groceries", "Kroger"), ("Groceries", "Walmart"), ("Groceries", "Costco"),
+                 ("Restaurants", "Olive Garden"), ("Takeout/Delivery", "DoorDash"),
+                 ("Coffee", "Starbucks"), ("Restaurants", "Local Diner")],
+        "Family": [("Childcare", "Bright Horizons"), ("School", "School District"),
+                   ("Activities/Sports", "Soccer League"), ("Clothing", "Target"),
+                   ("Allowances", "Kids Allowance"), ("Baby Expenses", "Buy Buy Baby")],
+        "Healthcare": [("Health Insurance", "BCBS"), ("Prescriptions", "CVS Pharmacy"),
+                       ("Medical Expenses", "Dr. Office"), ("Dental", "Dental Care")],
+        "Lifestyle": [("Entertainment", "AMC"), ("Subscriptions", "Netflix"),
+                      ("Subscriptions", "Spotify"), ("Subscriptions", "Amazon Prime"),
+                      ("Hobbies", "Hobby Shop"), ("Personal Care", "Ulta"), ("Shopping", "Amazon")],
+        "Financial": [("Credit Cards", "Capital One"), ("Student Loans", "Navient"),
+                      ("Savings", "Transfer to Savings"), ("Investments", "Vanguard"),
+                      ("Retirement", "401(k) Contribution")],
+        "Giving": [("Charity", "Red Cross"), ("Gifts", "Amazon Gift")],
+        "Pets": [("Food", "PetSmart"), ("Vet", "Banfield")],
+        "Miscellaneous": [("Fees", "Bank Fee")],
+    }
+    amounts = {"Mortgage/Rent": 1850, "Utilities": 190, "Water & Sewer": 55, "Electric Co": 145,
+               "Home Insurance": 120, "Repairs/Maintenance": 90, "Gas": 58, "Auto Insurance": 130,
+               "Maintenance/Repairs": 120, "Car Payments": 420, "Parking/Tolls": 45,
+               "Groceries": 210, "Walmart": 95, "Costco": 180, "Restaurants": 62,
+               "Takeout/Delivery": 38, "Coffee": 7, "Local Diner": 48,
+               "Childcare": 950, "School District": 60, "Soccer League": 85, "Target": 55,
+               "Kids Allowance": 20, "Buy Buy Baby": 45, "Health Insurance": 420,
+               "CVS Pharmacy": 22, "Dr. Office": 40, "Dental Care": 30,
+               "AMC": 32, "Netflix": 15.5, "Spotify": 11, "Amazon Prime": 14.5,
+               "Hobby Shop": 25, "Ulta": 40, "Amazon": 63, "Capital One": 210,
+               "Navient": 220, "Transfer to Savings": 400, "Vanguard": 300,
+               "401(k) Contribution": 500, "Red Cross": 30, "Amazon Gift": 45,
+               "PetSmart": 60, "Banfield": 55, "Bank Fee": 12, "Handyman": 150}
+    accounts = ["Checking", "Savings", "Credit Card", "HYSA"]
+    paymed = {"Checking": "Checking", "Savings": "Savings", "Credit Card": "Credit Card",
+              "HYSA": "Cash"}
+    members = ["Parent 1", "Parent 2", "Household"]
+    ess = {"Groceries": "Essential", "Walmart": "Essential", "Costco": "Essential",
+           "Utilities": "Essential", "Water & Sewer": "Essential", "Electric Co": "Essential",
+           "Gas": "Essential", "Auto Insurance": "Essential", "Childcare": "Essential",
+           "School District": "Essential", "Health Insurance": "Essential",
+           "CVS Pharmacy": "Essential", "Dr. Office": "Essential", "Dental Care": "Essential",
+           "Mortgage/Rent": "Essential", "Home Insurance": "Essential",
+           "Car Payments": "Essential", "Maintenance/Repairs": "Essential",
+           "Transfer to Savings": "Essential", "401(k) Contribution": "Essential"}
+    recurring = {"Mortgage/Rent": "Yes", "Home Insurance": "Yes", "Car Payments": "Yes",
+                 "Auto Insurance": "Yes", "Childcare": "Yes", "Health Insurance": "Yes",
+                 "Netflix": "Yes", "Spotify": "Yes", "Amazon Prime": "Yes",
+                 "Student Loans": "Yes", "Navient": "Yes", "Transfer to Savings": "Yes",
+                 "Vanguard": "Yes", "401(k) Contribution": "Yes", "Utilities": "Yes"}
+
+    rows = []
+    # Build ~9 transactions per month for the covered months
+    for (yy, mm) in months:
+        day_count = (dt.date(yy, mm + 1, 1) - dt.date(yy, mm, 1)).days if mm < 12 else 31
+        ndays = (dt.date(yy, mm + 1, 1) - dt.date(yy, mm, 1)).days
+        for cat, sublist in merchants.items():
+            for sub, merch in sublist:
+                # occasionally skip to vary monthly totals
+                if random.random() < 0.18:
+                    continue
+                max_day = min(ndays, 27)
+                d = random.randint(3, max_day)
+                amt = amounts.get(merch, round(random.uniform(20, 150), 2))
+                amt = round(amt * random.uniform(0.85, 1.1), 2)
+                date_obj = dt.date(yy, mm, d)
+                acc = random.choice(accounts)
+                rows.append((date_obj, "Expense", cat, sub, merch, amt, acc,
+                             paymed[acc], random.choice(members),
+                             recurring.get(merch, "No"), ess.get(merch, "Discretionary"),
+                             "", "No", "No"))
+    rows.sort(key=lambda x: x[0])
+    # write into sheet
+    r = 4
+    for row in rows:
+        if r > TXN_LAST:
+            break
+        cell(s, r, 1, row[0], bg=INPUT_FILL, numfmt=DATE, locked=False)
+        for i, val in enumerate(row[1:], start=2):
+            cell(s, r, i, val, bg=INPUT_FILL, locked=False, wrap=(i == 12))
+        r += 1
+
+
+# ---------------------------------------------------------------------------
+# INCOME
+# ---------------------------------------------------------------------------
+def build_income(wb):
+    s = wb.create_sheet(INC)
+    set_widths(s, [13, 18, 13, 11, 11, 11, 11, 11, 11, 12, 11, 13, 12, 24, 7, 7, 7])
+    title_band(s, "💰 Income Tracker", "List every paycheck & income stream. Net take-home is auto-computed from gross minus deductions.",
+               17)
+    hdr = ["Earner", "Source", "Pay Frequency", "Pay Date", "Gross", "Federal Tax",
+           "State/Local Tax", "Social Security Tax", "Medicare Tax", "401(k)/403(b)",
+           "HSA/FSA", "Other Deductions", "Net Take-Home", "Remarks", "Month", "Year", "Day"]
+    header_row(s, 3, hdr)
+    s.freeze_panes = "A4"
+    for r in range(4, INC_LAST + 1):
+        for c in range(1, 15):
+            cell(s, r, c, None, bg=INPUT_FILL, locked=False, wrap=(c == 14))
+        for c in (5, 6, 7, 8, 9, 10, 11, 12):
+            cell(s, r, c, None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 13, f'=IF(E{r}="","",E{r}-SUM(F{r}:L{r}))', bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 15, f'=IF(D{r}="","",MONTH(D{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+        cell(s, r, 16, f'=IF(D{r}="","",YEAR(D{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+        cell(s, r, 17, f'=IF(D{r}="","",DAY(D{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+    add_dv(s, "list", f"=L_Family_Members", f"A4:A{INC_LAST}", allow_blank=True)
+    add_dv(s, "list", f"=L_Income_Sources", f"B4:B{INC_LAST}", allow_blank=True)
+    add_dv(s, "list", f"=L_Pay_Frequencies", f"C4:C{INC_LAST}", allow_blank=True)
+    s.auto_filter.ref = f"A3:Q{INC_LAST}"
+    protect(s, allow_sort=True, allow_filter=True)
+    add_sample_income(s)
+    return s
+
+
+def add_sample_income(s):
+    today = dt.date.today()
+    y, m = today.year, today.month
+    months = [(y, mm) for mm in range(1, m + 1)]
+    rows = []
+    freq = {"Weekly": 1, "Biweekly": 2, "Twice Monthly": 2, "Monthly": 1}
+    for (yy, mm) in months:
+        # Parent 1: biweekly salary, 2 paychecks
+        for pay in (5, 19):
+            rows.append((yy, mm, pay, "Parent 1", "Salary", "Biweekly", 2600, 210, 95, 161, 38, 260, 0, 60))
+        # Parent 2: twice monthly
+        for pay in (8, 23):
+            rows.append((yy, mm, pay, "Parent 2", "Salary", "Twice Monthly", 1720, 140, 62, 107, 25, 170, 0, 40))
+        # side income
+        if mm in (m, m - 1):
+            rows.append((yy, mm, 20, "Parent 1", "Freelance/Side Hustle", "Irregular", 650, 0, 0, 0, 0, 0, 0, 0))
+    for (yy, mm, d, earner, src, fr, gross, fed, state, ss, medic, k, hsa, oth) in rows:
+        date_obj = dt.date(yy, mm, d)
+        if date_obj > dt.date.today():
+            continue
+        r = 4
+        while s.cell(row=r, column=1).value is not None and r < INC_LAST:
+            r += 1
+        cell(s, r, 1, earner, bg=INPUT_FILL, locked=False)
+        cell(s, r, 2, src, bg=INPUT_FILL, locked=False)
+        cell(s, r, 3, fr, bg=INPUT_FILL, locked=False)
+        cell(s, r, 4, date_obj, bg=INPUT_FILL, numfmt=DATE, locked=False)
+        for i, v in enumerate([gross, fed, state, ss, medic, k, hsa, oth], start=5):
+            cell(s, r, i, v, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 14, "", bg=INPUT_FILL, locked=False)
+
+
+# ---------------------------------------------------------------------------
+# BILLS & SUBSCRIPTIONS
+# ---------------------------------------------------------------------------
+def build_bills(wb):
+    s = wb.create_sheet(BIL)
+    set_widths(s, [24, 11, 11, 14, 16, 15, 10, 8, 26, 12, 7, 7, 7])
+    title_band(s, "🧾 Bills & Subscriptions Calendar", "Track every recurring payment. Annual cost & next month computation are automatic.",
+               13)
+    hdr = ["Bill Name", "Amount", "Due Date", "Frequency", "Category", "Account Charged",
+           "Autopay?", "Paid?", "Notes", "Annual Cost", "Month", "Year", "Day"]
+    header_row(s, 3, hdr)
+    s.freeze_panes = "A4"
+    for r in range(4, BIL_LAST + 1):
+        for c in range(1, 10):
+            cell(s, r, c, None, bg=INPUT_FILL, locked=False, wrap=(c == 9))
+        cell(s, r, 2, None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 3, None, bg=INPUT_FILL, numfmt=DATE, locked=False)
+        cell(s, r, 10, f'=IF(C{r}="","",IF(D{r}="Monthly",B{r}*12,IF(D{r}="Weekly",B{r}*52,IF(D{r}="Biweekly",B{r}*26,IF(D{r}="Twice Monthly",B{r}*24,IF(D{r}="Quarterly",B{r}*4,IF(D{r}="Annually",B{r},IF(D{r}="One-time",B{r},""))))))))',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 11, f'=IF(C{r}="","",MONTH(C{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+        cell(s, r, 12, f'=IF(C{r}="","",YEAR(C{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+        cell(s, r, 13, f'=IF(C{r}="","",DAY(C{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+    add_dv(s, "list", f"=L_Bill_Frequencies", f"D4:D{BIL_LAST}", allow_blank=True)
+    add_dv(s, "list", f"=L_Categories", f"E4:E{BIL_LAST}", allow_blank=True)
+    add_dv(s, "list", f"=L_Account_Types", f"F4:F{BIL_LAST}", allow_blank=True)
+    add_dv(s, "list", "L_Yes_No", f"G4:G{BIL_LAST},H4:H{BIL_LAST}", allow_blank=True)
+    s.auto_filter.ref = f"A3:M{BIL_LAST}"
+    protect(s, allow_sort=True, allow_filter=True)
+    add_sample_bills(s)
+    return s
+
+
+def add_sample_bills(s):
+    today = dt.date.today()
+    y, m = today.year, today.month
+    bills = [("Home Mortgage", 1850, 1, "Monthly", "Housing", "Checking", "Yes", "Yes"),
+             ("Electric", 145, 8, "Monthly", "Housing", "Checking", "Autopay", "Yes"),
+             ("Internet", 60, 12, "Monthly", "Housing", "Credit Card", "Autopay", "Yes"),
+             ("Water & Sewer", 55, 15, "Monthly", "Housing", "Checking", "Autopay", "Yes"),
+             ("Home Insurance", 120, 20, "Monthly", "Housing", "Checking", "Autopay", "Yes"),
+             ("Auto Insurance", 130, 22, "Monthly", "Transportation", "Credit Card", "Autopay", "Yes"),
+             ("Cell Phone", 90, 25, "Monthly", "Lifestyle", "Credit Card", "Autopay", "Yes"),
+             ("Netflix", 15.5, 5, "Monthly", "Lifestyle", "Credit Card", "Autopay", "Yes"),
+             ("Spotify", 11, 6, "Monthly", "Lifestyle", "Credit Card", "Autopay", "Yes"),
+             ("Amazon Prime", 14.5, 7, "Annually", "Lifestyle", "Credit Card", "Autopay", "Yes"),
+             ("Gym Membership", 45, 3, "Monthly", "Lifestyle", "Credit Card", "Autopay", "No"),
+             ("Student Loan", 220, 18, "Monthly", "Financial", "Checking", "Autopay", "Yes"),
+             ("Property Tax", 250, 30, "Annually", "Housing", "Checking", "No", "No"),
+             ("Life Insurance", 55, 10, "Monthly", "Healthcare", "Checking", "Autopay", "Yes")]
+    r = 4
+    for name, amt, dd, freq, cat, acc, auto, paid in bills:
+        if r > BIL_LAST:
+            break
+        due = dt.date(y, m, min(dd, 28))
+        if auto == "Autopay":
+            auto = "Yes"
+        cell(s, r, 1, name, bg=INPUT_FILL, locked=False)
+        cell(s, r, 2, amt, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 3, due, bg=INPUT_FILL, numfmt=DATE, locked=False)
+        cell(s, r, 4, freq, bg=INPUT_FILL, locked=False)
+        cell(s, r, 5, cat, bg=INPUT_FILL, locked=False)
+        cell(s, r, 6, acc, bg=INPUT_FILL, locked=False)
+        cell(s, r, 7, auto, bg=INPUT_FILL, locked=False)
+        cell(s, r, 8, paid, bg=INPUT_FILL, locked=False)
+        cell(s, r, 9, "", bg=INPUT_FILL, locked=False)
+        r += 1
+
+
+# ---------------------------------------------------------------------------
+# ACCOUNTS
+# ---------------------------------------------------------------------------
+def build_accounts(wb):
+    s = wb.create_sheet(ACC)
+    set_widths(s, [24, 16, 13, 14, 12, 14, 12, 12, 7, 7, 24])
+    title_band(s, "🏦 Account Tracker", "Every household account with current balance, limits and rates. Available credit is auto-computed.",
+               11)
+    hdr = ["Account Name", "Account Type", "Owner", "Current Balance", "Credit Limit",
+           "Available Credit", "Rate / APY", "Last Updated", "Month", "Year", "Notes"]
+    header_row(s, 3, hdr)
+    s.freeze_panes = "A4"
+    for r in range(4, ACC_LAST + 1):
+        for c in range(1, 12):
+            cell(s, r, c, None, bg=INPUT_FILL, locked=False, wrap=(c == 11))
+        cell(s, r, 4, None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 5, None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 6, f'=IF(E{r}="","",IF(E{r}=0,"",E{r}-ABS(D{r})))', bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 7, None, bg=INPUT_FILL, numfmt=PCT, locked=False)
+        cell(s, r, 8, None, bg=INPUT_FILL, numfmt=DATE, locked=False)
+        cell(s, r, 9, f'=IF(H{r}="","",MONTH(H{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+        cell(s, r, 10, f'=IF(H{r}="","",YEAR(H{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+    add_dv(s, "list", f"=L_Account_Types", f"B4:B{ACC_LAST}", allow_blank=True)
+    add_dv(s, "list", f"=L_Family_Members", f"C4:C{ACC_LAST}", allow_blank=True)
+    s.auto_filter.ref = f"A3:K{ACC_LAST}"
+    protect(s, allow_sort=True, allow_filter=True)
+    add_sample_accounts(s)
+    return s
+
+
+def add_sample_accounts(s):
+    today = dt.date.today()
+    y, m = today.year, today.month
+    accts = [("Chase Checking", "Checking", "Parent 1", 9200, 0, 0, 10, "Checking"),
+             ("Wells Fargo Checking", "Checking", "Parent 2", 4300, 0, 0, 10, "Checking"),
+             ("Ally Savings", "Savings", "Household", 14500, 0, 0.042, 20, "Savings"),
+             ("Ally HYSA", "HYSA", "Household", 28000, 0, 0.047, 21, "Savings"),
+             ("Cash", "Cash", "Household", 450, 0, 0, 26, "Cash"),
+             ("Capital One Credit", "Credit Card", "Parent 1", 2100, 12000, 0.2499, 15, "Credit Card"),
+             ("Visa Credit", "Credit Card", "Parent 2", 830, 6000, 0.2299, 18, "Credit Card"),
+             ("401(k) - Fidelity", "401(k)", "Parent 1", 128000, 0, 0.07, 28, "Retirement"),
+             ("403(b) - TIAA", "403(b)", "Parent 2", 76000, 0, 0.065, 28, "Retirement"),
+             ("Roth IRA", "Roth IRA", "Parent 1", 24000, 0, 0.06, 28, "Retirement"),
+             ("Brokerage - Vanguard", "Brokerage", "Parent 1", 54000, 0, 0.0, 28, "Investment"),
+             ("529 - College", "529", "Child 1", 21000, 0, 0.05, 28, "Education"),
+             ("HSA - Fidelity", "HSA", "Parent 1", 9800, 0, 0.03, 28, "Retirement"),
+             ("CD - 12 mo", "CD", "Household", 10000, 0, 0.048, 28, "Savings")]
+    r = 4
+    for name, atype, owner, bal, lim, rate, dd, note in accts:
+        if r > ACC_LAST:
+            break
+        last = dt.date(y, m, min(dd, 28))
+        cell(s, r, 1, name, bg=INPUT_FILL, locked=False)
+        cell(s, r, 2, atype, bg=INPUT_FILL, locked=False)
+        cell(s, r, 3, owner, bg=INPUT_FILL, locked=False)
+        cell(s, r, 4, bal, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 5, lim if lim else None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 7, rate if rate else None, bg=INPUT_FILL, numfmt=PCT, locked=False)
+        cell(s, r, 8, last, bg=INPUT_FILL, numfmt=DATE, locked=False)
+        cell(s, r, 11, note, bg=INPUT_FILL, locked=False)
+        r += 1
+
+
+
+# ════════════════════════════════════════════════════════════════════════
+#  FILE: planner.py
+# ════════════════════════════════════════════════════════════════════════
+
+"""Debt Manager, Goals & Sinking Funds, Savings & Investments, Home & Mortgage, Vehicles."""
+from openpyxl.utils import get_column_letter
+from common import (cell, font, fill, align, q, T, DBT, GOL, INV, HOM, VEH, ACC,
+                    USD, USD0, PCT, PCT0, DATE, NUM, PASSWORD, LISTS,
+                    title_band, header_row, protect, set_widths, add_dv, money_col,
+                    TITLE_FILL, HEADER_FILL, HEADER_FILL2, SECTION_FILL, INPUT_FILL,
+                    CALC_FILL, TOTAL_FILL, ALT_FILL, BOX, FAMILY, DEBT_TYPES, GOAL_TYPES,
+                    INVEST_TYPES, ACCOUNT_TYPES, YES_NO)
+
+DBT_FIRST, DBT_LAST = 8, 107
+GOL_LAST = 103
+INV_FIRST, INV_LAST = 5, 20
+VEH_LAST = 33
+
+
+# ---------------------------------------------------------------------------
+# DEBT MANAGER
+# ---------------------------------------------------------------------------
+def build_debt(wb):
+    s = wb.create_sheet(DBT)
+    set_widths(s, [22, 20, 14, 13, 13, 11, 13, 13, 11, 7, 7, 7, 12, 12, 14, 22, 10, 10])
+    title_band(s, "💸 Debt Payoff Planner", "Snowball & avalanche strategies built in. Interest saved and debt-free date are auto-estimated.",
+               18)
+
+    # Summary block
+    cell(s, 4, 1, "DEBT SUMMARY", bold=True, bg=SECTION_FILL, locked=False)
+    cell(s, 5, 1, "Total Debt", bold=True, locked=False)
+    cell(s, 5, 2, f"=SUM(D{DBT_FIRST}:D{DBT_LAST})", bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, 6, 1, "Total Minimum Payment", bold=True, locked=False)
+    cell(s, 6, 2, f"=SUM(G{DBT_FIRST}:G{DBT_LAST})", bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, 7, 1, "Total Extra Payment", bold=True, locked=False)
+    cell(s, 7, 2, f"=SUM(H{DBT_FIRST}:H{DBT_LAST})", bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, 8, 1, "Est. Interest Remaining", bold=True, locked=False)
+    cell(s, 8, 2, f"=SUM(O{DBT_FIRST}:O{DBT_LAST})", bg=CALC_FILL, numfmt=USD, locked=True)
+
+    hdr = ["Debt Name", "Account / Creditor", "Debt Type", "Current Balance", "Original Balance",
+           "APR", "Minimum Payment", "Extra Payment", "Due Date", "Month", "Year", "Day",
+           "Payoff Date", "Months to Payoff", "Est. Interest Remaining", "Notes",
+           "Snowball Order", "Avalanche Order"]
+    header_row(s, 10, hdr)
+    s.freeze_panes = "A11"
+
+    for r in range(DBT_FIRST, DBT_LAST + 1):
+        for c in range(1, 10):
+            cell(s, r, c, None, bg=INPUT_FILL, locked=False, wrap=(c == 16))
+        for c in (4, 5, 7, 8):
+            cell(s, r, c, None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 6, None, bg=INPUT_FILL, numfmt=PCT, locked=False)
+        cell(s, r, 9, None, bg=INPUT_FILL, numfmt=DATE, locked=False)
+        cell(s, r, 10, f'=IF(I{r}="","",MONTH(I{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+        cell(s, r, 11, f'=IF(I{r}="","",YEAR(I{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+        cell(s, r, 12, f'=IF(I{r}="","",DAY(I{r}))', bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+        cell(s, r, 14, f'=IF(D{r}="","",IFERROR(NPER(F{r}/12,-(G{r}+H{r}),D{r}),""))',
+             bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+        cell(s, r, 13, f'=IF(N{r}="","",EDATE(TODAY(),ROUNDUP(N{r},0)))', bg=CALC_FILL, numfmt=DATE, locked=True)
+        cell(s, r, 15, f'=IF(N{r}="","",(G{r}+H{r})*N{r}-D{r})', bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 17, f'=IF(D{r}="","",RANK(D{r},$D${DBT_FIRST}:$D${DBT_LAST},1))',
+             bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+        cell(s, r, 18, f'=IF(F{r}="","",RANK(F{r},$F${DBT_FIRST}:$F${DBT_LAST},0))',
+             bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+
+    add_dv(s, "list", f"=L_Debt_Types", f"C{DBT_FIRST}:C{DBT_LAST}", allow_blank=True)
+    add_dv(s, "list", f"=L_Account_Types", f"B{DBT_FIRST}:B{DBT_LAST}", allow_blank=True)
+    s.auto_filter.ref = f"A10:R{DBT_LAST}"
+    protect(s, allow_sort=True, allow_filter=True)
+    add_sample_debt(s)
+    return s
+
+
+def add_sample_debt(s):
+    date = __import__("datetime").date
+    today = date.today()
+    y, m = today.year, today.month
+    debts = [("Visa Credit", "Capital One", "Credit Card", 2100, 2500, 0.2499, 63, 150, 15),
+             ("Mastercard", "Bank of America", "Credit Card", 830, 2000, 0.2299, 28, 50, 18),
+             ("Student Loan", "Navient", "Student Loan", 14500, 25000, 0.045, 220, 100, 5),
+             ("Auto Loan", "Toyota Finance", "Auto Loan", 14800, 26000, 0.055, 420, 100, 12),
+             ("Personal Loan", "SoFi", "Personal Loan", 5800, 8000, 0.089, 145, 50, 10)]
+    r = DBT_FIRST
+    for name, acct, dtype, bal, orig, apr, minp, extra, dd in debts:
+        if r > DBT_LAST:
+            break
+        due = date(y, m, min(dd, 28))
+        cell(s, r, 1, name, bg=INPUT_FILL, locked=False)
+        cell(s, r, 2, acct, bg=INPUT_FILL, locked=False)
+        cell(s, r, 3, dtype, bg=INPUT_FILL, locked=False)
+        cell(s, r, 4, bal, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 5, orig, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 6, apr, bg=INPUT_FILL, numfmt=PCT, locked=False)
+        cell(s, r, 7, minp, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 8, extra, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 9, due, bg=INPUT_FILL, numfmt=DATE, locked=False)
+        cell(s, r, 16, "", bg=INPUT_FILL, locked=False)
+        r += 1
+
+
+# ---------------------------------------------------------------------------
+# GOALS & SINKING FUNDS
+# ---------------------------------------------------------------------------
+def build_goals(wb):
+    s = wb.create_sheet(GOL)
+    set_widths(s, [24, 18, 13, 13, 14, 12, 13, 12, 15, 13, 24])
+    title_band(s, "🎯 Financial Goals & Sinking Funds", "Unlimited goals with auto % complete, per-paycheck amount and projected completion date.",
+               11)
+    hdr = ["Goal Name", "Goal Type", "Target", "Current Saved", "Monthly Contribution",
+           "Deadline", "Per Paycheck", "% Complete", "Monthly Needed", "Projected Completion", "Notes"]
+    header_row(s, 3, hdr)
+    s.freeze_panes = "A4"
+    for r in range(4, GOL_LAST + 1):
+        for c in range(1, 12):
+            cell(s, r, c, None, bg=INPUT_FILL, locked=False, wrap=(c == 11))
+        for c in (3, 4, 5):
+            cell(s, r, c, None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 6, None, bg=INPUT_FILL, numfmt=DATE, locked=False)
+        cell(s, r, 7, f'=IF(E{r}="","",E{r}/2)', bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 8, f'=IF(C{r}="","",IF(C{r}=0,"",D{r}/C{r}))', bg=CALC_FILL, numfmt=PCT, locked=True)
+        cell(s, r, 9, f'=IF(OR(C{r}="",F{r}=""),"",IF(D{r}>=C{r},0,IFERROR((C{r}-D{r})/MAX(1,DATEDIF(TODAY(),F{r},"m")),"")))',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 10, f'=IF(E{r}="","",IF(D{r}>=C{r},"Done",IFERROR(EDATE(TODAY(),(C{r}-D{r})/E{r}),"")))',
+             bg=CALC_FILL, numfmt=DATE, locked=True)
+    add_dv(s, "list", f"=L_Goal_Types", f"B4:B{GOL_LAST}", allow_blank=True)
+    s.auto_filter.ref = f"A3:K{GOL_LAST}"
+    protect(s, allow_sort=True, allow_filter=True)
+    add_sample_goals(s)
+    return s
+
+
+def add_sample_goals(s):
+    today = __import__("datetime").date.today()
+    y, m = today.year, today.month
+    goals = [("Emergency Fund", "Emergency Fund", 60000, 42500, 500, "401k"),
+             ("Christmas 2026", "Christmas", 2500, 900, 150, "401k"),
+             ("Family Vacation", "Vacation", 8000, 2200, 400, "401k"),
+             ("New Car Fund", "Major Purchase", 20000, 5000, 500, "401k"),
+             ("Home Renovation", "Home Repairs", 15000, 3000, 300, "401k"),
+             ("College - Child 1", "College", 50000, 21000, 300, "401k")]
+    r = 4
+    for name, gtype, target, cur, monthly, ddl in goals:
+        if r > GOL_LAST:
+            break
+        cell(s, r, 1, name, bg=INPUT_FILL, locked=False)
+        cell(s, r, 2, gtype, bg=INPUT_FILL, locked=False)
+        cell(s, r, 3, target, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 4, cur, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 5, monthly, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 6, __import__("datetime").date(y, 12, 31), bg=INPUT_FILL, numfmt=DATE, locked=False)
+        cell(s, r, 11, "", bg=INPUT_FILL, locked=False)
+        r += 1
+
+
+# ---------------------------------------------------------------------------
+# SAVINGS & INVESTMENTS
+# ---------------------------------------------------------------------------
+INVEST_MAP = {
+    "Emergency Fund": ["HYSA", "Savings"], "401(k)": ["401(k)"], "403(b)": ["403(b)"],
+    "IRA": ["IRA"], "Roth IRA": ["Roth IRA"], "Brokerage": ["Brokerage"], "HSA": ["HSA"],
+    "529": ["529"], "CD": ["CD"], "HYSA": ["HYSA"], "Savings": ["Savings"],
+    "Cash": ["Cash"], "Checking": ["Checking"],
+}
+
+
+def balance_formula(types):
+    acc = q(ACC)
+    parts = [f'SUMIF({acc}!$B$4:$B$103,"{t}",{acc}!$D$4:$D$103)' for t in types]
+    return "=" + "+".join(parts)
+
+
+def build_savings(wb):
+    s = wb.create_sheet(INV)
+    set_widths(s, [18, 15, 15, 14, 15, 15, 14, 15, 12, 24])
+    title_band(s, "📈 Savings & Investments", "Current balances pull automatically from the Account Tracker. Track contributions, employer match and goal progress.",
+               10)
+    hdr = ["Investment Type", "Current Balance", "Monthly Contribution", "YTD Contributions",
+           "Employer Match %", "Employer Match $", "Annual Max", "Goal", "Progress", "Notes"]
+    header_row(s, 3, hdr)
+    s.freeze_panes = "A4"
+    row = INV_FIRST
+    for inv in INVEST_TYPES:
+        if inv in INVEST_MAP:
+            bal = balance_formula(INVEST_MAP[inv])
+        else:
+            bal = ""
+        cell(s, row, 1, inv, bg=INPUT_FILL, locked=False)
+        cell(s, row, 2, bal, bg=CALC_FILL, numfmt=USD, locked=True)
+        for c in (3, 4, 8):
+            cell(s, row, c, None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, row, 5, None, bg=INPUT_FILL, numfmt=PCT, locked=False)
+        cell(s, row, 6, f'=IF(AND(C{row}="",E{row}=""),"",IFERROR(C{row}*E{row},0))', bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, row, 7, None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, row, 9, f'=IF(OR(B{row}="",H{row}=""),"",IF(H{row}=0,"",B{row}/H{row}))', bg=CALC_FILL, numfmt=PCT, locked=True)
+        cell(s, row, 10, None, bg=INPUT_FILL, locked=False)
+        row += 1
+    # totals
+    trow = row + 1
+    cell(s, trow, 1, "TOTAL", bold=True, bg=TOTAL_FILL, locked=False)
+    cell(s, trow, 2, f"=SUM(B{INV_FIRST}:B{row-1})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+    cell(s, trow, 3, f"=SUM(C{INV_FIRST}:C{row-1})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+    cell(s, trow, 6, f"=SUM(F{INV_FIRST}:F{row-1})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+    protect(s, allow_sort=False, allow_filter=False)
+    return s
+
+
+# ---------------------------------------------------------------------------
+# HOME & MORTGAGE
+# ---------------------------------------------------------------------------
+def build_home(wb):
+    s = wb.create_sheet(HOM)
+    set_widths(s, [30, 16, 14, 14, 14])
+    title_band(s, "🏡 Home & Mortgage", "Home equity, total monthly cost and a full mortgage amortization schedule — all auto-calculated.",
+               5)
+    inputs = [
+        ("Home Value", "B5", None, None),
+        ("Annual Property Tax", "B6", None, "B5"),
+        ("Monthly HOA", "B7", None, "B5"),
+        ("Annual Home Insurance", "B8", None, "B5"),
+        ("Monthly Maintenance (avg)", "B9", None, "B5"),
+        ("Mortgage Balance", "B10", None, "B5"),
+        ("Interest Rate (APR)", "B11", PCT, "B5"),
+        ("Loan Term (years)", "B12", NUM, "B5"),
+    ]
+    cell(s, 4, 1, "HOME / MORTGAGE INPUTS", bold=True, bg=SECTION_FILL, locked=False)
+    r = 5
+    for lab, _ref, fmt, _guard in inputs:
+        cell(s, r, 1, lab, bold=True, locked=False)
+        cell(s, r, 2, None, bg=INPUT_FILL, numfmt=fmt, locked=False)
+        r += 1
+    # sample values (replace with your own)
+    sample = [420000, 5000, 90, 1400, 150, 285000, 0.055, 30]
+    for i, v in enumerate(sample):
+        cell(s, 5 + i, 2, v, bg=INPUT_FILL, numfmt=inputs[i][2], locked=False)
+    # results
+    cell(s, 13, 1, "Monthly P&I Payment", bold=True, locked=False)
+    cell(s, 13, 2, "=IFERROR(-PMT(B11/12,B12*12,B10),0)", bg=CALC_FILL, numfmt=USD, locked=True, bold=True)
+    cell(s, 14, 1, "Monthly Escrow (Tax+Ins+HOA)", bold=True, locked=False)
+    cell(s, 14, 2, "=IFERROR(B6/12+B8/12+B7,0)", bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, 15, 1, "Total Monthly Housing Cost", bold=True, locked=False)
+    cell(s, 15, 2, "=B13+B14+B9", bg=CALC_FILL, numfmt=USD, locked=True, bold=True)
+    cell(s, 16, 1, "Annual Carrying Cost", bold=True, locked=False)
+    cell(s, 16, 2, "=B15*12", bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, 17, 1, "Home Equity", bold=True, locked=False)
+    cell(s, 17, 2, "=B5-B10", bg=CALC_FILL, numfmt=USD, locked=True, bold=True)
+    cell(s, 18, 1, "Loan % Paid", bold=True, locked=False)
+    cell(s, 18, 2, '=IF(OR(B10="",B5=""),"",1-B10/B5)', bg=CALC_FILL, numfmt=PCT, locked=True)
+    cell(s, 19, 1, "Months Remaining", bold=True, locked=False)
+    cell(s, 19, 2, "=IFERROR(NPER(B11/12,-B13,B10),\"\")", bg=CALC_FILL, numfmt=NUM, locked=True)
+    cell(s, 20, 1, "Projected Payoff Date", bold=True, locked=False)
+    cell(s, 20, 2, '=IFERROR(EDATE(TODAY(),ROUNDUP(B19,0)),"")', bg=CALC_FILL, numfmt=DATE, locked=True)
+
+    # amortization table
+    ah = 22
+    s.merge_cells(start_row=ah, start_column=1, end_row=ah, end_column=5)
+    c = cell(s, ah, 1, "MORTGAGE AMORTIZATION SCHEDULE", bold=True, bg=SECTION_FILL, locked=False)
+    c.alignment = align(horizontal="center")
+    header_row(s, ah + 1, ["Payment #", "Payment", "Interest", "Principal", "Balance"])
+    s.freeze_panes = "A24"
+    # starting balance row (label + balance)
+    sb = ah + 2
+    cell(s, sb, 1, "Start", bold=True, bg=TOTAL_FILL, locked=False, horizontal="center")
+    cell(s, sb, 5, "=$B$10", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+    start = sb + 1
+    for i in range(360):
+        r = start + i
+        prev = r - 1
+        bg = ALT_FILL if i % 2 else None
+        cell(s, r, 1, i + 1, bg=bg, numfmt=NUM, locked=True, horizontal="center")
+        cell(s, r, 2, f'=IF(E{prev}<=0,"",$B$13)', bg=bg, numfmt=USD, locked=True, horizontal="center")
+        cell(s, r, 3, f'=IF(E{prev}<=0,"",E{prev}*$B$11/12)', bg=bg, numfmt=USD, locked=True, horizontal="center")
+        cell(s, r, 4, f'=IF(E{prev}<=0,"",B{r}-C{r})', bg=bg, numfmt=USD, locked=True, horizontal="center")
+        cell(s, r, 5, f'=IF(E{prev}<=0,"",E{prev}-D{r})', bg=bg, numfmt=USD, locked=True, horizontal="center")
+    protect(s, allow_sort=False, allow_filter=False)
+    return s
+
+
+# ---------------------------------------------------------------------------
+# VEHICLES
+# ---------------------------------------------------------------------------
+def build_vehicles(wb):
+    s = wb.create_sheet(VEH)
+    set_widths(s, [16, 13, 12, 11, 10, 12, 11, 12, 11, 12, 12, 13, 12, 12, 12])
+    title_band(s, "🚗 Vehicle Costs", "Track the true cost of each vehicle — including cost per mile — automatically.",
+               15)
+    hdr = ["Vehicle", "Owner", "Loan Payment", "Insurance", "Gas", "Maintenance", "Repairs",
+           "Registration (ann)", "Tires (ann)", "Parking/Tolls", "Annual Miles", "Current Value",
+           "Monthly Total", "Annual Total", "Cost per Mile"]
+    header_row(s, 3, hdr)
+    s.freeze_panes = "A4"
+    for r in range(4, VEH_LAST + 1):
+        for c in range(1, 13):
+            cell(s, r, c, None, bg=INPUT_FILL, locked=False)
+        for c in (3, 4, 5, 6, 7, 8, 9, 10, 12):
+            cell(s, r, c, None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 11, None, bg=INPUT_FILL, numfmt=NUM, locked=False)
+        cell(s, r, 13, f'=IF(C{r}="","",SUM(C{r}:G{r},J{r})+IF(H{r}="",0,H{r}/12)+IF(I{r}="",0,I{r}/12))',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 14, f'=IF(M{r}="","",M{r}*12)', bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 15, f'=IF(OR(K{r}="",K{r}=0),"",N{r}/K{r})', bg=CALC_FILL, numfmt=USD, locked=True)
+    add_dv(s, "list", f"=L_Family_Members", f"B4:B{VEH_LAST}", allow_blank=True)
+    s.auto_filter.ref = f"A3:O{VEH_LAST}"
+    protect(s, allow_sort=True, allow_filter=True)
+    add_sample_vehicles(s)
+    return s
+
+
+def add_sample_vehicles(s):
+    veh = [("Toyota Camry", "Family", 420, 85, 130, 60, 45, 120, 90, 30, 12000, 13500),
+           ("Honda CR-V", "Parent 2", 0, 75, 90, 50, 30, 100, 80, 20, 9000, 21000)]
+    r = 4
+    for row in veh:
+        if r > VEH_LAST:
+            break
+        cell(s, r, 1, row[0], bg=INPUT_FILL, locked=False)
+        for i, v in enumerate(row[1:], start=2):
+            if v is None:
+                continue
+            cell(s, r, i, v, bg=INPUT_FILL, numfmt=USD if i not in (11,) else NUM, locked=False)
+        r += 1
+
+
+
+# ════════════════════════════════════════════════════════════════════════
+#  FILE: summary.py
+# ════════════════════════════════════════════════════════════════════════
+
+"""Budget, Family & Kids, Healthcare, Tax, Analytics and Calendar tabs."""
+from openpyxl.utils import get_column_letter
+from openpyxl.chart import LineChart, BarChart, Reference
+from common import (cell, font, fill, align, q, T, BUD, FAM, HEA, TAX, ANA, CAL,
+                    TXN, INC, BIL, DBT, GOL, ACC, USD, USD0, PCT, PCT0, DATE, NUM,
+                    PASSWORD, LISTS, title_band, header_row, protect, set_widths,
+                    add_dv, money_col, TITLE_FILL, HEADER_FILL, HEADER_FILL2,
+                    SECTION_FILL, INPUT_FILL, CALC_FILL, TOTAL_FILL, ALT_FILL,
+                    GOOD_FILL, WARN_FILL, BAD_FILL, BOX, BUDGET, CATEGORIES,
+                    SUBCATEGORIES, DEFAULT_BUDGET, FAMILY, FILING, MONTHS, YES_NO,
+                    ESS_DISC, GOAL_TYPES)
+
+BUDGET_SUBTOTAL = {}   # category -> subtotal row (in Budget tab)
+
+TXN_F, TXN_L = 4, 403
+INC_F, INC_L = 4, 203
+BIL_F, BIL_L = 4, 303
+DBT_F, DBT_L = 8, 107
+GOL_F, GOL_L = 4, 103
+
+TXN_AMT = f"{q(TXN)}!$F${TXN_F}:$F${TXN_L}"
+TXN_CAT = f"{q(TXN)}!$C${TXN_F}:$C${TXN_L}"
+TXN_SUB = f"{q(TXN)}!$D${TXN_F}:$D${TXN_L}"
+TXN_TYPE = f"{q(TXN)}!$B${TXN_F}:$B${TXN_L}"
+TXN_MON = f"{q(TXN)}!$O${TXN_F}:$O${TXN_L}"
+TXN_YR = f"{q(TXN)}!$P${TXN_F}:$P${TXN_L}"
+TXN_DAY = f"{q(TXN)}!$Q${TXN_F}:$Q${TXN_L}"
+TXN_FAM = f"{q(TXN)}!$I${TXN_F}:$I${TXN_L}"
+TXN_ESS = f"{q(TXN)}!$K${TXN_F}:$K${TXN_L}"
+
+INC_NET = f"{q(INC)}!$M${INC_F}:$M${INC_L}"
+INC_MON = f"{q(INC)}!$O${INC_F}:$O${INC_L}"
+INC_YR = f"{q(INC)}!$P${INC_F}:$P${INC_L}"
+INC_DAY = f"{q(INC)}!$Q${INC_F}:$Q${INC_L}"
+INC_GROSS = f"{q(INC)}!$E${INC_F}:$E${INC_L}"
+INC_FED = f"{q(INC)}!$F${INC_F}:$F${INC_L}"
+INC_ST = f"{q(INC)}!$G${INC_F}:$G${INC_L}"
+INC_FICA1 = f"{q(INC)}!$H${INC_F}:$H${INC_L}"
+INC_FICA2 = f"{q(INC)}!$I${INC_F}:$I${INC_L}"
+INC_401 = f"{q(INC)}!$J${INC_F}:$J${INC_L}"
+INC_HSA = f"{q(INC)}!$K${INC_F}:$K${INC_L}"
+
+BIL_AMT = f"{q(BIL)}!$B${BIL_F}:$B${BIL_L}"
+BIL_CAT = f"{q(BIL)}!$E${BIL_F}:$E${BIL_L}"
+BIL_MON = f"{q(BIL)}!$K${BIL_F}:$K${BIL_L}"
+BIL_YR = f"{q(BIL)}!$L${BIL_F}:$L${BIL_L}"
+BIL_DAY = f"{q(BIL)}!$M${BIL_F}:$M${BIL_L}"
+
+DBT_MIN = f"{q(DBT)}!$G${DBT_F}:$G${DBT_L}"
+DBT_MON = f"{q(DBT)}!$J${DBT_F}:$J${DBT_L}"
+DBT_YR = f"{q(DBT)}!$K${DBT_F}:$K${DBT_L}"
+DBT_DAY = f"{q(DBT)}!$L${DBT_F}:$L${DBT_L}"
+DBT_BAL = f"{q(DBT)}!$D${DBT_F}:$D${DBT_L}"
+DBT_TYPE = f"{q(DBT)}!$C${DBT_F}:$C${DBT_L}"
+
+ACC_BAL = f"{q(ACC)}!$D$4:$D$103"
+ACC_TYPE = f"{q(ACC)}!$B$4:$B$103"
+
+BUDGET_TOTAL_ROW = None
+
+ASSET_TYPES = ('"Checking","Savings","HYSA","Cash","401(k)","403(b)","IRA","Roth IRA",'
+               '"Brokerage","529","HSA","FSA","CD","Other Investment"')
+
+
+# ---------------------------------------------------------------------------
+# BUDGET
+# ---------------------------------------------------------------------------
+def build_budget(wb):
+    s = wb.create_sheet(BUD)
+    set_widths(s, [18, 22, 14, 14, 14, 13, 11, 26])
+    title_band(s, "📋 Complete Family Budget", "Set a monthly limit per subcategory. Actuals pull live from the Transaction Ledger; variance is automatic.",
+               8)
+    header_row(s, 3, ["Category", "Subcategory", "Monthly Budget", "Actual This Month",
+                      "Actual YTD", "Variance (This Month)", "% of Budget", "Notes"])
+    s.freeze_panes = "A4"
+    r = 4
+    subtotal_rows = []
+    for cat in CATEGORIES:
+        subs = BUDGET[cat]
+        sub_start = r
+        for sub in subs:
+            budget = DEFAULT_BUDGET.get((cat, sub), 0)
+            cell(s, r, 1, cat, bg=INPUT_FILL, locked=False)
+            cell(s, r, 2, sub, bg=INPUT_FILL, locked=False)
+            cell(s, r, 3, budget if budget else None, bg=INPUT_FILL, numfmt=USD, locked=False)
+            cell(s, r, 4, f'=SUMIFS({TXN_AMT},{TXN_CAT},A{r},{TXN_SUB},B{r},{TXN_TYPE},"Expense",{TXN_MON},C_Month,{TXN_YR},C_Year)',
+                 bg=CALC_FILL, numfmt=USD, locked=True)
+            cell(s, r, 5, f'=SUMIFS({TXN_AMT},{TXN_CAT},A{r},{TXN_SUB},B{r},{TXN_TYPE},"Expense",{TXN_YR},C_Year)',
+                 bg=CALC_FILL, numfmt=USD, locked=True)
+            cell(s, r, 6, f'=IF(C{r}="","",C{r}-D{r})', bg=CALC_FILL, numfmt=USD, locked=True)
+            cell(s, r, 7, f'=IF(C{r}="","",IF(C{r}=0,"",D{r}/C{r}))', bg=CALC_FILL, numfmt=PCT, locked=True, horizontal="center")
+            cell(s, r, 8, None, bg=INPUT_FILL, locked=False)
+            r += 1
+        end = r - 1
+        cell(s, r, 1, cat, bold=True, bg=TOTAL_FILL, locked=False)
+        cell(s, r, 2, "Category Subtotal", bold=True, bg=TOTAL_FILL, locked=False)
+        cell(s, r, 3, f"=SUM(C{sub_start}:C{end})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+        cell(s, r, 4, f"=SUM(D{sub_start}:D{end})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+        cell(s, r, 5, f"=SUM(E{sub_start}:E{end})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+        cell(s, r, 6, f"=SUM(F{sub_start}:F{end})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+        cell(s, r, 7, f'=IF(C{r}=0,"",D{r}/C{r})', bg=TOTAL_FILL, numfmt=PCT, locked=True, bold=True, horizontal="center")
+        cell(s, r, 8, None, bg=TOTAL_FILL, locked=False)
+        subtotal_rows.append(r)
+        BUDGET_SUBTOTAL[cat] = r
+        r += 1
+    tr = r + 1
+    global BUDGET_TOTAL_ROW
+    BUDGET_TOTAL_ROW = tr
+    cell(s, tr, 1, "TOTAL", bold=True, bg=HEADER_FILL2, locked=False, color="FFFFFF")
+    cell(s, tr, 2, "Grand Total", bold=True, bg=HEADER_FILL2, locked=False, color="FFFFFF")
+    for col in (3, 4, 5, 6):
+        L = get_column_letter(col)
+        refs = ",".join(f"{L}{rr}" for rr in subtotal_rows)
+        cell(s, tr, col, f"=SUM({refs})",
+             bg=HEADER_FILL2, numfmt=USD, locked=True, bold=True, color="FFFFFF")
+    cell(s, tr, 7, f'=IF(C{tr}=0,"",D{tr}/C{tr})', bg=HEADER_FILL2, numfmt=PCT, locked=True, bold=True, color="FFFFFF", horizontal="center")
+    cell(s, tr, 8, None, bg=HEADER_FILL2, locked=False)
+    # conditional formatting: over budget red, ok green
+    cf = s
+    cf.conditional_formatting.add(f"D4:D{tr}", CellIsRule(operator="greaterThan",
+        formula=[f"C{4}"], fill=PatternFill("solid", fgColor="FFC7CE"), font=font(color="9C0006")))
+    protect(s, allow_sort=True, allow_filter=True)
+    return s
+
+
+from openpyxl.formatting.rule import CellIsRule
+from openpyxl.styles import PatternFill
+
+
+# ---------------------------------------------------------------------------
+# FAMILY & KIDS
+# ---------------------------------------------------------------------------
+def build_family(wb):
+    s = wb.create_sheet(FAM)
+    set_widths(s, [18, 22, 14, 14, 14, 13, 26])
+    title_band(s, "👨‍👩‍👧‍👦 Family & Kids", "Family-related spending at a glance, plus spending broken down by family member.",
+               7)
+    header_row(s, 3, ["Category", "Subcategory", "Monthly Budget", "Actual This Month",
+                      "Actual YTD", "Variance", "Notes"])
+    s.freeze_panes = "A4"
+    subs = BUDGET["Family"]
+    r = 4
+    sub_start = r
+    for sub in subs:
+        budget = DEFAULT_BUDGET.get(("Family", sub), 0)
+        cell(s, r, 1, "Family", bg=INPUT_FILL, locked=False)
+        cell(s, r, 2, sub, bg=INPUT_FILL, locked=False)
+        cell(s, r, 3, budget if budget else None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 4, f'=SUMIFS({TXN_AMT},{TXN_CAT},"Family",{TXN_SUB},B{r},{TXN_TYPE},"Expense",{TXN_MON},C_Month,{TXN_YR},C_Year)',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 5, f'=SUMIFS({TXN_AMT},{TXN_CAT},"Family",{TXN_SUB},B{r},{TXN_TYPE},"Expense",{TXN_YR},C_Year)',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 6, f'=IF(C{r}="","",C{r}-D{r})', bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 7, None, bg=INPUT_FILL, locked=False)
+        r += 1
+    tr = r + 1
+    cell(s, tr, 1, "TOTAL", bold=True, bg=TOTAL_FILL, locked=False)
+    cell(s, tr, 2, "Family Total", bold=True, bg=TOTAL_FILL, locked=False)
+    for col, letter in ((3, None),):
+        pass
+    cell(s, tr, 3, f"=SUM(C{4}:C{r-1})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+    cell(s, tr, 4, f"=SUM(D{4}:D{r-1})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+    cell(s, tr, 5, f"=SUM(E{4}:E{r-1})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+
+    # By family member table
+    mr = tr + 3
+    cell(s, mr, 1, "SPENDING BY FAMILY MEMBER (THIS MONTH)", bold=True, bg=SECTION_FILL, locked=False)
+    header_row(s, mr + 1, ["Family Member", "This Month", "YTD"])
+    r = mr + 2
+    for mem in FAMILY:
+        cell(s, r, 1, mem, bg=INPUT_FILL, locked=False)
+        cell(s, r, 2, f'=SUMIFS({TXN_AMT},{TXN_TYPE},"Expense",{TXN_FAM},A{r},{TXN_MON},C_Month,{TXN_YR},C_Year)',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 3, f'=SUMIFS({TXN_AMT},{TXN_TYPE},"Expense",{TXN_FAM},A{r},{TXN_YR},C_Year)',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+        r += 1
+    protect(s, allow_sort=False, allow_filter=False)
+    return s
+
+
+# ---------------------------------------------------------------------------
+# HEALTHCARE & INSURANCE
+# ---------------------------------------------------------------------------
+def build_healthcare(wb):
+    s = wb.create_sheet(HEA)
+    set_widths(s, [24, 22, 14, 14, 14, 13, 26])
+    title_band(s, "🏥 Healthcare & Insurance", "Healthcare spending vs budget, plus every insurance premium in one place.",
+               7)
+    header_row(s, 3, ["Category", "Subcategory", "Monthly Budget", "Actual This Month",
+                      "Actual YTD", "Variance", "Notes"])
+    s.freeze_panes = "A4"
+    subs = BUDGET["Healthcare"]
+    r = 4
+    for sub in subs:
+        budget = DEFAULT_BUDGET.get(("Healthcare", sub), 0)
+        cell(s, r, 1, "Healthcare", bg=INPUT_FILL, locked=False)
+        cell(s, r, 2, sub, bg=INPUT_FILL, locked=False)
+        cell(s, r, 3, budget if budget else None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 4, f'=SUMIFS({TXN_AMT},{TXN_CAT},"Healthcare",{TXN_SUB},B{r},{TXN_TYPE},"Expense",{TXN_MON},C_Month,{TXN_YR},C_Year)',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 5, f'=SUMIFS({TXN_AMT},{TXN_CAT},"Healthcare",{TXN_SUB},B{r},{TXN_TYPE},"Expense",{TXN_YR},C_Year)',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 6, f'=IF(C{r}="","",C{r}-D{r})', bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 7, None, bg=INPUT_FILL, locked=False)
+        r += 1
+    tr = r + 1
+    cell(s, tr, 1, "TOTAL", bold=True, bg=TOTAL_FILL, locked=False)
+    cell(s, tr, 2, "Healthcare Total", bold=True, bg=TOTAL_FILL, locked=False)
+    cell(s, tr, 3, f"=SUM(C{4}:C{r-1})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+    cell(s, tr, 4, f"=SUM(D{4}:D{r-1})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+    cell(s, tr, 5, f"=SUM(E{4}:E{r-1})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+
+    pr = tr + 3
+    cell(s, pr, 1, "INSURANCE PREMIUMS & HEALTH DETAILS", bold=True, bg=SECTION_FILL, locked=False)
+    header_row(s, pr + 1, ["Policy", "Monthly Premium", "Annual Cost", "Deductible",
+                           "OOP Max", "HSA/FSA", "Notes"])
+    policies = [("Health Insurance", 420, None, 3000, 9200, None),
+                ("Dental", 30, None, 150, 1500, None),
+                ("Vision", 20, None, 25, 500, None),
+                ("Life Insurance", 55, None, None, None, None),
+                ("Disability", 40, None, None, None, None),
+                ("Auto Insurance", 130, None, 500, None, None),
+                ("Home / Renters", 120, None, 1000, None, None)]
+    r = pr + 2
+    for pol, prem, ded, oop, hsa, notes in policies:
+        cell(s, r, 1, pol, bg=INPUT_FILL, locked=False)
+        cell(s, r, 2, prem if prem else None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 3, f'=IF(B{r}="","",B{r}*12)', bg=CALC_FILL, numfmt=USD, locked=True)
+        for col, val in ((4, ded), (5, oop)):
+            cell(s, r, col, val if val else None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 6, hsa if hsa else None, bg=INPUT_FILL, numfmt=USD, locked=False)
+        cell(s, r, 7, "", bg=INPUT_FILL, locked=False)
+        r += 1
+    trow = r + 1
+    cell(s, trow, 1, "TOTAL PREMIUMS", bold=True, bg=TOTAL_FILL, locked=False)
+    cell(s, trow, 2, f"=SUM(B{pr+2}:B{r-1})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+    cell(s, trow, 3, f"=SUM(C{pr+2}:C{r-1})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+    protect(s, allow_sort=False, allow_filter=False)
+    return s
+
+
+# ---------------------------------------------------------------------------
+# TAX CENTER (simplified estimate)
+# ---------------------------------------------------------------------------
+SINGLE = [(11925, 0.10), (48475, 0.12), (103350, 0.22), (197300, 0.24),
+          (250525, 0.32), (626350, 0.35), (None, 0.37)]
+MFJ = [(23850, 0.10), (96950, 0.12), (206700, 0.22), (394600, 0.24),
+       (501050, 0.32), (751600, 0.35), (None, 0.37)]
+HOH = [(17000, 0.10), (64850, 0.12), (103350, 0.22), (197300, 0.24),
+       (250525, 0.32), (626350, 0.35), (None, 0.37)]
+BRACKETS = {"Single": SINGLE, "Married Filing Jointly": MFJ, "Married Filing Separately": SINGLE,
+            "Head of Household": HOH, "Qualifying Surviving Spouse": MFJ}
+STD = {"Single": 15000, "Married Filing Jointly": 30000, "Married Filing Separately": 15000,
+       "Head of Household": 22500, "Qualifying Surviving Spouse": 30000}
+
+
+def tax_nested(X, brackets):
+    n = len(brackets)
+    lower = [0]
+    cum = [0]
+    for i in range(n - 1):
+        lim, rate = brackets[i]
+        cum.append(cum[-1] + (lim - lower[-1]) * rate)
+        lower.append(lim)
+    def seg(i):
+        lim, rate = brackets[i]
+        return f"{cum[i]}+({X}-{lower[i]})*{rate}"
+    res = seg(n - 1)
+    for i in range(n - 2, -1, -1):
+        lim, _r = brackets[i]
+        res = f"IF({X}<={lim},{seg(i)},{res})"
+    return res
+
+
+def fed_formula(X):
+    """Estimate federal tax for the chosen filing status (based on cell B5)."""
+    single = tax_nested(X, SINGLE)
+    mfj = tax_nested(X, MFJ)
+    hoh = tax_nested(X, HOH)
+    return (f'IF($B$5="Married Filing Jointly",{mfj},'
+            f'IF($B$5="Qualifying Surviving Spouse",{mfj},'
+            f'IF($B$5="Head of Household",{hoh},{single})))')
+
+
+def build_tax(wb):
+    s = wb.create_sheet(TAX)
+    set_widths(s, [34, 18, 34, 18])
+    title_band(s, "🇺🇸 U.S. Tax Center", "ESTIMATE ONLY — simplified federal + FICA estimate. Update brackets & deductions when tax rules change.",
+               4)
+    cell(s, 4, 1, "INPUTS", bold=True, bg=SECTION_FILL, locked=False)
+    inputs = [("Filing Status", "list", None),
+              ("Gross Income (YTD)", "formula", f'=SUMIFS({INC_GROSS},{INC_YR},C_Year)'),
+              ("401(k)/403(b) pre-tax (YTD)", "formula", f'=SUMIFS({INC_401},{INC_YR},C_Year)'),
+              ("HSA pre-tax (YTD)", "formula", f'=SUMIFS({INC_HSA},{INC_YR},C_Year)'),
+              ("Federal Withheld (YTD)", "formula", f'=SUMIFS({INC_FED},{INC_YR},C_Year)'),
+              ("State/Local Withheld (YTD)", "formula", f'=SUMIFS({INC_ST},{INC_YR},C_Year)'),
+              ("FICA Withheld (YTD)", "formula", f'=SUMIFS({INC_FICA1},{INC_YR},C_Year)+SUMIFS({INC_FICA2},{INC_YR},C_Year)'),
+              ("Other Taxable Income (YTD)", "input", None),
+              ("Dependents (count)", "input", None),
+              ("Charitable Donations", "input", None),
+              ("Mortgage Interest", "input", None),
+              ("Property Taxes Paid", "input", None),
+              ("State & Local Taxes (SALT)", "formula", "=B10")]
+    r = 5
+    for lab, kind, formula in inputs:
+        cell(s, r, 1, lab, bold=True, locked=False)
+        c = cell(s, r, 2, formula if formula else None, bg=CALC_FILL if kind == "formula" else INPUT_FILL,
+                 numfmt=USD if lab != "Filing Status" else None, locked=(kind == "formula"))
+        r += 1
+
+    ds = 5 + len(inputs) + 2   # standard deduction row
+    cell(s, ds, 1, "STANDARD DEDUCTION", bold=True, bg=CALC_FILL, locked=False)
+    cell(s, ds, 2, "=IF(B5=\"Married Filing Jointly\",30000,IF(B5=\"Qualifying Surviving Spouse\",30000,IF(B5=\"Head of Household\",22500,15000)))",
+         bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, ds + 1, 1, "ITEMIZED ESTIMATE", bold=True, bg=CALC_FILL, locked=False)
+    cell(s, ds + 1, 2, "=B14+B15+B16+MIN(10000,B17)", bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, ds + 2, 1, "DEDUCTION USED", bold=True, bg=CALC_FILL, locked=False)
+    cell(s, ds + 2, 2, f"=MAX(B{ds},B{ds+1})", bg=CALC_FILL, numfmt=USD, locked=True)
+
+    # Results
+    ri = ds + 5
+    cell(s, ri, 1, "ESTIMATED TAX POSITION", bold=True, bg=SECTION_FILL, locked=False)
+    cell(s, ri + 1, 1, "Adjusted Gross Income (AGI)", bold=True, locked=False)
+    cell(s, ri + 1, 2, "=B6-B7-B8", bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, ri + 2, 1, "Taxable Income", bold=True, locked=False)
+    cell(s, ri + 2, 2, f"=MAX(0,B{ri+1}-$B${ds+2})", bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, ri + 3, 1, "Estimated Federal Tax", bold=True, locked=False)
+    cell(s, ri + 3, 2, "=" + fed_formula(f"B{ri+2}"), bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, ri + 4, 1, "Estimated FICA (employee)", bold=True, locked=False)
+    cell(s, ri + 4, 2, "=IF(B6=\"\",\"\",MIN(B6,176100)*0.062+B6*0.0145)", bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, ri + 5, 1, "Total Estimated Tax", bold=True, bg=TOTAL_FILL, locked=False)
+    cell(s, ri + 5, 2, f"=B{ri+3}+B{ri+4}", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+    cell(s, ri + 6, 1, "Total Withheld (Fed + State + FICA)", bold=True, locked=False)
+    cell(s, ri + 6, 2, "=B9+B10+B11", bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, ri + 7, 1, "EST. REFUND / (AMOUNT OWED)", bold=True, locked=False)
+    cell(s, ri + 7, 2, f"=B{ri+6}-B{ri+5}", bg=CALC_FILL, numfmt=USD, locked=True, bold=True)
+    cell(s, ri + 7, 4, "Positive = refund. Negative = you may owe.", italic=True, size=9,
+         color="3D4A46", locked=False, border=None)
+
+    cell(s, ri + 9, 1, "⚠️ This is a simplified ESTIMATE only. It ignores many credits, deductions, and phaseouts, "
+                       "and represents old tax rules. Update the brackets, standard deduction and formulas when "
+                       "tax law changes, or consult a professional.", italic=True, size=9, wrap=True,
+         color="9C5500", locked=False, border=None)
+    s.merge_cells(start_row=ri + 9, start_column=1, end_row=ri + 10, end_column=4)
+    add_dv(s, "list", "=L_Filing_Status", "B5", allow_blank=False, error=True)
+    protect(s, allow_sort=False, allow_filter=False)
+    return s
+
+
+# ---------------------------------------------------------------------------
+# ANALYTICS
+# ---------------------------------------------------------------------------
+def build_analytics(wb):
+    s = wb.create_sheet(ANA)
+    set_widths(s, [22, 15, 14, 15, 15, 15, 12, 12])
+    title_band(s, "📊 Financial Analytics", "Automatic answers — where the money went, trends, needs vs wants, savings rate, debt, and per-person spend.",
+               8)
+
+    # ---- YTD summary ----
+    cell(s, 4, 1, "YEAR-TO-DATE SUMMARY", bold=True, bg=SECTION_FILL, locked=False)
+    labels = ["Total Income", "Total Spending", "Net Savings", "Savings Rate",
+              "This Month Spending", "This Month Net", "Total Debt", "Avg Monthly Spend"]
+    for i, lab in enumerate(labels, start=1):
+        cell(s, 5, i, lab, bold=True, bg=HEADER_FILL2, color="FFFFFF", horizontal="center", wrap=True)
+    spend_ytd = f'=SUMIFS({TXN_AMT},{TXN_TYPE},"Expense",{TXN_YR},C_Year)'
+    spend_m = f'=SUMIFS({TXN_AMT},{TXN_TYPE},"Expense",{TXN_MON},C_Month,{TXN_YR},C_Year)'
+    cell(s, 6, 1, f'=SUMIFS({INC_NET},{INC_YR},C_Year)', bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, 6, 2, spend_ytd, bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, 6, 3, "=A6-B6", bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, 6, 4, '=IF(A6=0,"",C6/A6)', bg=CALC_FILL, numfmt=PCT, locked=True, horizontal="center")
+    cell(s, 6, 5, spend_m, bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, 6, 6, f'=SUMIFS({INC_NET},{INC_MON},C_Month,{INC_YR},C_Year)-E6', bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, 6, 7, f'=SUM({DBT_BAL})', bg=CALC_FILL, numfmt=USD, locked=True)
+    cell(s, 6, 8, '=IFERROR(AVERAGEIF($C$24:$C$35,">0"),0)', bg=CALC_FILL, numfmt=USD, locked=True)
+
+    # ---- Spending by category ----
+    cell(s, 8, 1, "SPENDING BY CATEGORY (YTD)", bold=True, bg=SECTION_FILL, locked=False)
+    header_row(s, 9, ["Category", "Monthly Budget", "Actual YTD", "Actual This Month",
+                      "Variance", "% of Total", "Rank"], start=1)
+    r0 = 10
+    cat_start = r0
+    for i, cat in enumerate(CATEGORIES):
+        r = r0 + i
+        row = BUDGET_SUBTOTAL.get(cat)
+        cell(s, r, 1, cat, bg=INPUT_FILL, locked=False)
+        cell(s, r, 2, f"={q(BUD)}!$C${row}" if row else None, bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 3, f'=SUMIFS({TXN_AMT},{TXN_CAT},A{r},{TXN_TYPE},"Expense",{TXN_YR},C_Year)',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 4, f'=SUMIFS({TXN_AMT},{TXN_CAT},A{r},{TXN_TYPE},"Expense",{TXN_MON},C_Month,{TXN_YR},C_Year)',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 5, f"=B{r}-C{r}", bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 6, f'=IF($B$6=0,"",C{r}/$B$6)', bg=CALC_FILL, numfmt=PCT, locked=True, horizontal="center")
+        cell(s, r, 7, f'=IF(C{r}="","",RANK(C{r},$C${cat_start}:$C${cat_start+len(CATEGORIES)-1},0))',
+             bg=CALC_FILL, numfmt=NUM, locked=True, horizontal="center")
+        r += 1
+    cat_end = r - 1
+
+    # ---- Monthly trend ----
+    tr_hdr = cat_end + 2
+    cell(s, tr_hdr, 1, "MONTHLY CASH FLOW TREND", bold=True, bg=SECTION_FILL, locked=False)
+    header_row(s, tr_hdr + 1, ["Month", "Income", "Spending", "Net"], start=1)
+    td_start = tr_hdr + 2
+    for i, mon in enumerate(MONTHS):
+        r = td_start + i
+        mnum = i + 1
+        cell(s, r, 1, mon, bg=INPUT_FILL, locked=False)
+        cell(s, r, 2, f'=SUMIFS({INC_NET},{INC_MON},{mnum},{INC_YR},C_Year)', bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 3, f'=SUMIFS({TXN_AMT},{TXN_TYPE},"Expense",{TXN_MON},{mnum},{TXN_YR},C_Year)', bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 4, f"=B{r}-C{r}", bg=CALC_FILL, numfmt=USD, locked=True)
+    td_end = td_start + 11
+
+    # ---- Needs vs Wants ----
+    nw = td_end + 3
+    cell(s, nw, 1, "NEEDS vs WANTS (YTD)", bold=True, bg=SECTION_FILL, locked=False)
+    header_row(s, nw + 1, ["Type", "Actual", "% of Total"], start=1)
+    for i, (lab) in enumerate(["Essential", "Discretionary"]):
+        r = nw + 2 + i
+        cell(s, r, 1, lab, bg=INPUT_FILL, locked=False)
+        cell(s, r, 2, f'=SUMIFS({TXN_AMT},{TXN_TYPE},"Expense",{TXN_ESS},"{lab}",{TXN_YR},C_Year)',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 3, f'=IF($B$6=0,"",B{r}/$B$6)', bg=CALC_FILL, numfmt=PCT, locked=True, horizontal="center")
+    tot = nw + 4
+    cell(s, tot, 1, "TOTAL", bold=True, bg=TOTAL_FILL, locked=False)
+    cell(s, tot, 2, f"=SUM(B{nw+2}:B{nw+3})", bg=TOTAL_FILL, numfmt=USD, locked=True, bold=True)
+    cell(s, tot, 3, f'=IF($B$6=0,"",B{tot}/$B$6)', bg=TOTAL_FILL, numfmt=PCT, locked=True, bold=True, horizontal="center")
+
+    # ---- By family member ----
+    mb = tot + 3
+    cell(s, mb, 1, "SPENDING BY FAMILY MEMBER (THIS MONTH)", bold=True, bg=SECTION_FILL, locked=False)
+    header_row(s, mb + 1, ["Family Member", "This Month", "YTD"], start=1)
+    for i, mem in enumerate(FAMILY):
+        r = mb + 2 + i
+        cell(s, r, 1, mem, bg=INPUT_FILL, locked=False)
+        cell(s, r, 2, f'=SUMIFS({TXN_AMT},{TXN_TYPE},"Expense",{TXN_FAM},A{r},{TXN_MON},C_Month,{TXN_YR},C_Year)',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, r, 3, f'=SUMIFS({TXN_AMT},{TXN_TYPE},"Expense",{TXN_FAM},A{r},{TXN_YR},C_Year)',
+             bg=CALC_FILL, numfmt=USD, locked=True)
+
+    # ---- Quick answers ----
+    qa = mb + 2 + len(FAMILY) + 2
+    cell(s, qa, 1, "QUICK ANSWERS (YTD)", bold=True, bg=SECTION_FILL, locked=False)
+    quick = [("Subscriptions", f'=SUMIFS({TXN_AMT},{TXN_SUB},"Subscriptions",{TXN_YR},C_Year)'),
+             ("Restaurants", f'=SUMIFS({TXN_AMT},{TXN_SUB},"Restaurants",{TXN_YR},C_Year)'),
+             ("Groceries", f'=SUMIFS({TXN_AMT},{TXN_SUB},"Groceries",{TXN_YR},C_Year)'),
+             ("Gas / Fuel", f'=SUMIFS({TXN_AMT},{TXN_SUB},"Gas",{TXN_YR},C_Year)'),
+             ("Top Category", f"=INDEX(A{cat_start}:A{cat_end},MATCH(MAX(C{cat_start}:C{cat_end}),C{cat_start}:C{cat_end},0))")]
+    for i, (lab, form) in enumerate(quick):
+        r = qa + 1 + i
+        cell(s, r, 1, lab, bold=True, locked=False)
+        cell(s, r, 2, form, bg=CALC_FILL, numfmt=USD if lab != "Top Category" else None, locked=True)
+
+    protect(s, allow_sort=False, allow_filter=False)
+    return s
+
+
+# ---------------------------------------------------------------------------
+# CALENDAR
+# ---------------------------------------------------------------------------
+def build_calendar(wb):
+    s = wb.create_sheet(CAL)
+    set_widths(s, [6, 14, 15, 15, 15, 15])
+    title_band(s, "📅 Financial Calendar", "Everything due on each day of the C_Year / C_Month — bills, paydays, debt payments and subscriptions.",
+               6)
+    header_row(s, 3, ["Day", "Bills Due", "Paydays / Income", "Debt Minimums", "Subscriptions", "Notes"])
+    s.freeze_panes = "A4"
+    for d in range(1, 32):
+        r = 3 + d
+        cell(s, r, 1, d, bg=INPUT_FILL, numfmt=NUM, locked=False, horizontal="center")
+        cell(s, r, 2, f'=SUMIFS({BIL_AMT},{BIL_MON},C_Month,{BIL_YR},C_Year,{BIL_DAY},A{r})',
+             bg=CALC_FILL, numfmt=USD, locked=True, horizontal="center")
+        cell(s, r, 3, f'=SUMIFS({INC_NET},{INC_MON},C_Month,{INC_YR},C_Year,{INC_DAY},A{r})',
+             bg=CALC_FILL, numfmt=USD, locked=True, horizontal="center")
+        cell(s, r, 4, f'=SUMIFS({DBT_MIN},{DBT_MON},C_Month,{DBT_YR},C_Year,{DBT_DAY},A{r})',
+             bg=CALC_FILL, numfmt=USD, locked=True, horizontal="center")
+        cell(s, r, 5, f'=SUMIFS({TXN_AMT},{TXN_SUB},"Subscriptions",{TXN_MON},C_Month,{TXN_YR},C_Year,{TXN_DAY},A{r})',
+             bg=CALC_FILL, numfmt=USD, locked=True, horizontal="center")
+        cell(s, r, 6, None, bg=INPUT_FILL, locked=False)
+    # highlight today
+    r = 3 + get_day()
+    for c in range(1, 7):
+        s.cell(row=r, column=c).fill = fill("FFF2CC")
+    protect(s, allow_sort=False, allow_filter=False)
+    return s
+
+
+def get_day():
+    import datetime
+    return datetime.date.today().day
+
+
+
+# ════════════════════════════════════════════════════════════════════════
+#  FILE: dashboard.py
+# ════════════════════════════════════════════════════════════════════════
+
+"""The 🏠 Family Dashboard — the premium 'wow' front-end."""
+from openpyxl.chart import LineChart, BarChart, Reference
+from openpyxl.formatting.rule import CellIsRule, FormulaRule
+from common import (cell, font, fill, align, q, T, DASH, ACC, VEH, GOL, HOM, ANA, BUD,
+                    TXN, USD, USD0, PCT, PCT0, DATE, NUM, PASSWORD,
+                    title_band, header_row, protect, set_widths,
+                    TITLE_FILL, HEADER_FILL, HEADER_FILL2, SECTION_FILL, INPUT_FILL,
+                    CALC_FILL, TOTAL_FILL, ALT_FILL, GOOD_FILL, WARN_FILL, BAD_FILL,
+                    GOOD_FONT, WARN_FONT, BAD_FONT, BOX, FAMILY)
+import summary
+from summary import (TXN_AMT, TXN_TYPE, TXN_MON, TXN_YR, TXN_SUB, INC_NET, INC_MON, INC_YR,
+                     ACC_BAL, ACC_TYPE, BIL_AMT, BIL_MON, BIL_YR, DBT_BAL, DBT_TYPE)
+ACC_LIMIT = f"{q(ACC)}!$E$4:$E$103"   # Accounts! Credit Limit column
+
+HOME_REF = q(HOM)
+VEH_REF = q(VEH)
+GOL_REF = q(GOL)
+ANA_REF = q(ANA)
+BUD_REF = q(BUD)
+
+
+def asset_sum(types):
+    return "=" + "+".join(f'SUMIF({ACC_TYPE},"{t}",{ACC_BAL})' for t in types)
+
+
+def build_dashboard(wb):
+    s = wb.create_sheet(DASH)
+    s.sheet_view.showGridLines = False
+    set_widths(s, [28, 18, 24, 18, 18, 22])
+    title_band(s, "🏠 Family Financial Dashboard",
+               "Your entire household on one screen. Every number below flows automatically from the other tabs.",
+               6)
+
+    cell(s, 4, 1, "Report Period", bold=True, bg=SECTION_FILL, locked=False)
+    cell(s, 4, 2, '=TEXT(C_Date,"mmmm yyyy")', bg=CALC_FILL, locked=True, color="0B3D2E", bold=True)
+
+    def section(row, text):
+        cell(s, row, 1, text, bold=True, bg=SECTION_FILL, locked=False, size=12)
+
+    def kpi(row, label, formula, numfmt=USD):
+        cell(s, row, 1, label, bold=True, locked=False)
+        cell(s, row, 2, formula, bg=CALC_FILL, numfmt=numfmt, locked=True, bold=True, horizontal="right")
+
+    # ---- MONTHLY SNAPSHOT ----
+    section(6, "MONTHLY SNAPSHOT")
+    inc_m = f'=SUMIFS({INC_NET},{INC_MON},C_Month,{INC_YR},C_Year)'
+    exp_m = f'=SUMIFS({TXN_AMT},{TXN_TYPE},"Expense",{TXN_MON},C_Month,{TXN_YR},C_Year)'
+    kpi(7, "Gross Monthly Income", inc_m)
+    kpi(8, "Monthly Spending", exp_m)
+    kpi(9, "Surplus / (Deficit)", "=B7-B8")
+    kpi(10, "Savings Rate", '=IF(B7=0,"",B9/B7)', PCT)
+    kpi(11, "Bills Due This Month", f'=SUMIFS({BIL_AMT},{BIL_MON},C_Month,{BIL_YR},C_Year)')
+    kpi(12, "Monthly Budget", f"={BUD_REF}!$C${summary.BUDGET_TOTAL_ROW}")
+    kpi(13, "Budget vs Actual Variance", "=B12-B8")
+    kpi(14, "YTD Spending", f'=SUMIFS({TXN_AMT},{TXN_TYPE},"Expense",{TXN_YR},C_Year)')
+
+    # ---- CASH & DEBT ----
+    section(16, "CASH & DEBT POSITION")
+    liab_cc = f'SUMIFS({ACC_BAL},{ACC_TYPE},"Credit Card")'
+    loans = f'SUMIFS({DBT_BAL},{DBT_TYPE},"<>Credit Card")'
+    assets = asset_sum(["Checking", "Savings", "HYSA", "Cash", "401(k)", "403(b)", "IRA",
+                        "Roth IRA", "Brokerage", "529", "HSA", "FSA", "CD", "Other Investment"])
+    kpi(17, "Total Assets", f"{assets}+{HOME_REF}!$B$5+SUM({VEH_REF}!$L$4:$L$33)", USD0)
+    kpi(18, "Total Liabilities", f"={liab_cc}+{loans}+{HOME_REF}!$B$10", USD0)
+    kpi(19, "Net Worth", "=B17-B18", USD0)
+    kpi(20, "Total Debt", f"={liab_cc}+{loans}+{HOME_REF}!$B$10", USD0)
+    kpi(21, "Cash Available", asset_sum(["Checking", "Savings", "HYSA", "Cash"]))
+    kpi(22, "Emergency Fund (liquid)",
+        f'=SUMIFS({ACC_BAL},{ACC_TYPE},"Savings")+SUMIFS({ACC_BAL},{ACC_TYPE},"HYSA")+SUMIFS({ACC_BAL},{ACC_TYPE},"Cash")')
+    kpi(23, "Credit Available", f'=SUMIF({ACC_TYPE},"Credit Card",{ACC_LIMIT})-SUMIFS({ACC_BAL},{ACC_TYPE},"Credit Card")')
+
+    # ---- YEAR-TO-DATE ----
+    section(25, "YEAR-TO-DATE")
+    kpi(26, "YTD Savings", "=B7-B8")
+    kpi(27, "YTD Savings Rate", '=IFERROR((B7-B8)/B7,"")', PCT)
+    kpi(28, "Avg Monthly Spend", f"={ANA_REF}!$H$6")
+    kpi(29, "Subscriptions (YTD)", f'=SUMIFS({TXN_AMT},{TXN_SUB},"Subscriptions",{TXN_YR},C_Year)')
+    kpi(30, "Goals Completion %", f'=IF(SUM({GOL_REF}!$C$4:$C$103)=0,"",SUM({GOL_REF}!$D$4:$D$103)/SUM({GOL_REF}!$C$4:$C$103))', PCT)
+    kpi(31, "Goals Total Saved", f'=SUM({GOL_REF}!$D$4:$D$103)')
+    kpi(32, "Goals Total Target", f'=SUM({GOL_REF}!$C$4:$C$103)')
+
+    # ---- ALERTS ----
+    section(34, "ALERTS")
+    alerts = [
+        ("Emergency Fund (months covered)",
+         f'=IFERROR((SUMIFS({ACC_BAL},{ACC_TYPE},"Savings")+SUMIFS({ACC_BAL},{ACC_TYPE},"HYSA")+SUMIFS({ACC_BAL},{ACC_TYPE},"Cash"))/{ANA_REF}!$H$6,"")',
+         '=IF(B35="","",IF(B35<3,"🔴 Under 3 months",IF(B35<6,"🟡 3-6 months","🟢 6+ months")))', NUM),
+        ("Budget Status (this month)", "=B13",
+         '=IF(B36="","",IF(B36<0,"🟡 Over budget","🟢 Under budget"))', USD),
+        ("Savings Rate vs 20% target", '=IF(B7=0,"",B9/B7)',
+         '=IF(B37="","",IF(B37>=0.2,"🟢 20%+ saved","🟡 Below 20% target"))', PCT),
+        ("Credit Utilization",
+         f'=IF(SUMIF({ACC_TYPE},"Credit Card",{ACC_LIMIT})=0,"",SUMIFS({ACC_BAL},{ACC_TYPE},"Credit Card")/SUMIF({ACC_TYPE},"Credit Card",{ACC_LIMIT}))',
+         '=IF(B38="","",IF(B38>0.3,"🔴 High utilization",IF(B38>0.1,"🟡 Moderate","🟢 Low utilization")))', PCT),
+    ]
+    for i, (lab, valf, statf, fmt) in enumerate(alerts):
+        rr = 35 + i
+        cell(s, rr, 1, lab, bold=True, locked=False)
+        cell(s, rr, 2, valf, bg=CALC_FILL, numfmt=fmt, locked=True, horizontal="right")
+        cell(s, rr, 3, statf, bg=INPUT_FILL, locked=False, horizontal="center")
+
+    # ---- GOALS PROGRESS ----
+    side = 41
+    section(side, "GOALS & SINKING FUNDS")
+    header_row(s, side + 1, ["Goal", "Target", "Current", "% Complete", "Status"], start=1)
+    for i in range(6):
+        rr = side + 2 + i
+        g = 4 + i
+        cell(s, rr, 1, f"={GOL_REF}!$A${g}", bg=INPUT_FILL, locked=False)
+        cell(s, rr, 2, f"={GOL_REF}!$C${g}", bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, rr, 3, f"={GOL_REF}!$D${g}", bg=CALC_FILL, numfmt=USD, locked=True)
+        cell(s, rr, 4, f"={GOL_REF}!$H${g}", bg=CALC_FILL, numfmt=PCT, locked=True)
+        cell(s, rr, 5, f'=IF(D{rr}="","",IF(D{rr}>=1,"🏆 Complete","🔵 In progress"))', bg=INPUT_FILL, locked=False, horizontal="center")
+
+    # ---- CHARTS ----
+    build_charts(wb, s, anchor_row=side + 10)
+    protect(s, allow_sort=False, allow_filter=False)
+    return s
+
+
+def build_charts(wb, s, anchor_row):
+    ana = wb[ANA]
+    line = LineChart()
+    line.title = "Monthly Income vs Spending (this year)"
+    line.style = 12
+    line.y_axis.title = "USD"
+    line.x_axis.title = "Month"
+    line.width = 16
+    line.height = 9
+    data = Reference(ana, min_col=2, min_row=23, max_col=3, max_row=35)
+    cats = Reference(ana, min_col=1, min_row=24, max_row=35)
+    line.add_data(data, titles_from_data=True)
+    line.set_categories(cats)
+    s.add_chart(line, f"A{anchor_row}")
+
+    bar = BarChart()
+    bar.type = "bar"
+    bar.title = "Spending by Category (YTD)"
+    bar.y_axis.title = "Amount"
+    bar.width = 16
+    bar.height = 10
+    data2 = Reference(ana, min_col=3, min_row=9, max_row=20)
+    cats2 = Reference(ana, min_col=1, min_row=10, max_row=20)
+    bar.add_data(data2, titles_from_data=True)
+    bar.set_categories(cats2)
+    s.add_chart(bar, f"G{anchor_row}")
+
+
+
+# ════════════════════════════════════════════════════════════════════════
+#  FILE: build_budget.py
+# ════════════════════════════════════════════════════════════════════════
+
+"""Build the Novality Premium Family Budget workbook."""
+import settings, ledger, planner, summary, dashboard
+from common import (cell, font, fill, align, INS, USD, PCT, DATE, NUM,
+                    title_band, header_row, protect, set_widths,
+                    SECTION_FILL, INPUT_FILL, CALC_FILL, TITLE_FILL, HEADER_FILL)
+
+AUTHOR = "Novality Store"
+OUTPUT = "Novality_Family_Budget_Premium.xlsx"
+
+
+def build_instructions(wb):
+    s = wb.create_sheet(INS)
+    set_widths(s, [30, 26, 26, 26, 26, 26])
+    title_band(s, "📖 Instructions & Help",
+               "How to use the Novality Premium Family Budget. Green cells are formulas; cream cells are where you type.",
+               6)
+    rows = [
+        ("HOW IT WORKS", "You only enter information ONCE. The Transaction Ledger, Income and Bills tabs feed every else automatically.", None),
+        ("", "", None),
+        ("1. ⚙️ Settings", "List your Family Members, Accounts, Categories, Income Sources, Pay Frequencies, Goal Types etc. here once. These fill every dropdown.", None),
+        ("2. 💳 Transactions", "This is the master ledger. Pick the Type, Category, Subcategory, Account, Family Member from dropdowns. Month / Year / Day are automatic. Enter each expense/income once.", None),
+        ("3. 💰 Income", "Enter each paycheck with gross, federal/state/FICA withholding, 401k/HSA. Net take-home is automatic. Date drives Month/Year/Day.", None),
+        ("4. 🧾 Bills & Subs", "List recurring bills with due date & frequency. Annual cost is computed. The 📅 Calendar shows what is due each day.", None),
+        ("5. 🏦 Accounts", "Enter every account's current balance. Available credit and Month tracking are automatic.", None),
+        ("6. 💸 Debt Manager", "Enter balances, APR, min & extra payments. Snowball & avalanche order, payoff date and interest saved are automatic.", None),
+        ("7. 🎯 Goals & Funds", "Set a target, current saved and monthly contribution. % complete, per-paycheck amount and projected completion are automatic.", None),
+        ("8. 📋 Budget", "Set a monthly limit per subcategory. Actuals pull from the ledger automatically; over-budget turns red.", None),
+        ("", "", None),
+        ("ONLY EDIT THE CREAM CELLS", "Formula cells (green) are locked and protected. To change formulas or add more rows: Review → Unprotect Sheet → password: premium.", None),
+        ("🧪 Sample data", "Sample data is pre-loaded so you can see everything working. Delete it and add your own, or keep adding rows in the cream areas.", None),
+        ("📊 Analytics & 🏠 Dashboard", "All charts and KPI cards read the ledgers automatically. No manual totals needed.", None),
+        ("🇺🇸 Taxes", "The Tax Center is an ESTIMATE only. Update the brackets/standard deduction whenever tax law changes.", None),
+        ("🔒 Protection", "Every tab is protected. Password = premium. Unlocked (cream) input cells remain editable.", None),
+    ]
+    r = 4
+    for label, detail, _ in rows:
+        if label == "HOW IT WORKS":
+            cell(s, r, 1, label, bold=True, size=13, bg=SECTION_FILL, locked=False)
+            cell(s, r, 2, detail or "", italic=True, size=9, color="3D4A46", locked=False, border=None)
+            r += 1
+            continue
+        if not label and not detail:
+            r += 1
+            continue
+        cell(s, r, 1, label, bold=True, locked=False)
+        cell(s, r, 2, detail or "", locked=False, wrap=True)
+        s.merge_cells(start_row=r, start_column=2, end_row=r, end_column=6)
+        r += 1
+    # protection note card
+    cell(s, r + 1, 1, "🔐 Protection settings", bold=True, bg=SECTION_FILL, locked=False)
+    cell(s, r + 1, 2, "Password: premium   ·   Select unlocked cells = ON   ·   Filtering/Sorting = ON", locked=False, wrap=True)
+    s.merge_cells(start_row=r + 1, start_column=2, end_row=r + 1, end_column=6)
+    protect(s, allow_sort=False, allow_filter=False)
+    return s
+
+
+def main():
+    from openpyxl import Workbook
+    wb = Workbook()
+    wb.properties.creator = AUTHOR
+    wb.properties.title = "Novality Premium Family Budget"
+    wb.properties.subject = "Complete U.S. household financial dashboard"
+    wb.properties.description = "Premium family budget Google Sheet / Excel workbook by Novality Store"
+    wb.calculation.fullCalcOnLoad = True
+    wb.remove(wb.active)
+
+    settings.build_settings(wb)
+    ledger.build_income(wb)
+    ledger.build_transactions(wb)
+    ledger.build_bills(wb)
+    ledger.build_accounts(wb)
+    planner.build_debt(wb)
+    planner.build_goals(wb)
+    planner.build_savings(wb)
+    planner.build_home(wb)
+    planner.build_vehicles(wb)
+    summary.build_budget(wb)
+    summary.build_family(wb)
+    summary.build_healthcare(wb)
+    summary.build_tax(wb)
+    summary.build_analytics(wb)
+    summary.build_calendar(wb)
+    dashboard.build_dashboard(wb)
+    build_instructions(wb)
+
+    # Reorder tabs: Dashboard first, Instructions last.
+    order = [dashboard.DASH, ledger.INC, ledger.TXN, summary.BUD, ledger.BIL, ledger.ACC,
+             planner.DBT, planner.GOL, planner.INV, planner.HOM, planner.VEH, summary.FAM,
+             summary.HEA, summary.TAX, summary.ANA, summary.CAL, settings.SET, INS]
+    sheets = wb._sheets
+    by = {ws.title: ws for ws in sheets}
+    wb._sheets = [by[t] for t in order if t in by]
+    wb.active = 0
+    wb.save(OUTPUT)
+    print(f"Saved {OUTPUT}")
+
+
+if __name__ == "__main__":
+    main()
+
