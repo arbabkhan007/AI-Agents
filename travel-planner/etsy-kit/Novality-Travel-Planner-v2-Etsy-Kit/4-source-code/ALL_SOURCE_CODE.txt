@@ -1,0 +1,2218 @@
+==============================================================================
+TRAVEL PLANNER v2 + ETSY KIT — COMPLETE PYTHON SOURCE CODE
+Novality store • packaged 26 Aug 2026
+Plain-text bundle of every .py file (run them individually).
+==============================================================================
+
+##############################################################################
+# FILE: build_travel_planner.py
+##############################################################################
+
+"""Build the Travel Planner v2 workbook (Novality store edition).
+
+- 29 sheets, every sheet protected; only input (yellow) cells are editable.
+- All formula / layout cells are locked with the password: premium
+- Document author / creator: Novality store
+"""
+import os
+import openpyxl
+from openpyxl import Workbook
+
+import helpers as H
+import sheets_a, sheets_b, sheets_c, sheets_d
+
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                   "Travel_Planner_v2_Novality_Store.xlsx")
+
+
+def main():
+    wb = Workbook()
+    wb.remove(wb.active)
+
+    sheets_a.build_home(wb)          # Home + snapshot + navigation
+    # --- Pre-trip planning ---
+    sheets_a.build_destination(wb)
+    sheets_a.build_budget(wb)
+    sheets_a.build_savings(wb)
+    sheets_a.build_research(wb)
+    sheets_a.build_visa(wb)
+    sheets_a.build_booking(wb)
+    # --- Packing & preparation + itinerary ---
+    sheets_b.build(wb)
+    # --- Expenses + food & activities ---
+    sheets_c.build(wb)
+    # --- Extras & memories ---
+    sheets_d.build(wb)
+
+    # Document properties — author: Novality store
+    p = wb.properties
+    p.creator = "Novality store"
+    p.lastModifiedBy = "Novality store"
+    p.title = "Travel Planner v2"
+    p.subject = "Travel planning spreadsheet"
+    p.description = ("Travel Planner version 2 — 28 planning sheets covering budget, "
+                     "packing, itinerary, expenses, food and memories. "
+                     "Input cells editable; formula cells locked. (c) Novality store")
+    p.keywords = "travel, planner, budget, itinerary, packing, expenses, Novality store"
+    p.category = "Travel"
+
+    wb.active = 0
+    wb.save(OUT)
+    print("Saved:", OUT)
+    print("Sheets:", len(wb.sheetnames))
+    for i, n in enumerate(wb.sheetnames, 1):
+        print(f"  {i:2d}. {n}")
+
+
+if __name__ == "__main__":
+    main()
+
+
+##############################################################################
+# FILE: helpers.py
+##############################################################################
+
+"""Shared styling + helper utilities for the Travel Planner v2 workbook."""
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, Protection
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.formatting.rule import DataBarRule
+from openpyxl.worksheet.properties import PageSetupProperties
+
+# ---------------------------------------------------------------- palette ---
+NAVY   = "1D3557"
+TEAL   = "2A9D8F"
+SAND   = "E9C46A"
+CORAL  = "E76F51"
+WHITE  = "FFFFFF"
+CREAM  = "F3F8F6"
+INPUT  = "FFF8E1"   # yellow-ish = "type here"
+CALC   = "E3ECF5"   # blue-gray  = "automatic / locked"
+LINE   = "BFCFD6"
+GRAYTX = "5F7470"
+
+MONEY = "#,##0.00"
+DATEF = "dd mmm yyyy"
+PCT   = "0%"
+INTF  = "#,##0"
+DEC1  = "0.0"
+
+UNLOCKED = Protection(locked=False)
+LOCKED = Protection(locked=True)
+_thin = Side(style="thin", color=LINE)
+B_ALL = Border(left=_thin, right=_thin, top=_thin, bottom=_thin)
+
+F_TITLE = Font(bold=True, size=16, color=WHITE)
+F_SUB   = Font(italic=True, size=10, color=WHITE)
+F_HEAD  = Font(bold=True, size=10, color=WHITE)
+F_BODY  = Font(size=10)
+F_LABEL = Font(bold=True, size=10, color=NAVY)
+F_CALC  = Font(bold=True, size=10, color=NAVY)
+F_NOTE  = Font(italic=True, size=9, color=GRAYTX)
+F_LINK  = Font(bold=True, size=10, color="1F7A70", underline="single")
+F_TOTAL = Font(bold=True, size=10, color=WHITE)
+
+REFS = {}   # cross-sheet cell references collected while building
+
+
+def fl(h):
+    return PatternFill("solid", fgColor=h)
+
+
+def put(ws, coord, value=None, font=None, fillc=None, fmt=None, halign=None,
+        valign="center", wrap=False, unlocked=False, border=False, indent=0):
+    c = ws[coord]
+    if value is not None:
+        c.value = value
+    c.font = font or F_BODY
+    if fillc:
+        c.fill = fl(fillc)
+    if fmt:
+        c.number_format = fmt
+    c.alignment = Alignment(horizontal=halign, vertical=valign,
+                            wrap_text=wrap, indent=indent)
+    if border:
+        c.border = B_ALL
+    if unlocked:
+        c.protection = UNLOCKED
+    return c
+
+
+def input_cell(ws, coord, value=None, fmt=None, halign=None, wrap=False, font=None,
+               indent=0):
+    return put(ws, coord, value, fillc=INPUT, fmt=fmt, halign=halign,
+               wrap=wrap, unlocked=True, border=True, font=font, indent=indent)
+
+
+def calc_cell(ws, coord, formula, fmt=None, halign="center", font=None, fillc=CALC):
+    c = put(ws, coord, formula, font=font or F_CALC, fillc=fillc,
+            fmt=fmt, halign=halign, border=True)
+    c.protection = LOCKED          # formula cells are ALWAYS locked
+    return c
+
+
+def box(ws, r1, c1, r2, c2, fillc=None, unlocked=False):
+    """Bordered (optionally merged) region."""
+    for r in range(r1, r2 + 1):
+        for c in range(c1, c2 + 1):
+            cell = ws.cell(row=r, column=c)
+            cell.border = B_ALL
+            if fillc:
+                cell.fill = fl(fillc)
+            if unlocked:
+                cell.protection = UNLOCKED
+    if (r1, c1) != (r2, c2):
+        ws.merge_cells(start_row=r1, start_column=c1, end_row=r2, end_column=c2)
+
+
+def banner(ws, ncols, title, subtitle):
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=ncols)
+    put(ws, "A1", title, font=F_TITLE, fillc=NAVY, halign="left", indent=1)
+    ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=ncols)
+    put(ws, "A2", subtitle, font=F_SUB, fillc=TEAL, halign="left", indent=1)
+    ws.row_dimensions[1].height = 34
+    ws.row_dimensions[2].height = 18
+    ws.row_dimensions[3].height = 6
+
+
+def new_sheet(wb, name, tab, title, subtitle, ncols):
+    ws = wb.create_sheet(title=name)
+    ws.sheet_properties.tabColor = tab
+    banner(ws, ncols, title, subtitle)
+    return ws
+
+
+def section(ws, row, ncols, text, start_col=1, color=SAND):
+    c1 = start_col
+    c2 = start_col + ncols - 1
+    ws.merge_cells(start_row=row, start_column=c1, end_row=row, end_column=c2)
+    L1 = get_column_letter(c1)
+    put(ws, f"{L1}{row}", text, font=F_LABEL, fillc=color, halign="left",
+        indent=1, border=True)
+    ws.row_dimensions[row].height = 20
+
+
+def table(ws, top, specs, nrows, start_col=1, zebra=True):
+    """specs: list of dicts {h: header, w: width, k: 'in'|'calc'|'lock',
+    f: number format, a: halign}.  Returns the last body row."""
+    for j, sp in enumerate(specs):
+        col = get_column_letter(start_col + j)
+        ws.column_dimensions[col].width = sp["w"]
+        put(ws, f"{col}{top}", sp["h"], font=F_HEAD, fillc=TEAL,
+            halign="center", wrap=True, border=True)
+    ws.row_dimensions[top].height = 22
+    for r in range(top + 1, top + 1 + nrows):
+        for j, sp in enumerate(specs):
+            col = get_column_letter(start_col + j)
+            if sp["k"] == "in":
+                put(ws, f"{col}{r}", fillc=INPUT, fmt=sp.get("f"),
+                    halign=sp.get("a"), unlocked=True, border=True)
+            elif sp["k"] == "calc":
+                put(ws, f"{col}{r}", font=F_CALC, fillc=CALC, fmt=sp.get("f"),
+                    halign=sp.get("a", "center"), border=True)
+            else:
+                z = CREAM if (zebra and (r - top) % 2 == 0) else None
+                put(ws, f"{col}{r}", fillc=z, fmt=sp.get("f"),
+                    halign=sp.get("a"), border=True)
+    return top + nrows
+
+
+def summary_box(ws, top, col, title, items, width=22, vwidth=15, set_width=True):
+    """items: list of (label, value_or_formula, fmt).  Returns last row used."""
+    L1, L2 = get_column_letter(col), get_column_letter(col + 1)
+    if set_width:
+        ws.column_dimensions[L1].width = width
+        ws.column_dimensions[L2].width = vwidth
+    ws.merge_cells(f"{L1}{top}:{L2}{top}")
+    put(ws, f"{L1}{top}", title, font=F_HEAD, fillc=TEAL, halign="center",
+        border=True)
+    ws.row_dimensions[top].height = 20
+    r = top
+    for label, value, fmt in items:
+        r += 1
+        put(ws, f"{L1}{r}", label, font=F_LABEL, fillc=CREAM, halign="left",
+            indent=1, border=True)
+        calc_cell(ws, f"{L2}{r}", value, fmt=fmt, halign="center")
+    return r
+
+
+def dv(ws, rng, options):
+    d = DataValidation(type="list", formula1=f'"{options}"', allow_blank=True)
+    ws.add_data_validation(d)
+    d.add(rng)
+    return d
+
+
+def dv_formula(ws, rng, ref):
+    d = DataValidation(type="list", formula1=ref, allow_blank=True)
+    ws.add_data_validation(d)
+    d.add(rng)
+    return d
+
+
+def dv_num(ws, rng, lo=1, hi=5):
+    d = DataValidation(type="whole", operator="between",
+                       formula1=str(lo), formula2=str(hi), allow_blank=True)
+    ws.add_data_validation(d)
+    d.add(rng)
+    return d
+
+
+def databar(ws, rng, color="2A9D8F"):
+    ws.conditional_formatting.add(
+        rng, DataBarRule(start_type="num", start_value=0,
+                         end_type="num", end_value=1,
+                         color=color, showValue=True))
+
+
+def protect(ws, pwd="premium"):
+    p = ws.protection
+    p.password = pwd
+    p.sheet = True
+    p.selectLockedCells = False    # False = action ALLOWED
+    p.selectUnlockedCells = False
+    p.formatColumns = False
+    p.formatRows = False
+    p.autoFilter = False
+
+
+def finish(ws, landscape=True, freeze=None, title_rows=None):
+    ws.sheet_view.showGridLines = False
+    if freeze:
+        ws.freeze_panes = freeze
+    ws.oddFooter.left.text = "Travel Planner v2 - Novality store"
+    ws.oddFooter.left.size = 8
+    ws.oddFooter.left.color = "888888"
+    ws.oddFooter.right.text = "Page &P of &N"
+    ws.oddFooter.right.size = 8
+    ws.oddFooter.right.color = "888888"
+    ws.page_setup.orientation = "landscape" if landscape else "portrait"
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 0
+    ws.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
+    if title_rows:
+        ws.print_title_rows = title_rows
+    protect(ws)
+
+
+##############################################################################
+# FILE: sheets_a.py
+##############################################################################
+
+"""Sheets A — Home + Pre-Trip Planning group."""
+import helpers as H
+
+PRE = H.TEAL
+
+NAV = [
+    ("Pre-Trip Planning", "Destination Overview", "Trip basics — who, where, when and why"),
+    ("Pre-Trip Planning", "Budget Tracker", "Estimated vs actual costs per category"),
+    ("Pre-Trip Planning", "Savings Goal", "Progress bar + savings log to hit your target"),
+    ("Pre-Trip Planning", "Research & Ideas", "Must-see spots, links and inspiration"),
+    ("Pre-Trip Planning", "Visa & Documents", "Checklist so nothing expires or is forgotten"),
+    ("Pre-Trip Planning", "Booking Log", "Every confirmation number in one place"),
+    ("Packing & Prep", "Packing Checklist", "Categorized list with pack-progress %"),
+    ("Packing & Prep", "Weather Tracker", "Forecast + outfit planning per day"),
+    ("Packing & Prep", "Carry-On vs Checked", "What goes in which bag"),
+    ("Packing & Prep", "Pre-Trip To-Do", "Bank alerts, pet sitter, mail hold…"),
+    ("Itinerary & Daily", "Daily Itinerary", "Day-by-day plan with times & costs"),
+    ("Itinerary & Daily", "Hourly Schedule", "7-day morning / afternoon / evening grid"),
+    ("Itinerary & Daily", "Route Planner", "Order your stops + sketch a map"),
+    ("Itinerary & Daily", "Transportation Log", "Flights, trains & taxis with confirmations"),
+    ("Itinerary & Daily", "Accommodation", "Up to 3 stays — Wi-Fi passwords included"),
+    ("Expense Tracking", "Expense Log", "150-row daily spend log, auto-converted"),
+    ("Expense Tracking", "Currency Converter", "Rate table + quick converter"),
+    ("Expense Tracking", "Tipping Guide", "What to tip in 12+ countries"),
+    ("Expense Tracking", "Trip Cost Summary", "Every total on one dashboard"),
+    ("Food & Activities", "Restaurant Wishlist", "Wish list with reservations & ratings"),
+    ("Food & Activities", "Activity Planner", "Excursions — idea → booked → done"),
+    ("Food & Activities", "Local Phrases", "16 essentials to learn"),
+    ("Food & Activities", "Etiquette Notes", "Do's and don'ts by topic"),
+    ("Extras & Memories", "Emergency Contacts", "Embassy, hospital, insurance, family"),
+    ("Extras & Memories", "Travel Journal", "Daily highlights & favorite moments"),
+    ("Extras & Memories", "Ratings & Reviews", "Rate everything 1–5"),
+    ("Extras & Memories", "Souvenir List", "Gift budget vs actual spending"),
+    ("Extras & Memories", "Wi-Fi & Passwords", "Every network + password, saved"),
+]
+
+
+def build_home(wb):
+    ws = H.new_sheet(wb, "Home", H.NAVY,
+                     "✈️ TRAVEL PLANNER — VERSION 2",
+                     "by Novality store  ✦  plan • pack • spend smart • enjoy", 4)
+    for L, w in (("A", 18), ("B", 24), ("C", 46), ("D", 14)):
+        ws.column_dimensions[L].width = w
+
+    D = "'Destination Overview'"
+    B = "'Budget Tracker'"
+    H.section(ws, 4, 4, "🧳 TRIP SNAPSHOT")
+    snap = [
+        (5, "A", "Trip Name", f'=IF({D}!B5="","—",{D}!B5)', None,
+             "C", "Destination", f'=IF({D}!B8="","—",{D}!B9&", "&{D}!B8)', None),
+        (6, "A", "Departure", f'=IF({D}!B11="","—",{D}!B11)', H.DATEF,
+             "C", "Return", f'=IF({D}!B12="","—",{D}!B12)', H.DATEF),
+        (7, "A", "Trip Length", f'=IF({D}!B14="","—",{D}!B14&" days")', None,
+             "C", "Travelers", f'=IF({D}!B13="","—",{D}!B13&" traveler(s)")', None),
+        (8, "A", "Budget (Est.)", f"={B}!B15", H.MONEY,
+             "C", "Spent (Actual)", f"={B}!C15", H.MONEY),
+    ]
+    for r, lc, ll, f1, fm, rc, rl, f2, fm2 in snap:
+        H.put(ws, f"{lc}{r}", ll, font=H.F_LABEL, fillc=H.CREAM,
+              halign="left", indent=1, border=True)
+        H.calc_cell(ws, f"{chr(ord(lc)+1)}{r}", f1, fmt=fm)
+        H.put(ws, f"{rc}{r}", rl, font=H.F_LABEL, fillc=H.CREAM,
+              halign="left", indent=1, border=True)
+        H.calc_cell(ws, f"D{r}", f2, fmt=fm2)
+
+    H.section(ws, 10, 4, "🧭 QUICK NAVIGATION — 28 PLANNING SHEETS")
+    r = 11
+    for i, (grp, name, desc) in enumerate(NAV):
+        z = H.CREAM if i % 2 == 0 else None
+        H.put(ws, f"A{r}", grp, font=H.F_NOTE, fillc=z, halign="left",
+              indent=1, border=True)
+        H.put(ws, f"B{r}", name, font=H.F_LABEL, fillc=z, halign="left",
+              indent=1, border=True)
+        H.put(ws, f"C{r}", desc, font=H.F_BODY, fillc=z, halign="left",
+              indent=1, border=True)
+        H.calc_cell(ws, f"D{r}", f'=HYPERLINK("#\'{name}\'!A1","Open →")',
+                    font=H.F_LINK)
+        r += 1
+    ws.row_dimensions[10].height = 20
+
+    H.section(ws, 40, 4, "📌 HOW TO USE")
+    tips = [
+        "✔  Yellow cells are yours to fill in — type, pick dates, or choose from the dropdown arrows.",
+        "✔  Blue-gray cells calculate automatically and are locked, so the formulas can never break.",
+        "✔  Status columns have dropdowns — tap ✓ when something is done, packed or visited.",
+        "✔  Start on 'Destination Overview', set your 'Budget Tracker', then plan the fun stuff!",
+    ]
+    for i, t in enumerate(tips):
+        H.box(ws, 41 + i, 1, 41 + i, 4, fillc=H.CREAM)
+        H.put(ws, f"A{41+i}", t, font=H.F_BODY, halign="left", indent=1)
+        ws.row_dimensions[41 + i].height = 18
+
+    ws.merge_cells("A46:D46")
+    H.put(ws, "A46", "Travel Planner v2.0  •  made with ❤ by Novality store  •  happy travels!",
+          font=H.F_NOTE, halign="center")
+    H.finish(ws, landscape=False)
+
+
+def build_destination(wb):
+    ws = H.new_sheet(wb, "Destination Overview", PRE, "🌍 DESTINATION OVERVIEW",
+                     "The who / where / when of your trip — it feeds the Home snapshot", 3)
+    H.table(ws, 4, [
+        {"h": "Field", "w": 24, "k": "lock"},
+        {"h": "Your Details", "w": 34, "k": "in"},
+        {"h": "Notes / Extra Info", "w": 46, "k": "in", "a": "left"},
+    ], 14)
+
+    rows = [
+        (5,  "Trip Name", None, None, "e.g. “Cherry Blossom Japan 2027”"),
+        (6,  "Traveler Name(s)", None, None, "Everyone on the booking"),
+        (7,  "Home City / Base", None, None, None),
+        (8,  "Destination Country", None, None, None),
+        (9,  "Destination City / Cities", None, None, "One base or a multi-stop route"),
+        (10, "Trip Purpose", None, None, None),
+        (11, "Departure Date", H.DATEF, None, None),
+        (12, "Return Date", H.DATEF, None, None),
+        (13, "Number of Travelers", H.INTF, None, None),
+        (14, None, None, None, "Calculated from your dates"),
+        (15, None, None, None, "Updates automatically each day"),
+        (16, "Home Emergency Contact", None, None, "Name + phone"),
+        (17, "Home Address", None, None, None),
+        (18, "Trip Notes / Why We're Going", None, None, "Free text"),
+    ]
+    for r, label, fmt, _x, note in rows:
+        if label:
+            H.put(ws, f"A{r}", label, font=H.F_LABEL, fillc=H.CREAM,
+                  halign="left", indent=1, border=True)
+            H.input_cell(ws, f"B{r}", fmt=fmt)
+        H.input_cell(ws, f"C{r}", value=note, font=H.F_NOTE, halign="left", wrap=True)
+
+    H.dv(ws, "B10", "Leisure / Beach,City Break,Adventure / Outdoors,Business,Family Trip,"
+                    "Honeymoon / Romance,Backpacking,Visiting Friends & Family,Festival / Event,Other")
+    H.calc_cell(ws, "B14", '=IF(COUNT(B11:B12)<2,"",B12-B11+1)', fmt=H.INTF)
+    H.calc_cell(ws, "B15", '=IF(B11="","—",B11-TODAY())', fmt=H.INTF)
+    H.put(ws, "A14", "Trip Length (Days)", font=H.F_LABEL, fillc=H.CREAM,
+          halign="left", indent=1, border=True)
+    H.put(ws, "A15", "Days Until Departure", font=H.F_LABEL, fillc=H.CREAM,
+          halign="left", indent=1, border=True)
+    ws.row_dimensions[18].height = 26
+    H.finish(ws, landscape=False, freeze="A5")
+
+
+def build_budget(wb):
+    ws = H.new_sheet(wb, "Budget Tracker", PRE, "💰 BUDGET TRACKER",
+                     "Estimated vs actual for every category — variance updates itself", 10)
+    last = H.table(ws, 4, [
+        {"h": "Category", "w": 24, "k": "in", "a": "left"},
+        {"h": "Estimated Cost", "w": 14, "k": "in", "f": H.MONEY},
+        {"h": "Actual Cost", "w": 14, "k": "in", "f": H.MONEY},
+        {"h": "Difference", "w": 14, "k": "calc", "f": H.MONEY},
+        {"h": "% of Est. Used", "w": 12, "k": "calc", "f": H.PCT},
+        {"h": "Status", "w": 24, "k": "calc", "a": "center"},
+        {"h": "Notes", "w": 32, "k": "in", "a": "left"},
+    ], 10)
+    cats = ["✈️ Flights", "🏨 Accommodation", "🍽️ Food & Dining",
+            "🚕 Local Transport", "🎟️ Activities & Tours", "🛍️ Shopping",
+            "🛡️ Travel Insurance", "📋 Visas & Fees", "🎁 Souvenirs",
+            "✨ Miscellaneous"]
+    for i, cat in enumerate(cats):
+        r = 5 + i
+        H.input_cell(ws, f"A{r}", cat, halign="left", indent=1)
+        H.calc_cell(ws, f"D{r}", f'=IF(COUNT(B{r}:C{r})=0,"",B{r}-C{r})', fmt=H.MONEY)
+        H.calc_cell(ws, f"E{r}", f'=IF(OR(B{r}="",B{r}=0),"",C{r}/B{r})', fmt=H.PCT)
+        H.calc_cell(ws, f"F{r}", f'=IF(COUNT(B{r}:C{r})=0,"",IF(C{r}>B{r},"⚠ Over budget","✓ On track"))')
+    # TOTAL row (15)
+    for col in "ABCDEFG":
+        H.put(ws, f"{col}15", fillc=H.NAVY, border=True)
+    H.put(ws, "A15", "TOTAL", font=H.F_TOTAL, fillc=H.NAVY, halign="left",
+          indent=1, border=True)
+    for col, f, fmt in (("B", "=SUM(B5:B14)", H.MONEY), ("C", "=SUM(C5:C14)", H.MONEY),
+                        ("D", "=B15-C15", H.MONEY), ("E", '=IF(B15=0,"",C15/B15)', H.PCT)):
+        H.calc_cell(ws, f"{col}15", f, fmt=fmt, font=H.F_TOTAL, fillc=H.NAVY)
+    H.calc_cell(ws, "F15", '=IF(COUNT(B5:C14)=0,"",IF(C15>B15,"⚠ Over by "&TEXT(C15-B15,"#,##0.00"),'
+                           '"✓ Under by "&TEXT(B15-C15,"#,##0.00")))',
+                font=H.F_TOTAL, fillc=H.NAVY)
+    H.databar(ws, "E5:E14")
+    H.summary_box(ws, 4, 9, "📊 SUMMARY", [
+        ("Total Estimated", "=B15", H.MONEY),
+        ("Total Actual", "=C15", H.MONEY),
+        ("Remaining Budget", "=B15-C15", H.MONEY),
+        ("% of Budget Used", '=IF(B15=0,"",C15/B15)', H.PCT),
+    ])
+    ws.auto_filter.ref = "A4:G14"
+    H.finish(ws, freeze="A5", title_rows="4:4")
+
+
+def build_savings(wb):
+    ws = H.new_sheet(wb, "Savings Goal", PRE, "🎯 SAVINGS GOAL TRACKER",
+                     "Watch the bar fill as you save — log every deposit below", 4)
+    for L, w in (("A", 20), ("B", 16), ("C", 30), ("D", 16)):
+        ws.column_dimensions[L].width = w
+    H.section(ws, 4, 4, "🎯 GOAL OVERVIEW")
+    H.put(ws, "A5", "Savings Target", font=H.F_LABEL, fillc=H.CREAM,
+          halign="left", indent=1, border=True)
+    H.input_cell(ws, "B5", fmt=H.MONEY)
+    H.put(ws, "C5", "Tip: match it to your Budget Tracker total",
+          font=H.F_NOTE, halign="left", indent=1)
+    for r, label, f, fmt in (
+        (6, "Saved So Far", "=SUM(B12:B31)", H.MONEY),
+        (7, "Still Needed", '=IF(B5="","",MAX(0,B5-B6))', H.MONEY),
+        (8, "Progress", '=IF(OR(B5="",B5=0),"",MIN(1,B6/B5))', H.PCT),
+    ):
+        H.put(ws, f"A{r}", label, font=H.F_LABEL, fillc=H.CREAM,
+              halign="left", indent=1, border=True)
+        H.calc_cell(ws, f"B{r}", f, fmt=fmt)
+    H.box(ws, 9, 1, 9, 4)
+    H.put(ws, "A9", '=IF(OR(B5="",B5=0),"",REPT("█",MIN(20,ROUND(B6/B5*20,0)))'
+                    '&REPT("░",20-MIN(20,ROUND(B6/B5*20,0))))',
+          font=H.Font(bold=True, size=16, color=H.TEAL), halign="center")
+    ws.row_dimensions[9].height = 26
+
+    H.section(ws, 10, 4, "🧾 SAVINGS LOG — every deposit gets you closer")
+    H.table(ws, 11, [
+        {"h": "Date", "w": 14, "k": "in", "f": H.DATEF, "a": "center"},
+        {"h": "Amount Saved", "w": 16, "k": "in", "f": H.MONEY},
+        {"h": "Source / Note", "w": 30, "k": "in", "a": "left"},
+        {"h": "Running Total", "w": 16, "k": "calc", "f": H.MONEY},
+    ], 20, zebra=False)
+    for r in range(12, 32):
+        H.calc_cell(ws, f"D{r}", f'=IF(B{r}="","",SUM($B$12:B{r}))', fmt=H.MONEY)
+    H.put(ws, "A33", "Tip: log each payday transfer — the jar fills itself.",
+          font=H.F_NOTE, halign="left", indent=1)
+    H.finish(ws, landscape=False, freeze="A12")
+
+
+def build_research(wb):
+    ws = H.new_sheet(wb, "Research & Ideas", PRE, "🔎 RESEARCH & INSPIRATION",
+                     "Collect the dream list now — sort it into the itinerary later", 11)
+    H.table(ws, 4, [
+        {"h": "#", "w": 5, "k": "lock", "a": "center"},
+        {"h": "Place / Attraction", "w": 26, "k": "in", "a": "left"},
+        {"h": "City / Area", "w": 18, "k": "in", "a": "left"},
+        {"h": "Why It's a Must / Notes", "w": 42, "k": "in", "a": "left"},
+        {"h": "Priority", "w": 12, "k": "in", "a": "center"},
+        {"h": "Visited?", "w": 11, "k": "in", "a": "center"},
+    ], 12)
+    for i in range(12):
+        H.put(ws, f"A{5+i}", i + 1, font=H.F_NOTE, halign="center", border=True)
+    H.dv(ws, "E5:E16", "High,Medium,Low")
+    H.dv(ws, "F5:F16", "✓,✗")
+
+    H.table(ws, 4, [
+        {"h": "Link Title", "w": 26, "k": "in", "a": "left"},
+        {"h": "URL", "w": 36, "k": "in", "a": "left"},
+        {"h": "Category", "w": 16, "k": "in", "a": "left"},
+        {"h": "Notes", "w": 42, "k": "in", "a": "left"},
+    ], 10, start_col=8)
+    ws.column_dimensions["G"].width = 3
+    H.dv(ws, "J5:J14", "Blog,Video,Booking Site,Map,Review,Tour,Food,Other")
+    H.summary_box(ws, 17, 8, "📍 PROGRESS", [
+        ("Places visited", '=COUNTIF(F5:F16,"✓")&" of "&COUNTA(B5:B16)', None),
+    ], width=18, vwidth=12, set_width=False)
+
+    H.section(ws, 19, 11, "💡 NOTES & INSPIRATION")
+    H.box(ws, 20, 1, 26, 11, fillc=H.INPUT, unlocked=True)
+    ws["A20"].alignment = H.Alignment(horizontal="left", vertical="top",
+                                      wrap_text=True, indent=1)
+    ws.row_dimensions[20].height = 24
+    H.finish(ws, freeze="A5")
+
+
+def build_visa(wb):
+    ws = H.new_sheet(wb, "Visa & Documents", PRE, "🛂 VISA & DOCUMENT CHECKLIST",
+                     "Passport, visa, insurance, copies — nothing left behind", 8)
+    H.table(ws, 4, [
+        {"h": "Document", "w": 32, "k": "in", "a": "left"},
+        {"h": "Required?", "w": 12, "k": "in", "a": "center"},
+        {"h": "Status", "w": 14, "k": "in", "a": "center"},
+        {"h": "Deadline", "w": 14, "k": "in", "f": H.DATEF, "a": "center"},
+        {"h": "Notes", "w": 36, "k": "in", "a": "left"},
+    ], 14)
+    docs = [
+        "Passport (valid 6+ months after return)",
+        "Visa / eTA / travel authorization",
+        "Travel insurance policy",
+        "Vaccination certificates (if required)",
+        "Prescription meds + doctor's note",
+        "Driver's license / IDP",
+        "National ID card",
+        "Credit & debit cards (no foreign fees?)",
+        "Cash in local currency",
+        "Boarding passes / e-tickets",
+        "Hotel & tour confirmations",
+        "Copies of documents (cloud + paper)",
+        "Passport photos (spare)",
+        "Health / vaccination records",
+    ]
+    for i, d in enumerate(docs):
+        H.input_cell(ws, f"A{5+i}", d, font=H.F_LABEL, halign="left", indent=1)
+    H.dv(ws, "B5:B18", "Yes,No,N/A")
+    H.dv(ws, "C5:C18", "Not Started,In Progress,Ready,N/A")
+    H.summary_box(ws, 4, 7, "📊 PROGRESS", [
+        ("Ready", '=COUNTIF(C5:C18,"Ready")', H.INTF),
+        ("Still To Do", '=COUNTIF(B5:B18,"Yes")-COUNTIFS(B5:B18,"Yes",C5:C18,"Ready")', H.INTF),
+        ("% Ready", '=IFERROR(MIN(1,COUNTIFS(B5:B18,"Yes",C5:C18,"Ready")/COUNTIF(B5:B18,"Yes")),"")', H.PCT),
+    ], width=14)
+    H.databar(ws, "H7")
+    H.put(ws, "A20", "Rule of thumb: many countries want a passport valid 6+ months beyond your return date.",
+          font=H.F_NOTE, halign="left", indent=1)
+    H.finish(ws, freeze="A5")
+
+
+def build_booking(wb):
+    ws = H.new_sheet(wb, "Booking Log", PRE, "🎟️ BOOKING CONFIRMATION LOG",
+                     "One row per booking — never scroll emails at a check-in desk again", 12)
+    H.table(ws, 4, [
+        {"h": "Type", "w": 14, "k": "in", "a": "center"},
+        {"h": "Provider", "w": 20, "k": "in", "a": "left"},
+        {"h": "Confirmation #", "w": 22, "k": "in", "a": "center"},
+        {"h": "Booked On", "w": 14, "k": "in", "f": H.DATEF, "a": "center"},
+        {"h": "Starts", "w": 14, "k": "in", "f": H.DATEF, "a": "center"},
+        {"h": "Ends", "w": 14, "k": "in", "f": H.DATEF, "a": "center"},
+        {"h": "Cost", "w": 13, "k": "in", "f": H.MONEY},
+        {"h": "Paid?", "w": 10, "k": "in", "a": "center"},
+        {"h": "Notes", "w": 30, "k": "in", "a": "left"},
+    ], 14)
+    H.dv(ws, "A5:A18", "Flight,Hotel,Car Rental,Tour / Activity,Train,Bus,Cruise,Ferry,"
+                       "Restaurant,Transfer,Other")
+    H.dv(ws, "H5:H18", "Yes,No,Deposit")
+    H.summary_box(ws, 4, 11, "📊 SUMMARY", [
+        ("Total Booked Cost", "=SUM(G5:G18)", H.MONEY),
+        ("Confirmations Logged", '=COUNTIF(C5:C18,"?*")', H.INTF),
+        ("Still Unpaid", '=COUNTIF(H5:H18,"No")', H.INTF),
+    ], width=20)
+    H.finish(ws, freeze="A5")
+
+
+##############################################################################
+# FILE: sheets_b.py
+##############################################################################
+
+"""Sheets B — Packing & Preparation + Itinerary & Daily Planning groups."""
+import helpers as H
+from openpyxl.utils import get_column_letter
+
+PACKG = "457B9D"
+ITIN = "C99700"
+
+PACK_ITEMS = [
+    ("Clothing", "T-shirts & tops", None), ("Clothing", "Pants / jeans", None),
+    ("Clothing", "Shorts", None), ("Clothing", "Dresses / going-out outfits", None),
+    ("Clothing", "Underwear & socks", "7"), ("Clothing", "Pajamas", None),
+    ("Clothing", "Swimwear", None), ("Clothing", "Light jacket / raincoat", None),
+    ("Clothing", "Comfortable walking shoes", None),
+    ("Clothing", "Formal outfit (1 set)", None), ("Clothing", "Hat / cap", None),
+    ("Clothing", "Scarf / gloves (if cold)", None),
+    ("Toiletries", "Toothbrush & toothpaste", None),
+    ("Toiletries", "Shampoo & conditioner", None),
+    ("Toiletries", "Soap / body wash", None), ("Toiletries", "Deodorant", None),
+    ("Toiletries", "Skincare (AM / PM)", None), ("Toiletries", "Sunscreen SPF 30+", None),
+    ("Toiletries", "Hairbrush / comb", None), ("Toiletries", "Razor & shaving cream", None),
+    ("Toiletries", "Makeup", None), ("Toiletries", "Nail clippers", None),
+    ("Toiletries", "Feminine care", None), ("Toiletries", "Quick-dry towel", None),
+    ("Electronics", "Phone + charger", None), ("Electronics", "Power bank", None),
+    ("Electronics", "Headphones / earbuds", None),
+    ("Electronics", "Camera + memory card", None),
+    ("Electronics", "Universal travel adapter", None),
+    ("Electronics", "E-reader / tablet", None),
+    ("Electronics", "Laptop + charger (optional)", None),
+    ("Electronics", "Voltage converter (if needed)", None),
+    ("Documents", "Passport", None), ("Documents", "Visa / eTA printout", None),
+    ("Documents", "Travel insurance card", None), ("Documents", "Flight tickets", None),
+    ("Documents", "Hotel confirmations", None),
+    ("Documents", "Driver's license / IDP", None),
+    ("Documents", "Cash & cards", None), ("Documents", "Copies of all documents", None),
+    ("Health & Meds", "Prescription medications", None),
+    ("Health & Meds", "Pain relievers", None), ("Health & Meds", "Allergy medicine", None),
+    ("Health & Meds", "Stomach / motion sickness tablets", None),
+    ("Health & Meds", "Band-aids & mini first-aid", None),
+    ("Health & Meds", "Hand sanitizer", None), ("Health & Meds", "Face masks", None),
+    ("Health & Meds", "Insect repellent", None), ("Health & Meds", "Aloe / sunburn relief", None),
+    ("Miscellaneous", "Day bag / backpack", None),
+    ("Miscellaneous", "Reusable water bottle", None),
+    ("Miscellaneous", "Compact umbrella", None), ("Miscellaneous", "Laundry bag", None),
+    ("Miscellaneous", "Travel snacks", None), ("Miscellaneous", "Travel pillow", None),
+    ("Miscellaneous", "Books / entertainment", None),
+    ("Miscellaneous", "Ziplock bags", None),
+    ("Miscellaneous", "Foldable tote for souvenirs", None),
+    ("Miscellaneous", "Earplugs & eye mask", None),
+]
+
+
+def build_packing(wb):
+    ws = H.new_sheet(wb, "Packing Checklist", PACKG, "🧳 PACKING CHECKLIST",
+                     "Clothing → toiletries → electronics → docs → meds — tick as you pack", 8)
+    H.table(ws, 4, [
+        {"h": "Category", "w": 18, "k": "in", "a": "left"},
+        {"h": "Item", "w": 30, "k": "in", "a": "left"},
+        {"h": "Qty", "w": 8, "k": "in", "f": H.INTF, "a": "center"},
+        {"h": "Packed?", "w": 11, "k": "in", "a": "center"},
+        {"h": "Notes", "w": 34, "k": "in", "a": "left"},
+    ], 60)
+    for i, (cat, item, qty) in enumerate(PACK_ITEMS):
+        r = 5 + i
+        H.input_cell(ws, f"A{r}", cat, halign="left", indent=1)
+        H.input_cell(ws, f"B{r}", item, halign="left", indent=1)
+        if qty:
+            H.input_cell(ws, f"C{r}", int(qty), fmt=H.INTF, halign="center")
+    H.dv(ws, "A5:A64", "Clothing,Toiletries,Electronics,Documents,Health & Meds,Miscellaneous")
+    H.dv(ws, "D5:D64", "✓,✗")
+    H.summary_box(ws, 4, 7, "📦 PROGRESS", [
+        ("Total Items", "=COUNTA(B5:B64)", H.INTF),
+        ("Packed", '=COUNTIF(D5:D64,"✓")', H.INTF),
+        ("Still To Pack", "=H5-H6", H.INTF),
+        ("% Packed", '=IF(H5=0,"",H6/H5)', H.PCT),
+    ], width=16, vwidth=11)
+    H.databar(ws, "H8")
+    ws.auto_filter.ref = "A4:E64"
+    H.finish(ws, freeze="A5", title_rows="4:4")
+
+
+def build_weather(wb):
+    ws = H.new_sheet(wb, "Weather Tracker", PACKG, "🌤️ WEATHER TRACKER",
+                     "Check the forecast daily and plan outfits before you pack", 9)
+    H.table(ws, 4, [
+        {"h": "Date", "w": 13, "k": "in", "f": H.DATEF, "a": "center"},
+        {"h": "Location", "w": 18, "k": "in", "a": "left"},
+        {"h": "High °C", "w": 10, "k": "in", "f": H.DEC1},
+        {"h": "Low °C", "w": 10, "k": "in", "f": H.DEC1},
+        {"h": "Conditions", "w": 16, "k": "in", "a": "center"},
+        {"h": "Outfit / What to Wear", "w": 42, "k": "in", "a": "left"},
+    ], 20)
+    H.dv(ws, "E5:E24", "☀ Sunny,⛅ Partly Cloudy,☁ Cloudy,🌧 Rain,⛈ Storm,❄ Snow,💨 Windy,🌫 Fog")
+    H.summary_box(ws, 4, 8, "🌡️ SNAPSHOT", [
+        ("Avg High", '=IF(COUNT(C5:C24)=0,"—",ROUND(AVERAGE(C5:C24),1))', H.DEC1),
+        ("Avg Low", '=IF(COUNT(D5:D24)=0,"—",ROUND(AVERAGE(D5:D24),1))', H.DEC1),
+        ("Coldest Low", '=IF(COUNT(D5:D24)=0,"—",MIN(D5:D24))', H.DEC1),
+        ("Rainy Days", '=COUNTIF(E5:E24,"*Rain*")', H.INTF),
+    ], width=13, vwidth=10)
+    H.finish(ws, freeze="A5")
+
+
+CARRY = [
+    "Passport & travel documents", "Prescription medications",
+    "Phone, chargers & power bank", "Change of clothes",
+    "Toiletries ≤ 100 ml", "Snacks & empty water bottle",
+    "Headphones / entertainment", "Sweater for the flight",
+]
+CHECKED = [
+    "Clothing sets for each day", "Comfortable shoes (2nd pair)",
+    "Full-size toiletries", "Hair dryer / styler",
+    "Swimwear & beach items", "Foldable bag for souvenirs",
+]
+
+
+def build_bags(wb):
+    ws = H.new_sheet(wb, "Carry-On vs Checked", PACKG, "👜 CARRY-ON vs CHECKED",
+                     "Keep valuables & essentials with you — everything else goes below", 9)
+    for start_col, title, items in ((1, "🎒 CARRY-ON (with you)", CARRY),
+                                    (6, "🧳 CHECKED BAG (in the hold)", CHECKED)):
+        H.section(ws, 4, 4, title, start_col=start_col)
+        H.table(ws, 5, [
+            {"h": "Item", "w": 28, "k": "in", "a": "left"},
+            {"h": "Qty", "w": 7, "k": "in", "f": H.INTF, "a": "center"},
+            {"h": "Packed?", "w": 10, "k": "in", "a": "center"},
+            {"h": "Notes", "w": 24, "k": "in", "a": "left"},
+        ], 20, start_col=start_col)
+        cL = get_column_letter(start_col + 2)   # packed column
+        iL = get_column_letter(start_col)
+        for i, item in enumerate(items):
+            H.input_cell(ws, f"{iL}{6+i}", item, halign="left", indent=1)
+        H.dv(ws, f"{cL}6:{cL}25", "✓,✗")
+        H.box(ws, 27, start_col, 27, start_col + 3, fillc=H.CALC)
+        H.calc_cell(ws, f"{iL}27",
+                    f'="Packed: "&COUNTIF({cL}6:{cL}25,"✓")&" of "&COUNTA({iL}6:{iL}25)',
+                    halign="center")
+    ws.column_dimensions["E"].width = 3
+    H.finish(ws, freeze="A6")
+
+
+TODO_ITEMS = [
+    ("Notify bank of travel dates", "Money & Bank"), ("Buy / check travel insurance", "Money & Bank"),
+    ("Get local currency or travel card", "Money & Bank"), ("Pay upcoming bills", "Money & Bank"),
+    ("Arrange pet sitter / boarding", "Pets"), ("Arrange house sitter / neighbor check", "Home"),
+    ("Hold mail or arrange pickup", "Home"), ("Water plants / plant sitter", "Plants"),
+    ("Pause deliveries & subscriptions", "Home"), ("Empty fridge of perishables", "Home"),
+    ("Take out trash / recycling", "Home"), ("Laundry — empty hamper", "Home"),
+    ("Lock windows & doors, hide valuables", "Home"), ("Unplug appliances & electronics", "Home"),
+    ("Set out-of-office / finish handover", "Work"), ("Charge devices & power bank", "Tech"),
+    ("Download offline maps & entertainment", "Tech"), ("Print copies of key documents", "Travel Docs"),
+    ("Check passport validity & visa", "Travel Docs"), ("Buy plug adapters / converters", "Tech"),
+]
+
+
+def build_todo(wb):
+    ws = H.new_sheet(wb, "Pre-Trip To-Do", PACKG, "✅ TO-DO BEFORE YOU GO",
+                     "The quiet list that saves the trip — bank, pets, plants, post", 8)
+    H.table(ws, 4, [
+        {"h": "Task", "w": 36, "k": "in", "a": "left"},
+        {"h": "Category", "w": 15, "k": "in", "a": "left"},
+        {"h": "Owner", "w": 14, "k": "in", "a": "left"},
+        {"h": "Due Date", "w": 13, "k": "in", "f": H.DATEF, "a": "center"},
+        {"h": "Done?", "w": 9, "k": "in", "a": "center"},
+        {"h": "Notes", "w": 32, "k": "in", "a": "left"},
+    ], 30)
+    for i, (task, cat) in enumerate(TODO_ITEMS):
+        r = 5 + i
+        H.input_cell(ws, f"A{r}", task, halign="left", indent=1)
+        H.input_cell(ws, f"B{r}", cat, halign="left", indent=1)
+    H.dv(ws, "B5:B34", "Money & Bank,Home,Pets,Plants,Work,Tech,Health,Travel Docs,Other")
+    H.dv(ws, "E5:E34", "✓,✗")
+    H.summary_box(ws, 4, 8, "🏁 READINESS", [
+        ("Done", '=COUNTIF(E5:E34,"✓")', H.INTF),
+        ("Total Tasks", "=COUNTA(A5:A34)", H.INTF),
+        ("% Ready", '=IF(H6=0,"",H5/H6)', H.PCT),
+    ], width=13, vwidth=11)
+    H.databar(ws, "H7")
+    ws.auto_filter.ref = "A4:F34"
+    H.finish(ws, freeze="A5")
+
+
+def build_itinerary(wb):
+    ws = H.new_sheet(wb, "Daily Itinerary", ITIN, "🗺️ DAY-BY-DAY ITINERARY",
+                     "80 slots — time, activity, address, transport and cost per line", 12)
+    H.table(ws, 4, [
+        {"h": "Day", "w": 6, "k": "in", "a": "center"},
+        {"h": "Date", "w": 13, "k": "in", "f": H.DATEF, "a": "center"},
+        {"h": "Time / Block", "w": 13, "k": "in", "a": "center"},
+        {"h": "Activity", "w": 34, "k": "in", "a": "left"},
+        {"h": "Location / Address", "w": 28, "k": "in", "a": "left"},
+        {"h": "Transport", "w": 14, "k": "in", "a": "center"},
+        {"h": "Cost", "w": 12, "k": "in", "f": H.MONEY},
+        {"h": "Booked?", "w": 10, "k": "in", "a": "center"},
+        {"h": "Notes", "w": 28, "k": "in", "a": "left"},
+    ], 80)
+    r = 5
+    for day in range(1, 6):
+        for block in ("Morning", "Afternoon", "Evening"):
+            H.input_cell(ws, f"A{r}", day, fmt=H.INTF, halign="center")
+            H.input_cell(ws, f"C{r}", block, halign="center")
+            r += 1
+    H.dv(ws, "F5:F84", "Flight,Train,Bus / Coach,Metro / Subway,Taxi,Rideshare,Ferry,"
+                       "Rental Car,Shuttle,Bike,Walk")
+    H.dv(ws, "H5:H84", "Yes,No")
+    H.summary_box(ws, 4, 11, "📊 SUMMARY", [
+        ("Planned Activity Cost", "=SUM(G5:G84)", H.MONEY),
+        ("Days Planned", '=IF(COUNT(A5:A84)=0,"—",MAX(A5:A84))', H.INTF),
+    ], width=20)
+    H.REFS["itin_cost"] = "'Daily Itinerary'!L5"
+    ws.auto_filter.ref = "A4:I84"
+    H.finish(ws, freeze="A5", title_rows="4:4")
+
+
+def build_hourly(wb):
+    ws = H.new_sheet(wb, "Hourly Schedule", ITIN, "⏰ HOURLY SCHEDULE GRID",
+                     "One week, hour by hour — morning, afternoon and evening blocks", 9)
+    ws.column_dimensions["A"].width = 6
+    ws.column_dimensions["B"].width = 9
+    for c in range(3, 10):
+        ws.column_dimensions[get_column_letter(c)].width = 24
+    heads = ["Block", "Time"] + [f"Day {i}" for i in range(1, 8)]
+    for j, htxt in enumerate(heads):
+        L = get_column_letter(1 + j)
+        H.put(ws, f"{L}4", htxt, font=H.F_HEAD, fillc=H.TEAL, halign="center",
+              border=True)
+    ws.row_dimensions[4].height = 20
+    H.put(ws, "B5", "Date →", font=H.F_NOTE, fillc=H.CREAM, halign="right", border=True)
+    H.put(ws, "A5", "", fillc=H.CREAM, border=True)
+    for c in range(3, 10):
+        H.input_cell(ws, f"{get_column_letter(c)}5", fmt=H.DATEF, halign="center")
+
+    blocks = [("☀ MORNING", 6, 11, "E7F6F2"), ("🌤 AFTERNOON", 12, 17, "FDF3D8"),
+              ("🌙 EVENING", 18, 23, "FBE9E1")]
+    for name, r1, r2, color in blocks:
+        H.box(ws, r1, 1, r2, 1, fillc=color)
+        ws.cell(row=r1, column=1).value = name
+        ws.cell(row=r1, column=1).font = H.F_LABEL
+        ws.cell(row=r1, column=1).alignment = H.Alignment(
+            horizontal="center", vertical="center", text_rotation=90)
+    for hour in range(6, 24):
+        r = hour
+        ws.row_dimensions[r].height = 20
+        H.put(ws, f"B{r}", f"{hour:02d}:00", font=H.F_NOTE, fillc=H.CREAM,
+              halign="center", border=True)
+        for c in range(3, 10):
+            H.put(ws, f"{get_column_letter(c)}{r}", fillc=H.WHITE, border=True,
+                  unlocked=True)
+    ws.row_dimensions[5].height = 18
+    H.put(ws, "A25", "Tip: type plans into any hour. Morning ☀ 06–11 • Afternoon 🌤 12–17 • Evening 🌙 18–23.",
+          font=H.F_NOTE, halign="left", indent=1)
+    H.finish(ws, freeze="C6")
+
+
+def build_route(wb):
+    ws = H.new_sheet(wb, "Route Planner", ITIN, "🧭 MAP & ROUTE PLANNER",
+                     "Order your stops, then sketch the route on the grid", 21)
+    H.table(ws, 4, [
+        {"h": "Stop #", "w": 8, "k": "lock", "a": "center"},
+        {"h": "Place", "w": 26, "k": "in", "a": "left"},
+        {"h": "Nearest Transit / Parking", "w": 26, "k": "in", "a": "left"},
+        {"h": "Est. Time", "w": 12, "k": "in", "a": "center"},
+        {"h": "Notes", "w": 30, "k": "in", "a": "left"},
+    ], 10)
+    for i in range(10):
+        H.put(ws, f"A{5+i}", i + 1, font=H.F_NOTE, halign="center", border=True)
+
+    for c in range(7, 22):
+        ws.column_dimensions[get_column_letter(c)].width = 4.6
+    H.put(ws, "U17", "N ⬆", font=H.F_LABEL, halign="center")
+    for r in range(18, 33):
+        ws.row_dimensions[r].height = 20
+        for c in range(7, 22):
+            H.put(ws, f"{get_column_letter(c)}{r}", fillc=H.WHITE, border=True,
+                  unlocked=True)
+    H.put(ws, "A34", "Sketch your route: mark ⬤ start, letter the stops A–J, shade 🟨 must-sees, "
+                     "draw ➜ between cells.", font=H.F_NOTE, halign="left", indent=1)
+    H.finish(ws, freeze="A5")
+
+
+def build_transport(wb):
+    ws = H.new_sheet(wb, "Transportation Log", ITIN, "🚉 TRANSPORTATION LOG",
+                     "Every flight, train, bus and rideshare — times & confirmations", 14)
+    H.table(ws, 4, [
+        {"h": "Mode", "w": 14, "k": "in", "a": "center"},
+        {"h": "Operator / Airline", "w": 20, "k": "in", "a": "left"},
+        {"h": "From", "w": 16, "k": "in", "a": "left"},
+        {"h": "To", "w": 16, "k": "in", "a": "left"},
+        {"h": "Date", "w": 13, "k": "in", "f": H.DATEF, "a": "center"},
+        {"h": "Depart", "w": 9, "k": "in", "a": "center"},
+        {"h": "Arrive", "w": 9, "k": "in", "a": "center"},
+        {"h": "Confirmation #", "w": 16, "k": "in", "a": "center"},
+        {"h": "Seat / Terminal", "w": 13, "k": "in", "a": "center"},
+        {"h": "Cost", "w": 12, "k": "in", "f": H.MONEY},
+        {"h": "Notes", "w": 24, "k": "in", "a": "left"},
+    ], 30)
+    H.dv(ws, "A5:A34", "Flight,Train,Bus / Coach,Metro / Subway,Taxi,Rideshare,Ferry,"
+                       "Rental Car,Shuttle,Bike,Walk")
+    H.summary_box(ws, 4, 13, "📊 SUMMARY", [
+        ("Total Transport Cost", "=SUM(J5:J34)", H.MONEY),
+        ("Segments Logged", '=COUNTIF(A5:A34,"?*")', H.INTF),
+    ], width=20)
+    H.REFS["trans_total"] = "'Transportation Log'!N5"
+    ws.auto_filter.ref = "A4:K34"
+    H.finish(ws, freeze="A5")
+
+
+FIELDS = [
+    ("Name", None, None), ("Address", None, None), ("City", None, None),
+    ("Phone", None, None), ("Confirmation #", None, None),
+    ("Check-In Date", H.DATEF, None), ("Check-Out Date", H.DATEF, None),
+    ("Nights", None, "calc"), ("Cost per Night", H.MONEY, None),
+    ("Total Stay Cost", H.MONEY, "calc"), ("Wi-Fi Network", None, None),
+    ("Wi-Fi Password", None, None), ("Check-In Time", None, None),
+    ("Check-Out Time", None, None), ("Breakfast Included?", None, "dv"),
+    ("Notes", None, "wide"),
+]
+
+
+def build_accommodation(wb):
+    ws = H.new_sheet(wb, "Accommodation", ITIN, "🏨 ACCOMMODATION DETAILS",
+                     "Up to 3 stays — dates, contacts, Wi-Fi and automatic totals", 6)
+    ws.column_dimensions["A"].width = 24
+    ws.column_dimensions["B"].width = 20
+    ws.column_dimensions["C"].width = 12
+    ws.column_dimensions["D"].width = 2
+    night_cells, total_cells, name_cells = [], [], []
+    for k in range(3):
+        head = 4 + k * 18
+        H.section(ws, head, 3, f"🏨 STAY {k+1}")
+        for i, (label, fmt, kind) in enumerate(FIELDS):
+            r = head + 1 + i
+            H.put(ws, f"A{r}", label, font=H.F_LABEL, fillc=H.CREAM,
+                  halign="left", indent=1, border=True)
+            H.box(ws, r, 2, r, 3, fillc=H.INPUT, unlocked=True)
+            if fmt:
+                ws[f"B{r}"].number_format = fmt
+                ws[f"B{r}"].alignment = H.Alignment(horizontal="center", vertical="center")
+            if label == "Name":
+                name_cells.append(f"B{r}")
+            if kind == "calc" and label == "Nights":
+                H.box(ws, r, 2, r, 3, fillc=H.CALC)
+                ci, co = head + 6, head + 7
+                ws[f"B{r}"] = f'=IF(COUNT(B{ci}:B{co})<2,"",B{co}-B{ci})'
+                ws[f"B{r}"].font = H.F_CALC
+                ws[f"B{r}"].alignment = H.Alignment(horizontal="center", vertical="center")
+                ws[f"B{r}"].protection = H.LOCKED
+                night_cells.append(f"B{r}")
+            if kind == "calc" and label == "Total Stay Cost":
+                H.box(ws, r, 2, r, 3, fillc=H.CALC)
+                n, cpn = head + 8, head + 9
+                ws[f"B{r}"] = f'=IF(OR(B{n}="",B{cpn}=""),"",B{n}*B{cpn})'
+                ws[f"B{r}"].font = H.F_CALC
+                ws[f"B{r}"].number_format = H.MONEY
+                ws[f"B{r}"].alignment = H.Alignment(horizontal="center", vertical="center")
+                ws[f"B{r}"].protection = H.LOCKED
+                total_cells.append(f"B{r}")
+            if kind == "wide":
+                ws.row_dimensions[r].height = 24
+        # breakfast dropdown
+        H.dv(ws, f"B{head+15}", "Yes,No")
+    H.summary_box(ws, 4, 5, "📊 STAY SUMMARY", [
+        ("Total Nights", "=" + "+".join(night_cells), H.INTF),
+        ("Total Stay Cost", "=" + "+".join(total_cells), H.MONEY),
+        ("Stays Planned", "=COUNTA(" + ",".join(name_cells) + ")", H.INTF),
+    ], width=18, vwidth=14)
+    H.REFS["accom_total"] = "'Accommodation'!F6"
+    H.finish(ws)
+
+
+def build(wb):
+    build_packing(wb)
+    build_weather(wb)
+    build_bags(wb)
+    build_todo(wb)
+    build_itinerary(wb)
+    build_hourly(wb)
+    build_route(wb)
+    build_transport(wb)
+    build_accommodation(wb)
+
+
+##############################################################################
+# FILE: sheets_c.py
+##############################################################################
+
+"""Sheets C — Expense Tracking + Food & Activities groups."""
+import helpers as H
+from openpyxl.utils import get_column_letter
+
+EXPC = "E76F51"
+FOOD = "7FB069"
+
+CATEGORIES = ["Flights", "Accommodation", "Food & Dining", "Local Transport",
+              "Activities & Tours", "Shopping", "Travel Insurance", "Visas & Fees",
+              "Souvenirs", "Miscellaneous"]
+
+RATES = [
+    ("US Dollar", "USD", 1.0), ("Euro", "EUR", 1.08), ("British Pound", "GBP", 1.27),
+    ("Japanese Yen", "JPY", 0.0067), ("Canadian Dollar", "CAD", 0.73),
+    ("Australian Dollar", "AUD", 0.66), ("Swiss Franc", "CHF", 1.12),
+    ("Chinese Yuan", "CNY", 0.14), ("Mexican Peso", "MXN", 0.055),
+    ("Thai Baht", "THB", 0.028), ("Indian Rupee", "INR", 0.012),
+    ("South Korean Won", "KRW", 0.0007),
+]
+
+
+def build_converter(wb):
+    ws = H.new_sheet(wb, "Currency Converter", EXPC, "💱 CURRENCY CONVERTER",
+                     "Rate table + instant converter — the Expense Log reads this table", 7)
+    H.put(ws, "A3", "Home currency:", font=H.F_LABEL, halign="right")
+    H.input_cell(ws, "B3", "USD", halign="center")
+    ws.merge_cells("C3:D3")
+    H.put(ws, "C3", "Used for all totals across the planner", font=H.F_NOTE,
+          halign="left", indent=1)
+    H.table(ws, 4, [
+        {"h": "Currency", "w": 22, "k": "in", "a": "left"},
+        {"h": "Code", "w": 9, "k": "in", "a": "center"},
+        {"h": "1 Code → Home", "w": 14, "k": "in", "f": "0.0000"},
+        {"h": "Rate Updated On", "w": 16, "k": "in", "f": H.DATEF, "a": "center"},
+    ], 12, zebra=False)
+    for i, (name, code, rate) in enumerate(RATES):
+        r = 5 + i
+        H.input_cell(ws, f"A{r}", name, halign="left", indent=1)
+        H.input_cell(ws, f"B{r}", code, halign="center")
+        H.input_cell(ws, f"C{r}", rate, fmt="0.0000")
+    H.dv(ws, "B5:B16", ",".join(c for _, c, _ in RATES))
+
+    ws.column_dimensions["F"].width = 18
+    ws.column_dimensions["G"].width = 14
+    ws.merge_cells("F4:G4")
+    H.put(ws, "F4", "⚡ QUICK CONVERTER", font=H.F_HEAD, fillc=H.TEAL,
+          halign="center", border=True)
+    for r, label in ((5, "Amount"), (6, "Currency code"), (7, "= In home currency")):
+        H.put(ws, f"F{r}", label, font=H.F_LABEL, fillc=H.CREAM, halign="left",
+              indent=1, border=True)
+    H.input_cell(ws, "G5", fmt=H.MONEY)
+    H.input_cell(ws, "G6", halign="center")
+    H.calc_cell(ws, "G7",
+                '=IF(OR(G5="",G6=""),"",G5*IFERROR(VLOOKUP(G6,$B$5:$C$16,2,FALSE),1))',
+                fmt=H.MONEY)
+    H.put(ws, "A18", "Rates are approximate — update column C before you travel. "
+                     "The Expense Log uses this table to auto-convert.",
+          font=H.F_NOTE, halign="left", indent=1)
+    H.finish(ws, landscape=False)
+
+
+def build_expense(wb):
+    ws = H.new_sheet(wb, "Expense Log", EXPC, "🧾 DAILY EXPENSE LOG",
+                     "150 rows — enter amounts in any currency, totals convert automatically", 12)
+    H.table(ws, 4, [
+        {"h": "Date", "w": 13, "k": "in", "f": H.DATEF, "a": "center"},
+        {"h": "Day", "w": 7, "k": "in", "f": H.INTF, "a": "center"},
+        {"h": "Category", "w": 18, "k": "in", "a": "left"},
+        {"h": "Item / Description", "w": 32, "k": "in", "a": "left"},
+        {"h": "Amount", "w": 13, "k": "in", "f": H.MONEY},
+        {"h": "Currency", "w": 10, "k": "in", "a": "center"},
+        {"h": "Amount (Home)", "w": 14, "k": "calc", "f": H.MONEY},
+        {"h": "Payment", "w": 13, "k": "in", "a": "center"},
+        {"h": "Notes", "w": 26, "k": "in", "a": "left"},
+    ], 150)
+    for r in range(5, 155):
+        H.calc_cell(ws, f"G{r}",
+                    f'=IF(E{r}="","",IF(F{r}="",E{r},'
+                    f'IFERROR(E{r}*VLOOKUP(F{r},\'Currency Converter\'!$B$5:$C$16,2,FALSE),"")))',
+                    fmt=H.MONEY)
+    H.dv(ws, "C5:C154", ",".join(CATEGORIES))
+    H.dv(ws, "H5:H154", "Cash,Card,Mobile App,Travel Money Card,Other")
+    H.dv_formula(ws, "F5:F154", "='Currency Converter'!$B$5:$B$16")
+    H.summary_box(ws, 4, 11, "📊 TOTALS", [
+        ("Total Spent (Home)", "=SUM(G5:G154)", H.MONEY),
+        ("Entries Logged", "=COUNT(E5:E154)", H.INTF),
+        ("Avg Spend / Day", "=IFERROR(ROUND(L5/'Destination Overview'!B14,2),\"—\")", H.MONEY),
+    ], width=20)
+    H.REFS["exp_total"] = "'Expense Log'!L5"
+
+    H.section(ws, 156, 9, "📊 SPENDING BY CATEGORY")
+    ws.merge_cells("A157:B157")
+    H.put(ws, "A157", "Category", font=H.F_HEAD, fillc=H.TEAL, halign="center", border=True)
+    ws["B157"].fill = H.fl(H.TEAL); ws["B157"].border = H.B_ALL
+    H.put(ws, "C157", "Total Spent", font=H.F_HEAD, fillc=H.TEAL, halign="center", border=True)
+    for i, cat in enumerate(CATEGORIES):
+        r = 158 + i
+        ws.merge_cells(f"A{r}:B{r}")
+        H.put(ws, f"A{r}", cat, font=H.F_LABEL, fillc=H.CREAM, halign="left",
+              indent=1, border=True)
+        ws[f"B{r}"].fill = H.fl(H.CREAM); ws[f"B{r}"].border = H.B_ALL
+        H.calc_cell(ws, f"C{r}", f'=SUMIF($C$5:$C$154,A{r},$G$5:$G$154)', fmt=H.MONEY)
+    ws.merge_cells("A168:B168")
+    H.put(ws, "A168", "TOTAL", font=H.F_TOTAL, fillc=H.NAVY, halign="left",
+          indent=1, border=True)
+    ws["B168"].fill = H.fl(H.NAVY); ws["B168"].border = H.B_ALL
+    H.calc_cell(ws, "C168", "=SUM(C158:C167)", fmt=H.MONEY, font=H.F_TOTAL,
+                fillc=H.NAVY)
+    ws.auto_filter.ref = "A4:I154"
+    H.finish(ws, freeze="A5", title_rows="4:4")
+
+
+TIPS = [
+    ("🇺🇸 USA", "15–25%", "10–15%", "$1–5 / bag", "10–20%", "Tipping is expected almost everywhere"),
+    ("🇨🇦 Canada", "15–20%", "10–15%", "$1–5 / bag", "10–20%", "Similar to the US"),
+    ("🇲🇽 Mexico", "10–15%", "Round up", "20–50 MXN", "10–15%", "Cash preferred, in pesos"),
+    ("🇬🇧 United Kingdom", "10–12.5% if no service", "Round up", "£1–2 / bag", "10%", "Check bill — service often included"),
+    ("🇫🇷 France", "Round up / 5%", "Round up", "€1–2 / bag", "10–15%", "Service compris — small tips welcome"),
+    ("🇮🇹 Italy", "5–10% if no servizio", "Round up", "€1–2 / bag", "10%", "Coperto charge is not a tip"),
+    ("🇪🇸 Spain", "Round up", "Round up", "€1–2 / bag", "€5–10", "Tipping is modest and casual"),
+    ("🇩🇪 Germany", "5–10%, round up", "Round up", "€1–3 / bag", "€5–10", "Tell the server the total incl. tip"),
+    ("🇯🇵 Japan", "No tip", "No tip", "No tip", "No tip", "Tipping can cause confusion — a bow works"),
+    ("🇨🇳 China", "No tip", "No tip", "Sometimes expected", "Small gift", "Not customary in local spots"),
+    ("🇹🇭 Thailand", "10% at nicer spots", "Round up", "20–50 THB", "100–300 THB", "Small tips appreciated"),
+    ("🇦🇺 Australia", "10% optional", "Round up", "Optional", "10% optional", "Not required, always appreciated"),
+]
+
+
+def build_tipping(wb):
+    ws = H.new_sheet(wb, "Tipping Guide", EXPC, "💁 TIPPING GUIDE",
+                     "Country-by-country customs — never guess at the table again", 6)
+    H.table(ws, 4, [
+        {"h": "Country / Region", "w": 20, "k": "in", "a": "left"},
+        {"h": "Restaurants", "w": 20, "k": "in", "a": "center"},
+        {"h": "Taxis", "w": 14, "k": "in", "a": "center"},
+        {"h": "Hotels", "w": 15, "k": "in", "a": "center"},
+        {"h": "Tour Guides", "w": 14, "k": "in", "a": "center"},
+        {"h": "Notes", "w": 38, "k": "in", "a": "left"},
+    ], 16, zebra=False)
+    for i, row in enumerate(TIPS):
+        r = 5 + i
+        for j, val in enumerate(row):
+            H.input_cell(ws, f"{get_column_letter(1+j)}{r}", val,
+                         halign="left" if j in (0, 5) else "center",
+                         font=H.F_LABEL if j == 0 else H.F_BODY)
+    H.put(ws, "A22", "Customs change fast — double-check for your exact destination. "
+                     "Blank rows below are for your own research.",
+          font=H.F_NOTE, halign="left", indent=1)
+    H.finish(ws, freeze="A5")
+
+
+def build_summary(wb):
+    ws = H.new_sheet(wb, "Trip Cost Summary", EXPC, "📉 TRIP COST SUMMARY",
+                     "Every total in the planner, pulled into one dashboard", 3)
+    ws.column_dimensions["A"].width = 38
+    ws.column_dimensions["B"].width = 17
+    ws.column_dimensions["C"].width = 48
+    R = H.REFS
+    H.section(ws, 4, 3, "💰 COST BREAKDOWN")
+    breakdown = [
+        ("Estimated budget (Budget Tracker)", "='Budget Tracker'!B15", "What you plan to spend"),
+        ("Actual — budget sheet (Budget Tracker)", "='Budget Tracker'!C15", "Per-category actuals you typed"),
+        ("Logged expenses (Expense Log)", f"={R['exp_total']}", "Every line of the daily expense log"),
+        ("Transportation booked (Transportation Log)", f"={R['trans_total']}", "Flights, trains, taxis…"),
+        ("Accommodation booked (Accommodation)", f"={R['accom_total']}", "Nights × rate for all stays"),
+        ("Itinerary activities (Daily Itinerary)", f"={R['itin_cost']}", "Costs planned in the itinerary"),
+        ("Souvenirs & gifts actual (Souvenir List)", "='Souvenir List'!E25", "What you actually spent on gifts"),
+    ]
+    r = 5
+    for label, f, note in breakdown:
+        H.put(ws, f"A{r}", label, font=H.F_LABEL, fillc=H.CREAM, halign="left",
+              indent=1, border=True)
+        H.calc_cell(ws, f"B{r}", f, fmt=H.MONEY)
+        H.put(ws, f"C{r}", note, font=H.F_NOTE, halign="left", indent=1, border=True)
+        r += 1
+
+    H.section(ws, 13, 3, "🩺 BUDGET HEALTH")
+    health = [
+        ("Total Estimated", "=B5", H.MONEY),
+        ("Total Actual (budget sheet)", "=B6", H.MONEY),
+        ("Remaining vs Budget", '=IF(B5=0,"",B5-B6)', H.MONEY),
+        ("% of Budget Used", '=IF(B5=0,"",B6/B5)', H.PCT),
+    ]
+    r = 14
+    for label, f, fmt in health:
+        H.put(ws, f"A{r}", label, font=H.F_LABEL, fillc=H.CREAM, halign="left",
+              indent=1, border=True)
+        H.calc_cell(ws, f"B{r}", f, fmt=fmt)
+        r += 1
+    H.databar(ws, "B17")
+    H.put(ws, "A18", "Status", font=H.F_LABEL, fillc=H.CREAM, halign="left",
+          indent=1, border=True)
+    H.calc_cell(ws, "B18",
+                '=IF(B5=0,"Enter your budget to begin",IF(B6>B5,'
+                '"⚠ Over budget by "&TEXT(B6-B5,"#,##0.00"),'
+                '"✓ On track — "&TEXT(B5-B6,"#,##0.00")&" to spare"))',
+                halign="center")
+    ws.merge_cells("A20:C20")
+    H.put(ws, "A20", "Log day-to-day spending in the Expense Log — totals flow into this page automatically.",
+          font=H.F_NOTE, halign="left", indent=1)
+    H.finish(ws, landscape=False)
+
+
+def build_restaurant(wb):
+    ws = H.new_sheet(wb, "Restaurant Wishlist", FOOD, "🍽️ RESTAURANT WISHLIST",
+                     "Save every recommendation — book, visit, rate", 13)
+    H.table(ws, 4, [
+        {"h": "Restaurant", "w": 26, "k": "in", "a": "left"},
+        {"h": "Cuisine", "w": 15, "k": "in", "a": "left"},
+        {"h": "Address / Area", "w": 26, "k": "in", "a": "left"},
+        {"h": "Price", "w": 9, "k": "in", "a": "center"},
+        {"h": "Reservation", "w": 13, "k": "in", "a": "center"},
+        {"h": "Res. Date", "w": 13, "k": "in", "f": H.DATEF, "a": "center"},
+        {"h": "Priority", "w": 10, "k": "in", "a": "center"},
+        {"h": "Visited?", "w": 10, "k": "in", "a": "center"},
+        {"h": "Rating", "w": 9, "k": "in", "a": "center"},
+        {"h": "Notes", "w": 26, "k": "in", "a": "left"},
+    ], 30)
+    H.dv(ws, "D5:D34", "$,$$,$$$,$$$$")
+    H.dv(ws, "E5:E34", "Not Needed,To Book,Booked,Cancelled")
+    H.dv(ws, "G5:G34", "High,Medium,Low")
+    H.dv(ws, "H5:H34", "✓,✗")
+    H.dv_num(ws, "I5:I34")
+    H.summary_box(ws, 4, 12, "📊 SUMMARY", [
+        ("Reservations Booked", '=COUNTIF(E5:E34,"Booked")', H.INTF),
+        ("Places Visited", '=COUNTIF(H5:H34,"✓")', H.INTF),
+        ("Avg Rating", '=IFERROR(ROUND(AVERAGE(I5:I34),1),"—")', H.DEC1),
+    ], width=20)
+    ws.auto_filter.ref = "A4:J34"
+    H.finish(ws, freeze="A5")
+
+
+def build_activity(wb):
+    ws = H.new_sheet(wb, "Activity Planner", FOOD, "🎟️ ACTIVITY & EXCURSION PLANNER",
+                     "From 💡 idea to ✅ booked — dates, costs and confirmations", 13)
+    H.table(ws, 4, [
+        {"h": "Activity / Excursion", "w": 32, "k": "in", "a": "left"},
+        {"h": "Date", "w": 13, "k": "in", "f": H.DATEF, "a": "center"},
+        {"h": "Time", "w": 9, "k": "in", "a": "center"},
+        {"h": "Duration", "w": 11, "k": "in", "a": "center"},
+        {"h": "Location / Meet Point", "w": 24, "k": "in", "a": "left"},
+        {"h": "Cost", "w": 12, "k": "in", "f": H.MONEY},
+        {"h": "Status", "w": 12, "k": "in", "a": "center"},
+        {"h": "Confirmation #", "w": 16, "k": "in", "a": "center"},
+        {"h": "Paid?", "w": 9, "k": "in", "a": "center"},
+        {"h": "Notes", "w": 26, "k": "in", "a": "left"},
+    ], 30)
+    H.dv(ws, "G5:G34", "Idea,To Book,Booked,Cancelled")
+    H.dv(ws, "I5:I34", "Yes,No,Deposit")
+    H.summary_box(ws, 4, 12, "📊 SUMMARY", [
+        ("Booked", '=COUNTIF(G5:G34,"Booked")', H.INTF),
+        ("Total Cost", "=SUM(F5:F34)", H.MONEY),
+        ("Still Just Ideas", '=COUNTIF(G5:G34,"Idea")', H.INTF),
+    ], width=18)
+    ws.auto_filter.ref = "A4:J34"
+    H.finish(ws, freeze="A5")
+
+
+PHRASES = [
+    "Hello / Hi", "Good morning", "Good evening", "Please", "Thank you",
+    "Yes / No", "Excuse me / Sorry", "How much does it cost?",
+    "Where is the bathroom?", "Can you help me?", "I need a doctor",
+    "Do you speak English?", "I would like…", "The check, please",
+    "Cheers! (toast)", "Goodbye",
+]
+
+
+def build_phrases(wb):
+    ws = H.new_sheet(wb, "Local Phrases", FOOD, "🗣️ LOCAL PHRASES",
+                     "16 essentials — fill them in before you land", 4)
+    H.table(ws, 4, [
+        {"h": "English", "w": 26, "k": "in", "a": "left"},
+        {"h": "Local Phrase", "w": 28, "k": "in", "a": "left"},
+        {"h": "Pronunciation", "w": 26, "k": "in", "a": "left"},
+        {"h": "Notes / When to Use", "w": 36, "k": "in", "a": "left"},
+    ], 22)
+    for i, p in enumerate(PHRASES):
+        H.input_cell(ws, f"A{5+i}", p, font=H.F_LABEL, halign="left", indent=1)
+    H.put(ws, "A28", "Hotel front desks love helping with pronunciation — ask!",
+          font=H.F_NOTE, halign="left", indent=1)
+    H.finish(ws, freeze="A5")
+
+
+ETIQUETTE_TOPICS = [
+    "Greetings & introductions", "Dining & table manners", "Tipping customs",
+    "Dress code (temples, churches, cities)", "Religious & sacred sites",
+    "Photography rules", "Public transport etiquette", "Gift-giving",
+    "Punctuality & time", "Gestures & body language",
+]
+
+
+def build_etiquette(wb):
+    ws = H.new_sheet(wb, "Etiquette Notes", FOOD, "🤝 CULTURAL ETIQUETTE NOTES",
+                     "Blend in, show respect — research the do's and don'ts", 4)
+    H.table(ws, 4, [
+        {"h": "Topic", "w": 28, "k": "in", "a": "left"},
+        {"h": "Customs & Tips", "w": 40, "k": "in", "a": "left"},
+        {"h": "Do ✅", "w": 32, "k": "in", "a": "left"},
+        {"h": "Don't 🚫", "w": 32, "k": "in", "a": "left"},
+    ], 20)
+    for i, t in enumerate(ETIQUETTE_TOPICS):
+        H.input_cell(ws, f"A{5+i}", t, font=H.F_LABEL, halign="left", indent=1)
+    H.finish(ws, freeze="A5")
+
+
+def build(wb):
+    build_converter(wb)
+    build_expense(wb)
+    build_tipping(wb)
+    build_summary(wb)
+    build_restaurant(wb)
+    build_activity(wb)
+    build_phrases(wb)
+    build_etiquette(wb)
+
+
+##############################################################################
+# FILE: sheets_d.py
+##############################################################################
+
+"""Sheets D — Extras & Memories group."""
+import helpers as H
+
+MISC = "9B72CF"
+
+EMERGENCY = [
+    "Local police", "Local ambulance / emergency", "Nearest hospital (name)",
+    "Nearest hospital (address)", "Nearest pharmacy / clinic",
+    "My country's embassy", "Embassy address", "Embassy 24/7 line",
+    "Consulate (if different)", "Travel insurance hotline",
+    "Insurance policy #", "Airline / travel agency 24-7 line",
+    "Hotel front desk", "Tour operator / guide",
+    "Roadside / rental-car assistance", "Family contact #1",
+    "Family contact #2", "Neighbor / house sitter",
+    "Work / manager contact", "Family doctor at home",
+]
+
+
+def build_emergency(wb):
+    ws = H.new_sheet(wb, "Emergency Contacts", MISC, "🚨 EMERGENCY CONTACTS",
+                     "Print this page — save it offline before you fly", 4)
+    H.table(ws, 4, [
+        {"h": "Contact", "w": 30, "k": "in", "a": "left"},
+        {"h": "Phone / Number", "w": 24, "k": "in", "a": "center"},
+        {"h": "Address / Extra Info", "w": 34, "k": "in", "a": "left"},
+        {"h": "Notes", "w": 28, "k": "in", "a": "left"},
+    ], 20)
+    for i, c in enumerate(EMERGENCY):
+        H.input_cell(ws, f"A{5+i}", c, font=H.F_LABEL, halign="left", indent=1)
+    ws.merge_cells("A26:D26")
+    H.put(ws, "A26", "📞 Universal numbers: 112 (EU & much of the world) • 911 (US / Canada) "
+                     "• 999 (UK) • 000 (Australia) • 110 (Japan) • 110 / 119 (China).",
+          font=H.F_NOTE, halign="left", indent=1)
+    H.finish(ws, freeze="A5")
+
+
+def build_journal(wb):
+    ws = H.new_sheet(wb, "Travel Journal", MISC, "📓 TRAVEL JOURNAL & MEMORIES",
+                     "One line a day — the highlights you'll want to remember", 10)
+    H.table(ws, 4, [
+        {"h": "Date", "w": 13, "k": "in", "f": H.DATEF, "a": "center"},
+        {"h": "Place", "w": 18, "k": "in", "a": "left"},
+        {"h": "Highlight of the Day", "w": 34, "k": "in", "a": "left"},
+        {"h": "Favorite Moment", "w": 34, "k": "in", "a": "left"},
+        {"h": "Rating", "w": 9, "k": "in", "a": "center"},
+        {"h": "Photo to Print?", "w": 12, "k": "in", "a": "center"},
+        {"h": "Notes / Memories", "w": 32, "k": "in", "a": "left"},
+    ], 30)
+    H.dv_num(ws, "E5:E34")
+    H.dv(ws, "F5:F34", "Yes,No")
+    H.summary_box(ws, 4, 9, "📊 MEMORIES", [
+        ("Average Rating", '=IFERROR(ROUND(AVERAGE(E5:E34),1),"—")', H.DEC1),
+        ("Photos to Print", '=COUNTIF(F5:F34,"Yes")', H.INTF),
+    ], width=17)
+    H.finish(ws, freeze="A5")
+
+
+def build_rating(wb):
+    ws = H.new_sheet(wb, "Ratings & Reviews", MISC, "⭐ RATINGS & REVIEWS",
+                     "Rate hotels, restaurants, activities — 1 (meh) to 5 (magical)", 10)
+    H.table(ws, 4, [
+        {"h": "Type", "w": 15, "k": "in", "a": "center"},
+        {"h": "Name", "w": 26, "k": "in", "a": "left"},
+        {"h": "City", "w": 16, "k": "in", "a": "left"},
+        {"h": "Rating (1-5)", "w": 11, "k": "in", "a": "center"},
+        {"h": "Value for Money", "w": 13, "k": "in", "a": "center"},
+        {"h": "Would Recommend?", "w": 14, "k": "in", "a": "center"},
+        {"h": "Comments", "w": 38, "k": "in", "a": "left"},
+    ], 30)
+    H.dv(ws, "A5:A34", "Hotel,Restaurant,Activity,Tour,Transport,Shop,Other")
+    H.dv_num(ws, "D5:D34")
+    H.dv_num(ws, "E5:E34")
+    H.dv(ws, "F5:F34", "Yes,No,Maybe")
+    H.summary_box(ws, 4, 9, "📊 SUMMARY", [
+        ("Average Rating", '=IFERROR(ROUND(AVERAGE(D5:D34),1),"—")', H.DEC1),
+        ("Would Recommend", '=COUNTIF(F5:F34,"Yes")', H.INTF),
+    ], width=17)
+    H.finish(ws, freeze="A5")
+
+
+def build_souvenir(wb):
+    ws = H.new_sheet(wb, "Souvenir List", MISC, "🎁 SOUVENIR & GIFT LIST",
+                     "Who's getting what — budget vs actual, ticked off as you buy", 8)
+    H.table(ws, 4, [
+        {"h": "Item", "w": 26, "k": "in", "a": "left"},
+        {"h": "For", "w": 16, "k": "in", "a": "left"},
+        {"h": "Where to Buy", "w": 24, "k": "in", "a": "left"},
+        {"h": "Budget", "w": 12, "k": "in", "f": H.MONEY},
+        {"h": "Actual", "w": 12, "k": "in", "f": H.MONEY},
+        {"h": "Bought?", "w": 10, "k": "in", "a": "center"},
+        {"h": "Wrapped?", "w": 10, "k": "in", "a": "center"},
+        {"h": "Notes", "w": 26, "k": "in", "a": "left"},
+    ], 20)
+    H.dv(ws, "F5:F24", "✓,✗")
+    H.dv(ws, "G5:G24", "✓,✗")
+    for col in "ABCDEFGH":
+        H.put(ws, f"{col}25", fillc=H.NAVY, border=True)
+    H.put(ws, "A25", "TOTAL", font=H.F_TOTAL, fillc=H.NAVY, halign="left",
+          indent=1, border=True)
+    H.calc_cell(ws, "D25", "=SUM(D5:D24)", fmt=H.MONEY, font=H.F_TOTAL, fillc=H.NAVY)
+    H.calc_cell(ws, "E25", "=SUM(E5:E24)", fmt=H.MONEY, font=H.F_TOTAL, fillc=H.NAVY)
+    H.calc_cell(ws, "F25", '=COUNTIF(F5:F24,"✓")&" bought"', font=H.F_TOTAL,
+                fillc=H.NAVY)
+    H.finish(ws, freeze="A5")
+
+
+def build_wifi(wb):
+    ws = H.new_sheet(wb, "Wi-Fi & Passwords", MISC, "📶 WI-FI & PASSWORDS LOG",
+                     "Every network from hotel to café — no more asking twice", 4)
+    H.table(ws, 4, [
+        {"h": "Location", "w": 24, "k": "in", "a": "left"},
+        {"h": "Network Name (SSID)", "w": 26, "k": "in", "a": "left"},
+        {"h": "Password", "w": 26, "k": "in", "a": "center"},
+        {"h": "Notes", "w": 34, "k": "in", "a": "left"},
+    ], 20)
+    ws.merge_cells("A26:D26")
+    H.put(ws, "A26", "🔒 Avoid banking on public Wi-Fi — use a VPN or your phone's hotspot.",
+          font=H.F_NOTE, halign="left", indent=1)
+    H.finish(ws, freeze="A5")
+
+
+def build(wb):
+    build_emergency(wb)
+    build_journal(wb)
+    build_rating(wb)
+    build_souvenir(wb)
+    build_wifi(wb)
+
+
+##############################################################################
+# FILE: verify.py
+##############################################################################
+
+"""Verify Travel Planner v2: protection, locked formulas, refs, properties."""
+import re
+import openpyxl
+
+P = "Travel_Planner_v2_Novality_Store.xlsx"
+wb = openpyxl.load_workbook(P)
+names = set(wb.sheetnames)
+print("sheets:", len(wb.sheetnames))
+assert len(wb.sheetnames) == 29
+
+problems = []
+unlocked_formula = []
+formula_count = 0
+unlocked_count = 0
+for ws in wb.worksheets:
+    # 1. protection
+    if not ws.protection.sheet:
+        problems.append(f"{ws.title}: protection OFF")
+    if not ws.protection.password:
+        problems.append(f"{ws.title}: no password hash")
+    dvs = len(ws.data_validations.dataValidation)
+    for row in ws.iter_rows():
+        for c in row:
+            if c.value is None:
+                continue
+            locked = c.protection.locked is not False
+            if not locked:
+                unlocked_count += 1
+            if c.data_type == "f":
+                formula_count += 1
+                if not locked:
+                    unlocked_formula.append(f"{ws.title}!{c.coordinate}: {c.value}")
+                for m in re.findall(r"'([^']+)'!", str(c.value)):
+                    if m not in names:
+                        problems.append(f"{ws.title}!{c.coordinate}: bad ref -> {m}")
+
+print("formula cells:", formula_count)
+print("unlocked (input) cells:", unlocked_count)
+print("unlocked formula cells:", len(unlocked_formula), unlocked_formula[:5])
+print("problems:", problems if problems else "none")
+
+# 2. spot checks
+bt = wb["Budget Tracker"]
+assert bt["B15"].value == "=SUM(B5:B14)"
+assert bt["D5"].value.startswith('=IF(COUNT')
+assert not bt["B15"].protection.locked is False
+assert bt["B5"].protection.locked is False, "budget input should be unlocked"
+
+home = wb["Home"]
+assert "HYPERLINK" in home["D11"].value
+assert "'Destination Overview'" in home["B5"].value
+
+s = wb["Savings Goal"]
+assert str(s["A9"].value).startswith('=IF(OR(B5=')
+
+e = wb["Expense Log"]
+assert "VLOOKUP" in e["G5"].value and "'Currency Converter'" in e["G5"].value
+assert e["C158"].value.startswith("=SUMIF")
+
+t = wb["Trip Cost Summary"]
+assert t["B7"].value == "='Expense Log'!L5"
+assert t["B11"].value == "='Souvenir List'!E25"
+
+# password hash present on every sheet
+for ws in wb.worksheets:
+    assert ws.protection.password and ws.protection.sheet
+
+p = wb.properties
+print("creator:", p.creator, "| title:", p.title, "| lastModifiedBy:", p.lastModifiedBy)
+assert p.creator == "Novality store"
+
+# dropdowns sanity
+for name, want in (("Packing Checklist", "A5:A64"), ("Expense Log", "F5:F154"),
+                   ("Restaurant Wishlist", "D5:D34")):
+    ws = wb[name]
+    rngs = [str(d.sqref) for d in ws.data_validations.dataValidation]
+    print(name, "validations:", rngs)
+    assert any(want in r for r in rngs)
+
+print("ALL CHECKS PASSED ✔")
+
+
+##############################################################################
+# FILE: make_listing_images.py
+##############################################################################
+
+"""Novality store — Travel Planner v2 : Etsy listing image generator.
+
+Draws 12 branded marketing images (2000x2000 + Pinterest + shop avatar)
+programmatically with Pillow: real spreadsheet mockups, feature tiles,
+how-it-works steps and AI-generated background art (assets/hero-bg.png).
+"""
+import os
+import math
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(HERE, "images")
+ASSETS = os.path.join(HERE, "assets")
+os.makedirs(OUT, exist_ok=True)
+
+# ----------------------------------------------------------------- palette --
+NAVY   = (29, 53, 87)
+NAVY_D = (18, 34, 56)
+TEAL   = (42, 157, 143)
+TEAL_D = (28, 118, 106)
+SAND   = (233, 196, 106)
+SAND_D = (196, 159, 66)
+CORAL  = (231, 111, 81)
+CORAL_D= (198, 84, 56)
+CREAM  = (241, 250, 238)
+WHITE  = (255, 255, 255)
+INPUTY = (255, 248, 225)
+CALCB  = (223, 234, 246)
+LINE   = (180, 199, 207)
+GRAYTX = (95, 116, 112)
+SHADOW = (16, 30, 49)
+
+# ------------------------------------------------------------------- fonts --
+FD = os.path.join(ASSETS, "fonts")
+
+def F(size, weight="Bold"):
+    p = os.path.join(FD, f"HankenGrotesk-{weight}.otf")
+    return ImageFont.truetype(p, size)
+
+def FR(size):
+    return ImageFont.truetype(os.path.join(FD, "FredokaOne-Regular.ttf"), size)
+
+def SYM(size, bold=False):
+    return ImageFont.truetype(os.path.join(
+        FD, "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"), size)
+
+# ----------------------------------------------------------------- helpers --
+def fit_font(text, base, weight, max_w, min_size=18):
+    """Shrink font size until text fits max_w. Returns font."""
+    s = base
+    while s > min_size:
+        f = F(s, weight)
+        if f.getlength(text) <= max_w:
+            return f
+        s -= 2
+    return F(min_size, weight)
+
+def txt(d, xy, s, font, fill, anchor="la"):
+    d.text(xy, s, font=font, fill=fill, anchor=anchor)
+
+def txt_c(d, cx, y, s, font, fill, anchor="mm"):
+    d.text((cx, y), s, font=font, fill=fill, anchor=anchor)
+
+def tracked(d, cx, y, s, font, fill, tracking=14):
+    widths = [font.getlength(c) for c in s]
+    total = sum(widths) + tracking * (len(s) - 1)
+    x = cx - total / 2
+    for c, w in zip(s, widths):
+        d.text((x, y), c, font=font, fill=fill, anchor="lm")
+        x += w + tracking
+
+def tracked_l(d, x, y, s, font, fill, tracking=14):
+    for c in s:
+        d.text((x, y), c, font=font, fill=fill, anchor="lm")
+        x += font.getlength(c) + tracking
+
+def rrect(d, box, r, fill=None, outline=None, width=1):
+    d.rounded_rectangle(box, radius=r, fill=fill, outline=outline, width=width)
+
+def shadow_rrect(img, d, box, r, fill, outline=None, width=1, blur=18, alpha=70):
+    x0, y0, x1, y1 = box
+    sh = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    sd = ImageDraw.Draw(sh)
+    sd.rounded_rectangle((x0 + 8, y0 + 14, x1 + 8, y1 + 14), radius=r,
+                         fill=(13, 24, 40, alpha))
+    sh = sh.filter(ImageFilter.GaussianBlur(blur))
+    img.paste(Image.alpha_composite(img.convert("RGBA"), sh).convert("RGB"), (0, 0))
+    d = ImageDraw.Draw(img)
+    rrect(d, box, r, fill, outline, width)
+    return d
+
+def check(d, cx, cy, s, color=TEAL, w=8):
+    d.line([(cx - s * 0.9, cy + s * 0.05), (cx - s * 0.25, cy + s * 0.75),
+            (cx + s * 0.95, cy - s * 0.65)], fill=color, width=w, joint="curve")
+
+def pill(d, cx, cy, text, font, pad_x=34, fill=WHITE, fg=NAVY, outline=None,
+         width=3, tracked_=6):
+    tw = sum(font.getlength(c) for c in text) + tracked_ * (len(text) - 1)
+    w = tw + pad_x * 2
+    h = font.size + pad_x * 1.3
+    rrect(d, (cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2), h / 2,
+          fill=fill, outline=outline, width=width)
+    tracked(d, cx, cy, text, font, fg, tracked_)
+    return w
+
+def icon_badge(d, cx, cy, r, glyph, bg=TEAL, fg=WHITE, size=None):
+    d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=bg)
+    f = SYM(size or int(r * 1.15))
+    txt_c(d, cx, cy, glyph, f, fg, anchor="mm")
+
+def stars(d, cx, cy, n=5, gap=18, size=44, color=SAND):
+    f = SYM(size)
+    w = f.getlength("★") + gap
+    total = w * n - gap
+    x = cx - total / 2 + w / 2
+    for _ in range(n):
+        txt_c(d, x, cy, "★", f, color, anchor="mm")
+        x += w
+
+def wrap(s, font, max_w):
+    words, lines, cur = s.split(), [], ""
+    for w_ in words:
+        t = (cur + " " + w_).strip()
+        if font.getlength(t) <= max_w or not cur:
+            cur = t
+        else:
+            lines.append(cur)
+            cur = w_
+    if cur:
+        lines.append(cur)
+    return lines
+
+# ------------------------------------------------------- page chrome/footer --
+def footer(img, d, S=2000):
+    h = 96
+    d.rectangle((0, S - h, S, S), fill=NAVY)
+    d.rectangle((0, S - h - 6, S, S - h), fill=SAND)
+    txt(d, (70, S - h / 2), "✈", SYM(40, bold=True), SAND, anchor="lm")
+    tracked_l(d, 130, S - h / 2, "TRAVEL PLANNER V2  —  NOVALITY STORE",
+              F(30, "Bold"), CREAM, 5)
+    tracked(d, S - 70, S - h / 2, "DIGITAL SPREADSHEET • INSTANT DOWNLOAD",
+            F(28, "SemiBold"), SAND, 4)
+
+def header(img, d, title, sub, S=2000, y=150):
+    f_title = FR(148)
+    txt_c(d, S / 2, y, title, f_title, NAVY, anchor="mm")
+    under = y + 108
+    d.rounded_rectangle((S / 2 - 90, under, S / 2 + 90, under + 12), radius=6,
+                        fill=CORAL)
+    txt_c(d, S / 2, under + 78, sub, F(58, "SemiBold"), TEAL_D, anchor="mm")
+    return under + 130
+
+# -------------------------------------------------------- spreadsheet mock --
+def sheet_card(img, d, x, y, w, banner, headers, col_ws, rows, total=None,
+               row_h=66, header_h=58, banner_h=100, cell_font=None,
+               head_font=None, banner_font=None, r=30, tick_col=None):
+    """rows: list of list of (text, kind) where kind in 'in','calc','plain'.
+    total: list of (text, kind) for navy TOTAL row. Returns bottom y."""
+    cf = cell_font or F(32, "Medium")
+    hf = head_font or F(29, "SemiBold")
+    bf = banner_font or F(42, "Bold")
+    n = len(rows) + (1 if total else 0)
+    h = banner_h + header_h + n * row_h + 10
+    d = ImageDraw.Draw(img)
+    d = shadow_rrect(img, d, (x, y, x + w, y + h), r, NAVY)
+    # body (white, rounded bottom)
+    d.rounded_rectangle((x + 2, y + banner_h, x + w - 2, y + h - 2), radius=r,
+                        fill=WHITE)
+    d.rectangle((x + 2, y + banner_h, x + w - 2, y + banner_h + r + 4), fill=WHITE)
+    # banner text
+    txt(d, (x + 34, y + banner_h / 2 - 6), banner, bf, WHITE, anchor="lm")
+    txt(d, (x + w - 34, y + banner_h / 2 - 6), "EXCEL", F(26, "Bold"),
+        SAND, anchor="rm")
+    # header row
+    d.rectangle((x + 2, y + banner_h, x + w - 2, y + banner_h + header_h),
+                fill=TEAL)
+    cols = [x + 2]
+    for cw in col_ws:
+        cols.append(cols[-1] + int((w - 4) * cw))
+    for i, htxt in enumerate(headers):
+        f = fit_font(htxt, 29, "SemiBold", cols[i + 1] - cols[i] - 26, 20)
+        txt(d, (cols[i] + 16, y + banner_h + header_h / 2), htxt, f, WHITE,
+            anchor="lm")
+    # body rows
+    ry = y + banner_h + header_h
+    all_rows = list(rows) + ([total] if total else [])
+    for ri, row in enumerate(all_rows):
+        is_total = total is not None and ri == len(all_rows) - 1
+        if is_total:
+            d.rectangle((x + 2, ry, x + w - 2, ry + row_h), fill=NAVY)
+        elif ri % 2 == 1:
+            d.rectangle((x + 2, ry, x + w - 2, ry + row_h), fill=CREAM)
+        for ci, cell in enumerate(row):
+            text, kind = cell
+            cx0, cx1 = cols[ci], cols[ci + 1]
+            pad = 18
+            if kind == "in":
+                d.rectangle((cx0 + 6, ry + 8, cx1 - 6, ry + row_h - 8),
+                            fill=INPUTY)
+            elif kind == "calc" and not is_total:
+                d.rectangle((cx0 + 6, ry + 8, cx1 - 6, ry + row_h - 8),
+                            fill=CALCB)
+            fg = WHITE if is_total else (NAVY if kind in ("calc", "in") else GRAYTX)
+            weight = "Bold" if (is_total or kind == "calc") else "Medium"
+            f = fit_font(text, 33 if not is_total else 34, weight,
+                         cx1 - cx0 - pad * 2 - 6, 18)
+            txt(d, (cx0 + pad, ry + row_h / 2), text, f, fg, anchor="lm")
+        ry += row_h
+    d.line([(x + 2, ry), (x + w - 2, ry)], fill=LINE, width=2)
+    return ry + 8
+
+def callout(img, d, x, y, w, glyph, title, body, accent=TEAL):
+    d = shadow_rrect(img, d, (x, y, x + w, y + 150), 26, WHITE, LINE, 2,
+                     blur=12, alpha=55)
+    icon_badge(d, x + 74, y + 75, 44, glyph, bg=accent)
+    f1 = fit_font(title, 40, "Bold", w - 190, 26)
+    txt(d, (x + 142, y + 48), title, f1, NAVY, anchor="lm")
+    f2 = fit_font(body, 31, "Medium", w - 190, 18)
+    txt(d, (x + 142, y + 105), body, f2, GRAYTX, anchor="lm")
+
+def bg_canvas(color=CREAM, S=2000):
+    img = Image.new("RGB", (S, S), color)
+    return img, ImageDraw.Draw(img)
+
+def deco_dots(d, S):
+    for gx, gy, c in ((120, 150, SAND), (S - 120, 150, CORAL), (90, S - 220, TEAL),
+                      (S - 90, S - 220, SAND)):
+        d.ellipse((gx - 14, gy - 14, gx + 14, gy + 14), fill=c)
+
+# ============================================================== 01 COVER ====
+def img_cover():
+    S = 2000
+    bg = Image.open(os.path.join(ASSETS, "hero-bg.png")).resize((S, S),
+                                                               Image.LANCZOS)
+    img = bg
+    ov = Image.new("RGB", (S, S), NAVY)
+    img = Image.blend(img, ov, 0.38)
+    # center scrim
+    scrim = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(scrim)
+    sd.ellipse((150, 520, S - 150, 1560), fill=(16, 30, 50, 130))
+    scrim = scrim.filter(ImageFilter.GaussianBlur(120))
+    img = Image.alpha_composite(img.convert("RGBA"), scrim).convert("RGB")
+    d = ImageDraw.Draw(img)
+
+    # kicker
+    pill(d, S / 2, 640, "THE COMPLETE TRIP PLANNING SPREADSHEET", F(36, "SemiBold"),
+         fill=(29, 53, 87), fg=SAND, pad_x=44)
+
+    # big title with soft shadow
+    t1, t2 = "TRAVEL", "PLANNER"
+    f_big = FR(318)
+    for i, (t, cy) in enumerate(((t1, 850), (t2, 1128))):
+        d.text((S / 2 + 10, cy + 14), t, font=f_big, fill=(14, 26, 44),
+               anchor="mm")
+        txt_c(d, S / 2, cy, t, f_big, CREAM if i == 0 else SAND, anchor="mm")
+
+    # v2 chip
+    rrect(d, (S / 2 - 470, 1280, S / 2 - 330, 1336), 28, fill=CORAL)
+    txt_c(d, S / 2 - 400, 1308, "V 2.0", F(34, "Bold"), WHITE, anchor="mm")
+    tracked(d, S / 2 + 60, 1308, "29 SMART SHEETS — ONE WORKBOOK",
+            F(38, "SemiBold"), CREAM, 6)
+
+    txt_c(d, S / 2, 1400,
+          "Budget  •  Itinerary  •  Packing  •  Expenses  •  Maps  •  Memories",
+          F(52, "Regular"), (214, 228, 238), anchor="mm")
+
+    # pills
+    pw = 520
+    pill(d, S / 2 - pw, 1545, "MICROSOFT EXCEL", F(34, "Bold"), fill=TEAL,
+         fg=WHITE)
+    pill(d, S / 2, 1545, "INSTANT DOWNLOAD", F(34, "Bold"), fill=SAND, fg=NAVY)
+    pill(d, S / 2 + pw, 1545, "FORMULAS PROTECTED", F(34, "Bold"), fill=CORAL,
+         fg=WHITE)
+
+    txt(d, (S / 2, 1730), "✈", SYM(54, bold=True), SAND, anchor="mm")
+    tracked(d, S / 2, 1810, "NOVALITY STORE", F(46, "Bold"), CREAM, 18)
+    img.save(os.path.join(OUT, "01-cover.png"), optimize=True)
+
+# ======================================================= 02 WHAT'S INSIDE ===
+CATS = [
+    ("✎", "PRE-TRIP PLANNING", "6 SHEETS",
+     ["Destination Overview", "Budget Tracker", "Savings Goal", "Research & Ideas",
+      "Visa & Documents", "Booking Log"], TEAL),
+    ("✓", "PACKING & PREP", "4 SHEETS",
+     ["Packing Checklist", "Weather Tracker", "Carry-On vs Checked",
+      "Pre-Trip To-Do"], TEAL_D),
+    ("✈", "ITINERARY & DAILY", "5 SHEETS",
+     ["Daily Itinerary", "Hourly Schedule", "Route Planner", "Transportation Log",
+      "Accommodation"], NAVY),
+    ("$", "EXPENSE TRACKING", "4 SHEETS",
+     ["Daily Expense Log", "Currency Converter", "Tipping Guide",
+      "Trip Cost Summary"], CORAL),
+    ("☀", "FOOD & ACTIVITIES", "4 SHEETS",
+     ["Restaurant Wishlist", "Activity Planner", "Local Phrases",
+      "Etiquette Notes"], SAND_D),
+    ("★", "EXTRAS & MEMORIES", "5 SHEETS",
+     ["Emergency Contacts", "Travel Journal", "Ratings & Reviews",
+      "Souvenir List", "Wi-Fi & Passwords"], CORAL_D),
+]
+
+def img_whats_inside():
+    S = 2000
+    img, d = bg_canvas()
+    deco_dots(d, S)
+    y0 = header(img, d, "WHAT'S INSIDE", "29 beautiful sheets that plan the whole trip")
+    cw, ch, gap = 586, 640, 24
+    x0 = (S - 3 * cw - 2 * gap) / 2
+    y_top = y0 + 30
+    for i, (glyph, name, count, items, color) in enumerate(CATS):
+        cx = x0 + (i % 3) * (cw + gap)
+        cy = y_top + (i // 3) * (ch + gap)
+        d = shadow_rrect(img, d, (cx, cy, cx + cw, cy + ch), 30, WHITE, LINE, 2)
+        d.rectangle((cx, cy, cx + cw, cy + 120), fill=color)
+        d.rounded_rectangle((cx, cy, cx + cw, cy + 130), radius=30, fill=color)
+        d.rectangle((cx, cy + 90, cx + cw, cy + 130), fill=color)
+        icon_badge(d, cx + 74, cy + 62, 36, glyph, bg=WHITE, fg=color)
+        f_name = fit_font(name, 40, "Bold", cw - 190, 24)
+        txt(d, (cx + 130, cy + 62), name, f_name, WHITE, anchor="lm")
+        rrect(d, (cx + cw - 150, cy + 28, cx + cw - 28, cy + 92), 32, fill=CREAM)
+        txt_c(d, cx + cw - 89, cy + 60, count, F(30, "Bold"), color, anchor="mm")
+        iy = cy + 170
+        for it in items:
+            check(d, cx + 52, iy, 13, color=TEAL, w=7)
+            f = fit_font(it, 36, "Medium", cw - 130, 22)
+            txt(d, (cx + 88, iy), it, f, NAVY_D, anchor="lm")
+            iy += 74
+    footer(img, d, S)
+    img.save(os.path.join(OUT, "02-whats-inside.png"), optimize=True)
+
+# ================================================== 03 BUDGET TRACKER =======
+def showcase(title, sub, mock_fn, callouts, fname, accent=TEAL):
+    S = 2000
+    img, d = bg_canvas()
+    deco_dots(d, S)
+    header(img, d, title, sub, S)
+    mock_fn(img, d)
+    cx = 1330
+    cy = 640
+    for glyph, t, b, col in callouts:
+        callout(img, d, cx, cy, 600, glyph, t, b, col)
+        cy += 190
+    footer(img, d, S)
+    img.save(os.path.join(OUT, fname), optimize=True)
+
+def mock_budget(img, d):
+    sheet_card(img, d, 90, 560, 1140, "BUDGET TRACKER",
+               ["CATEGORY", "ESTIMATED", "ACTUAL", "DIFFERENCE"],
+               [0.34, 0.22, 0.22, 0.22],
+               [[("Flights", "in"), ("$1,200", "in"), ("$1,184", "in"), ("+$16", "calc")],
+                [("Hotels", "in"), ("$900", "in"), ("$940", "in"), ("⚠ −$40", "calc")],
+                [("Food & dining", "in"), ("$600", "in"), ("$512", "in"), ("+$88", "calc")],
+                [("Activities", "in"), ("$450", "in"), ("$380", "in"), ("+$70", "calc")],
+                [("Shopping", "in"), ("$250", "in"), ("$310", "in"), ("⚠ −$60", "calc")],
+                [("Insurance", "in"), ("$120", "in"), ("$120", "in"), ("$0", "calc")]],
+               total=[("TOTAL", "plain"), ("$3,520", "plain"), ("$3,446", "plain"),
+                      ("+$74 ✓", "plain")],
+               row_h=88)
+
+def img_budget():
+    showcase("BUDGET TRACKER", "Know exactly where the money goes",
+             mock_budget,
+             [("$", "Totals add themselves", "Estimated vs actual, variance & % used", TEAL),
+              ("⚠", "Overspending alerts", "Flags any category over budget", CORAL),
+              ("✓", "Status at a glance", "On track or over — no math needed", NAVY),
+              ("★", "10 trip categories", "Flights, hotels, food, tours, shopping…", SAND_D)],
+             "03-budget-tracker.png")
+
+# ================================================== 04 ITINERARY ============
+def mock_itinerary(img, d):
+    sheet_card(img, d, 90, 560, 1140, "DAY-BY-DAY ITINERARY",
+               ["DAY", "TIME", "ACTIVITY", "TRANSPORT"],
+               [0.10, 0.18, 0.47, 0.25],
+               [[("1", "in"), ("Morning", "in"), ("Land & check in to hotel", "in"), ("Taxi", "in")],
+                [("1", "in"), ("Afternoon", "in"), ("Old Town walking tour", "in"), ("Walk", "in")],
+                [("1", "in"), ("Evening", "in"), ("Sunset at the harbor", "in"), ("Metro", "in")],
+                [("2", "in"), ("Morning", "in"), ("Museum + gallery pass", "in"), ("Bus", "in")],
+                [("2", "in"), ("Evening", "in"), ("Riverside dinner cruise", "in"), ("Ferry", "in")],
+                [("3", "in"), ("Morning", "in"), ("Day trip to the hills", "in"), ("Train", "in")]],
+               total=[("80", "plain"), ("slots", "plain"),
+                      ("ready for your whole trip", "plain"), ("", "plain")],
+               row_h=88)
+
+def img_itinerary():
+    showcase("DAILY ITINERARY", "Every day planned to the hour",
+             mock_itinerary,
+             [("✈", "80 time slots ready", "Day, time, activity, address & cost", TEAL),
+              ("➜", "Transport dropdowns", "Taxi, metro, ferry, walk & more", NAVY),
+              ("$", "Planned-cost total", "Itinerary costs sum automatically", CORAL),
+              ("⏱", "Hourly grid + route map", "7-day schedule & sketchable map", SAND_D)],
+             "04-itinerary.png")
+
+# ================================================== 05 PACKING ==============
+def mock_packing(img, d):
+    rows = [[("Passport & documents", "in"), ("1", "in"), ("✓", "calc")],
+            [("Phone + power bank", "in"), ("1", "in"), ("✓", "calc")],
+            [("T-shirts & tops", "in"), ("5", "in"), ("✓", "calc")],
+            [("Walking shoes", "in"), ("1", "in"), ("—", "plain")],
+            [("Rain jacket", "in"), ("1", "in"), ("—", "plain")],
+            [("Sunscreen SPF 50", "in"), ("1", "in"), ("—", "plain")]]
+    bottom = sheet_card(img, d, 90, 560, 1140, "PACKING CHECKLIST",
+                        ["ITEM", "QTY", "PACKED?"], [0.58, 0.18, 0.24], rows,
+                        row_h=88)
+    # progress bar under card
+    bx0, bx1, by = 130, 1190, bottom + 60
+    txt(d, (bx0, by - 34), "PACKING PROGRESS", F(32, "Bold"), NAVY, anchor="lm")
+    txt(d, (bx1, by - 34), "17 OF 25", F(32, "Bold"), TEAL_D, anchor="rm")
+    rrect(d, (bx0, by, bx1, by + 44), 22, fill=WHITE, outline=LINE, width=3)
+    rrect(d, (bx0 + 6, by + 6, bx0 + 6 + (bx1 - bx0 - 12) * 0.68, by + 38), 16,
+          fill=TEAL)
+    txt(d, (bx0 + (bx1 - bx0) / 2, by + 22), "68%", F(30, "Bold"), NAVY,
+        anchor="mm")
+
+def img_packing():
+    showcase("SMART PACKING LIST", "59 items pre-loaded — just tick the boxes",
+             mock_packing,
+             [("✓", "Tick as you pack", "The progress bar fills itself", TEAL),
+              ("✎", "6 smart categories", "Clothes, toiletries, tech, docs, meds…", NAVY),
+              ("☀", "Weather planner", "Match outfits to the forecast", CORAL),
+              ("➜", "Carry-on vs checked", "Two lists, side by side", SAND_D)],
+             "05-packing.png")
+
+# ================================================== 06 EXPENSES =============
+def mock_expenses(img, d):
+    sheet_card(img, d, 90, 560, 1140, "DAILY EXPENSE LOG",
+               ["DATE", "ITEM", "SPENT", "HOME ($)" ],
+               [0.14, 0.46, 0.20, 0.20],
+               [[("Mar 2", "in"), ("Croissant & coffee", "in"), ("€8.50", "in"), ("$9.18", "calc")],
+                [("Mar 2", "in"), ("Metro day ticket", "in"), ("€2.90", "in"), ("$3.13", "calc")],
+                [("Mar 3", "in"), ("Museum entry", "in"), ("€17.00", "in"), ("$18.36", "calc")],
+                [("Mar 3", "in"), ("Bistro dinner", "in"), ("€42.00", "in"), ("$45.36", "calc")],
+                [("Mar 4", "in"), ("Market souvenirs", "in"), ("€23.50", "in"), ("$25.38", "calc")]],
+               total=[("TOTAL", "plain"), ("auto-converted", "plain"),
+                      ("", "plain"), ("$101.41", "plain")],
+               row_h=86)
+    # converter chip card
+    bx, by = 90, 1500
+    d = shadow_rrect(img, d, (bx, by, bx + 1140, by + 210), 30, NAVY)
+    txt(d, (bx + 40, by + 60), "QUICK CONVERTER", F(34, "Bold"), SAND, anchor="lm")
+    rrect(d, (bx + 40, by + 100, bx + 330, by + 166), 33, fill=INPUTY)
+    txt_c(d, bx + 185, by + 133, "100 EUR", F(34, "Bold"), NAVY, anchor="mm")
+    txt(d, (bx + 380, by + 133), "→", SYM(44, bold=True), SAND, anchor="lm")
+    rrect(d, (bx + 460, by + 100, bx + 790, by + 166), 33, fill=TEAL)
+    txt_c(d, bx + 625, by + 133, "$108.00", F(34, "Bold"), WHITE, anchor="mm")
+    txt(d, (bx + 840, by + 133), "12 currencies built in", F(32, "Medium"),
+        CREAM, anchor="lm")
+
+def img_expenses():
+    showcase("EXPENSE TRACKING", "Spend in any currency — totals convert themselves",
+             mock_expenses,
+             [("➜", "Type € ¥ £ ₩…", "Rows convert to your home currency", TEAL),
+              ("$", "150-row log", "Date, category, item, payment & notes", NAVY),
+              ("☀", "Tipping guide", "Customs for 12+ destinations", CORAL),
+              ("★", "Spending by category", "Auto breakdown of every category", SAND_D)],
+             "06-expenses.png")
+
+# ================================================== 07 DASHBOARD ============
+def mock_dashboard(img, d):
+    # savings goal card
+    bx, by = 90, 560
+    d = shadow_rrect(img, d, (bx, by, bx + 1140, by + 380), 30, WHITE, LINE, 2)
+    icon_badge(d, bx + 80, by + 90, 46, "★", bg=TEAL)
+    txt(d, (bx + 150, by + 90), "SAVINGS GOAL", F(42, "Bold"), NAVY, anchor="lm")
+    txt(d, (bx + 40, by + 165), "Target  $3,400    •    Saved so far  $2,108",
+        F(34, "Medium"), GRAYTX, anchor="lm")
+    rrect(d, (bx + 40, by + 210, bx + 1100, by + 260), 25, fill=CREAM)
+    rrect(d, (bx + 46, by + 216, bx + 46 + (1100 - 46 - 6) * 0.62, by + 254), 19,
+          fill=SAND)
+    txt(d, (bx + 40, by + 320), "███████████░░░░░░░", SYM(46, bold=True), SAND,
+        anchor="lm")
+    txt(d, (bx + 560, by + 320), "62% funded", F(36, "Bold"), TEAL_D, anchor="lm")
+
+    # trip cost summary card
+    rows = [[("Estimated budget", "in"), ("$3,520", "calc")],
+            [("Logged expenses", "in"), ("$2,975", "calc")],
+            [("Transport booked", "in"), ("$1,184", "calc")],
+            [("Accommodation", "in"), ("$940", "calc")],
+            [("Souvenirs & gifts", "in"), ("$180", "calc")]]
+    sheet_card(img, d, 90, 990, 1140, "TRIP COST SUMMARY",
+               ["ONE DASHBOARD — EVERY TOTAL", "AMOUNT"], [0.68, 0.32], rows,
+               total=[("REMAINING BUDGET", "plain"), ("$545 ✓ on track", "plain")],
+               row_h=76, banner_h=96)
+
+def img_dashboard():
+    showcase("TOTALS THAT UPDATE THEMSELVES", "A dashboard that does the math",
+             mock_dashboard,
+             [("★", "Savings tracker", "Watch the bar fill as you save", SAND_D),
+              ("$", "Trip cost summary", "Every sheet totals, one page", TEAL),
+              ("✓", "Budget health", "Over / under at a single glance", NAVY),
+              ("➜", "Zero formulas to write", "325 calculations, pre-built", CORAL)],
+             "07-dashboard.png")
+
+# ================================================== 08 FEATURES =============
+FEATURES = [
+    ("⚠", "Locked & protected", "325 formulas can't break — every sheet is guarded", TEAL),
+    ("➜", "Dropdown menus", "Tick ✓ packed, set status, pick categories", NAVY),
+    ("★", "Progress bars", "Savings, packing & to-do readiness fill as you go", SAND_D),
+    ("$", "Auto currency", "12-currency converter — log spend in any money", CORAL),
+    ("✎", "Print-ready pages", "Clean layouts for your travel folder or PDF", TEAL_D),
+    ("✈", "Reuse every trip", "Duplicate the file — plan unlimited adventures", CORAL_D),
+]
+
+def img_features():
+    S = 2000
+    img, d = bg_canvas()
+    deco_dots(d, S)
+    header(img, d, "MADE TO BE EASY", "Thoughtful details throughout")
+    cw, ch, gap = 586, 640, 24
+    x0 = (S - 3 * cw - 2 * gap) / 2
+    y_top = 590
+    for i, (glyph, t, b, col) in enumerate(FEATURES):
+        cx = x0 + (i % 3) * (cw + gap)
+        cy = y_top + (i // 3) * (ch + gap)
+        d = shadow_rrect(img, d, (cx, cy, cx + cw, cy + ch), 30, WHITE, LINE, 2)
+        d.rounded_rectangle((cx, cy, cx + cw, cy + 26), radius=13, fill=col)
+        icon_badge(d, cx + cw / 2, cy + 150, 84, glyph, bg=col)
+        f1 = fit_font(t, 52, "Bold", cw - 60, 30)
+        txt_c(d, cx + cw / 2, cy + 300, t, f1, NAVY, anchor="mm")
+        lines = wrap(b, F(35, "Medium"), cw - 110)
+        ly = cy + 370
+        for ln in lines:
+            txt_c(d, cx + cw / 2, ly, ln, F(35, "Medium"), GRAYTX, anchor="mm")
+            ly += 52
+    footer(img, d, S)
+    img.save(os.path.join(OUT, "08-features.png"), optimize=True)
+
+# ================================================== 09 HOW IT WORKS =========
+STEPS = [
+    ("1", "PURCHASE", "Check out securely here on Etsy — payment confirms instantly", TEAL),
+    ("2", "DOWNLOAD", "Your .xlsx file + quick-start guide are ready in minutes", CORAL),
+    ("3", "PLAN & GO", "Fill the yellow cells — every total updates itself", NAVY),
+]
+
+def img_how():
+    S = 2000
+    img, d = bg_canvas()
+    deco_dots(d, S)
+    header(img, d, "HOW IT WORKS", "From checkout to packed suitcase in 3 steps")
+    cw, gap = 586, 24
+    x0 = (S - 3 * cw - 2 * gap) / 2
+    y_top = 640
+    for i, (num, t, b, col) in enumerate(STEPS):
+        cx = x0 + i * (cw + gap)
+        cy = y_top
+        d = shadow_rrect(img, d, (cx, cy, cx + cw, cy + 700), 30, WHITE, LINE, 2)
+        d.ellipse((cx + cw / 2 - 90, cy + 70, cx + cw / 2 + 90, cy + 250),
+                  fill=col)
+        txt_c(d, cx + cw / 2, cy + 160, num, FR(120), WHITE, anchor="mm")
+        f1 = fit_font(t, 56, "Bold", cw - 60, 30)
+        txt_c(d, cx + cw / 2, cy + 330, t, f1, NAVY, anchor="mm")
+        lines = wrap(b, F(36, "Medium"), cw - 100)
+        ly = cy + 410
+        for ln in lines:
+            txt_c(d, cx + cw / 2, ly, ln, F(36, "Medium"), GRAYTX, anchor="mm")
+            ly += 54
+        if i < 2:
+            ax = cx + cw + gap / 2
+            d.line([(ax - 10, cy + 350), (ax + 10, cy + 350)], fill=SAND_D, width=8)
+    # digital-product notice bar
+    nb_y = 1520
+    rrect(d, (250, nb_y, S - 250, nb_y + 150), 40, fill=NAVY)
+    txt_c(d, S / 2, nb_y + 52, "DIGITAL PRODUCT — NO PHYSICAL ITEM IS SHIPPED",
+          F(38, "Bold"), SAND, anchor="mm")
+    txt_c(d, S / 2, nb_y + 106,
+          "Needs Microsoft Excel (2016+, 365, Mac or web) — desktop recommended",
+          F(31, "Medium"), CREAM, anchor="mm")
+    footer(img, d, S)
+    img.save(os.path.join(OUT, "09-how-it-works.png"), optimize=True)
+
+# ================================================== 10 CTA / BRAND ==========
+def img_cta():
+    S = 2000
+    bg = Image.open(os.path.join(ASSETS, "pattern-bg.png")).resize((S, S),
+                                                                   Image.LANCZOS)
+    ov = Image.new("RGB", (S, S), NAVY_D)
+    img = Image.blend(bg, ov, 0.55)
+    d = ImageDraw.Draw(img)
+    txt_c(d, S / 2, 480, "Plan more.", FR(230), CREAM, anchor="mm")
+    txt_c(d, S / 2, 740, "Stress less.", FR(230), SAND, anchor="mm")
+    stars(d, S / 2, 990, 5, gap=26, size=64)
+    txt_c(d, S / 2, 1110, "TRAVEL PLANNER v2 — the trip kit that thinks for you",
+          F(56, "SemiBold"), (214, 228, 238), anchor="mm")
+    pill(d, S / 2, 1290, "29 SHEETS  •  325 SMART FORMULAS  •  REUSABLE FOREVER",
+         F(38, "Bold"), fill=CORAL, fg=WHITE, pad_x=46)
+    txt(d, (S / 2, 1480), "✈", SYM(58, bold=True), SAND, anchor="mm")
+    tracked(d, S / 2, 1580, "NOVALITY STORE", F(52, "Bold"), CREAM, 20)
+    txt_c(d, S / 2, 1650, "smart spreadsheets for real life", F(38, "Italic" if False else "Regular"),
+          (170, 190, 200), anchor="mm")
+    txt_c(d, S / 2, 1790, "DIGITAL  •  INSTANT  •  FOR EVERY TRIP YOU'LL EVER TAKE",
+          F(32, "SemiBold"), SAND, anchor="mm")
+    img.save(os.path.join(OUT, "10-brand.png"), optimize=True)
+
+# ================================================== PINTEREST + LOGO ========
+def img_pinterest():
+    W, H = 1000, 1500
+    img = Image.new("RGB", (W, H), CREAM)
+    d = ImageDraw.Draw(img)
+    d.rectangle((0, 0, W, 300), fill=NAVY)
+    txt_c(d, W / 2, 110, "TRAVEL PLANNER", FR(96), CREAM, anchor="mm")
+    txt_c(d, W / 2, 200, "the complete trip planning spreadsheet", F(38, "SemiBold"),
+          SAND, anchor="mm")
+    sheet_card(img, d, 60, 370, 880, "BUDGET TRACKER",
+               ["CATEGORY", "EST.", "ACTUAL"], [0.48, 0.26, 0.26],
+               [[("Flights", "in"), ("$1,200", "in"), ("$1,184", "in")],
+                [("Hotels", "in"), ("$900", "in"), ("$940", "in")],
+                [("Food", "in"), ("$600", "in"), ("$512", "in")],
+                [("Tours", "in"), ("$450", "in"), ("$380", "in")]],
+               total=[("TOTAL", "plain"), ("$3,150", "plain"), ("$3,016", "plain")],
+               row_h=64, banner_h=80, header_h=48, cell_font=F(26, "Medium"),
+               head_font=F(23, "SemiBold"), banner_font=F(30, "Bold"))
+    y = 950
+    for glyph, s in (("✓", "29 smart sheets, pre-built & formatted"),
+                     ("$", "Budget, expenses & savings — all automatic"),
+                     ("✈", "Itinerary, hourly grid, maps & transport"),
+                     ("★", "Packing lists, phrases, tips & memories")):
+        icon_badge(d, 105, y, 30, glyph, bg=TEAL)
+        txt(d, (160, y), s, F(32, "Medium"), NAVY_D, anchor="lm")
+        y += 90
+    d.rectangle((0, H - 170, W, H), fill=CORAL)
+    txt_c(d, W / 2, H - 120, "INSTANT DOWNLOAD", F(44, "Bold"), WHITE, anchor="mm")
+    txt_c(d, W / 2, H - 60, "NOVALITY STORE  •  EXCEL SPREADSHEET", F(28, "Bold"),
+          CREAM, anchor="mm")
+    img.save(os.path.join(OUT, "pinterest-1000x1500.png"), optimize=True)
+
+def img_logo():
+    S = 1000
+    img = Image.new("RGB", (S, S), CREAM)
+    d = ImageDraw.Draw(img)
+    rrect(d, (40, 40, S - 40, S - 40), 190, fill=NAVY)
+    # paper plane
+    cx, cy = S / 2, 400
+    d.polygon([(cx - 190, cy - 40), (cx + 220, cy - 150), (cx - 40, cy + 120)],
+              fill=SAND)
+    d.polygon([(cx - 190, cy - 40), (cx - 40, cy + 120), (cx - 110, cy + 60)],
+              fill=SAND_D)
+    d.polygon([(cx - 40, cy + 120), (cx + 220, cy - 150), (cx + 40, cy + 160)],
+              fill=CORAL)
+    for i, r_ in enumerate((16, 11, 7)):
+        x = cx - 230 - i * 60
+        d.ellipse((x - r_, cy + 150 - r_, x + r_, cy + 150 + r_), fill=TEAL)
+    tracked(d, cx, 700, "NOVALITY", FR(110), CREAM, 14)
+    tracked(d, cx, 790, "S T O R E", F(44, "Bold"), SAND, 6)
+    txt_c(d, cx, 870, "smart spreadsheets for real life", F(30, "Regular"),
+          (150, 170, 185), anchor="mm")
+    img.save(os.path.join(OUT, "shop-avatar-1000.png"), optimize=True)
+
+# ------------------------------------------------------------------- main ---
+if __name__ == "__main__":
+    img_cover();          print("01-cover.png")
+    img_whats_inside();   print("02-whats-inside.png")
+    img_budget();         print("03-budget-tracker.png")
+    img_itinerary();      print("04-itinerary.png")
+    img_packing();        print("05-packing.png")
+    img_expenses();       print("06-expenses.png")
+    img_dashboard();      print("07-dashboard.png")
+    img_features();       print("08-features.png")
+    img_how();            print("09-how-it-works.png")
+    img_cta();            print("10-brand.png")
+    img_pinterest();      print("pinterest-1000x1500.png")
+    img_logo();           print("shop-avatar-1000.png")
+    print("done →", OUT)
+
+
