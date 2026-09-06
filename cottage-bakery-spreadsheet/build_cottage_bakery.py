@@ -15,6 +15,7 @@ from openpyxl.formatting.rule import CellIsRule
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.chart import BarChart, LineChart, PieChart, Reference
 from datetime import date, timedelta
+import os
 import random
 
 wb = openpyxl.Workbook()
@@ -118,16 +119,16 @@ ws["D17"] = "Used In"
 hdr_row(ws,17,4)
 
 setup = [
-    ("Bakery Name","My Cottage Bakery","Dashboard header","All"),
-    ("Owner","Your Name","",""),
+    ("Bakery Name","Rose & Rye Cottage Bakery","Dashboard header","All"),
+    ("Owner","Jane Miller","",""),
     ("Currency","$","",""),
     ("Sales Tax %",8.5,"For pricing","Recipe + Bookkeeping"),
-    ("Hourly Labor Rate",20,"Your time $/hr","Recipe"),
-    ("Overhead % (auto from Overhead tab)",15,"Can auto from Overhead tab or manual","Recipe"),
+    ("Hourly Labor Rate",22,"Your time $/hr","Recipe"),
+    ("Overhead % (auto from Overhead tab)",15,"Manual %, or copy Overhead Expenses!B28 for auto","Recipe"),
     ("Waste %",5,"Failed batches","Recipe"),
     ("Packaging Default $",0.85,"Per unit","Recipe"),
     ("Target Margin %",70,"Goal margin","Recipe"),
-    ("Fiscal Year Start","2025-01-01","YTD","Dashboard"),
+    ("Fiscal Year Start","2026-01-01","YTD","Dashboard"),
     ("Market Hourly Goal $",40,"Worth It?","Markets"),
     ("Monthly Working Hours",80,"For overhead rate calc","Overhead"),
     ("Expected Monthly Orders",100,"For overhead per unit","Overhead"),
@@ -242,18 +243,21 @@ for c,h in enumerate(headers,1):
 hdr_row(ws3,1,len(headers))
 
 samples = [
-    [1,"Bread Flour","Flour","g",5000,6.5,None,2500,1000,None,None,"Bob's Mill","2025-07-01",5000,"2026-01-01","Pantry A","Organic",None],
-    [2,"Sugar","Sugar","g",2000,3.2,None,800,500,None,None,"Costco","2025-07-10",2000,"2026-07-01","Pantry A","",None],
-    [3,"Butter","Dairy","g",1000,8.99,None,300,500,None,None,"Dairy","2025-07-15",1000,"2025-08-01","Fridge","European",None],
-    [4,"Eggs","Dairy","pcs",12,5.5,None,18,12,None,None,"Farm","2025-07-18",24,"2025-08-05","Fridge","Free range",None],
-    [5,"Vanilla Extract","Flavoring","ml",200,12,None,80,50,None,None,"Nielsen","2025-06-20",200,"2027-06-01","Rack","Pure",None],
-    [6,"Chocolate Chips","Chocolate","g",1500,9.75,None,1200,400,None,None,"Ghirardelli","2025-07-05",1500,"2026-07-05","Pantry B","Semi",None],
-    [7,"Cream Cheese","Dairy","g",500,4.25,None,0,250,None,None,"Dairy","2025-07-12",1000,"2025-07-28","Fridge","OUT",None],
-    [8,"Cinnamon","Spice","g",100,4.5,None,45,20,None,None,"Spice Co","2025-05-01",100,"2026-05-01","Rack","Ceylon",None],
-    [9,"Sourdough Starter","Starter","g",500,0.5,None,350,100,None,None,"Homemade","2025-07-19",500,"","Fridge","Feed daily",None],
-    [10,"Heavy Cream","Dairy","ml",500,4.99,None,100,250,None,None,"Dairy","2025-07-17",500,"2025-07-25","Fridge","Low",None],
-    [11,"Olive Oil","Oil","ml",500,6.5,None,200,100,None,None,"Olive Co","2025-07-01",500,"2026-07-01","Pantry","",None],
-    [12,"All-Purpose Flour","Flour","g",5000,5.5,None,3000,1000,None,None,"Bob's","2025-07-10",5000,"2026-01-01","Pantry A","",None],
+    [1,"Bread Flour","Flour","g",2268,6.99,None,2500,1000,None,None,"King Arthur","2026-08-01",4536,"2027-08-01","Pantry A","5 lb bag",None],
+    [2,"All-Purpose Flour","Flour","g",2268,4.99,None,3000,1000,None,None,"Gold Medal","2026-08-05",4536,"2027-02-01","Pantry A","5 lb bag",None],
+    [3,"Sugar","Sugar","g",1814,3.29,None,800,500,None,None,"Domino","2026-08-08",1814,"2027-08-01","Pantry A","4 lb bag",None],
+    [4,"Brown Sugar","Sugar","g",907,2.79,None,400,250,None,None,"Domino","2026-08-08",907,"2027-08-01","Pantry A","2 lb bag",None],
+    [5,"Butter","Dairy","g",454,4.49,None,300,200,None,None,"Land O'Lakes","2026-08-20",908,"2026-10-01","Fridge","1 lb, unsalted",None],
+    [6,"Eggs","Dairy","pcs",12,3.99,None,18,12,None,None,"Eggland's Best","2026-08-22",24,"2026-09-20","Fridge","Large, cage-free",None],
+    [7,"Vanilla Extract","Flavoring","ml",59,12.99,None,80,50,None,None,"Nielsen-Massey","2026-07-10",118,"2028-07-01","Rack","Pure, 2 fl oz",None],
+    [8,"Chocolate Chips","Chocolate","g",340,4.49,None,1200,400,None,None,"Nestlé Toll House","2026-08-12",680,"2027-08-01","Pantry B","Semi-sweet, 12 oz",None],
+    [9,"Cream Cheese","Dairy","g",226,2.29,None,0,250,None,None,"Philadelphia","2026-08-15",453,"2026-09-10","Fridge","8 oz — OUT OF STOCK",None],
+    [10,"Cinnamon","Spice","g",57,4.29,None,45,20,None,None,"McCormick","2026-06-01",57,"2028-06-01","Rack","Ground, 2 oz",None],
+    [11,"Sourdough Starter","Other","g",500,0.50,None,350,100,None,None,"Homemade","2026-08-28",500,"","Fridge","Feed weekly",None],
+    [12,"Heavy Cream","Dairy","ml",473,3.99,None,100,250,None,None,"Organic Valley","2026-08-25",946,"2026-09-15","Fridge","Pint — LOW STOCK",None],
+    [13,"Olive Oil","Oil","ml",500,8.99,None,200,100,None,None,"California Olive Ranch","2026-07-01",500,"2027-07-01","Pantry A","Extra virgin",None],
+    [14,"Salt","Spice","g",1361,3.49,None,600,200,None,None,"Morton","2026-07-15",1361,"2028-07-01","Pantry A","Kosher, 3 lb",None],
+    [15,"Water","Other","ml",3785,0.01,None,100000,5000,None,None,"Municipal","2026-08-28",3785,"","Sink","Tap water",None],
 ]
 
 for r,row in enumerate(samples,2):
@@ -317,11 +321,11 @@ hdr_row(ws_lib,4,len(headers_lib))
 
 # Sample recipes
 recipes = [
-    ["REC-001","Sourdough Loaf","Bread",2,"900g loaf",None,1.5,20,None,0.85,None,15,None,5,None,0,None,None,None,"Active","Best seller"],
-    ["REC-002","Chocolate Chip Cookies","Cookies",12,"1 cookie",None,0.75,20,None,0.25,None,15,None,5,None,0,None,None,None,"Active","Dozen"],
-    ["REC-003","Cinnamon Rolls 6-pack","Pastry",6,"1 roll",None,1,20,None,0.5,None,15,None,5,None,0,None,None,None,"Active","Weekend"],
-    ["REC-004","Banana Bread","Bread",1,"1 loaf",None,0.5,20,None,0.75,None,15,None,5,None,0,None,None,None,"Active",""],
-    ["REC-005","Vanilla Cupcakes 6","Cake",6,"1 cupcake",None,1,20,None,0.4,None,15,None,5,None,0,None,None,None,"Active",""],
+    ["REC-001","Sourdough Loaf","Bread",2,"900g loaf",None,1.5,22,None,0.85,None,15,None,5,None,0,None,None,None,"Active","Best seller"],
+    ["REC-002","Chocolate Chip Cookies","Cookies",12,"1 cookie",None,0.75,22,None,0.25,None,15,None,5,None,0,None,None,None,"Active","Dozen"],
+    ["REC-003","Cinnamon Rolls 6-pack","Pastry",6,"1 roll",None,1,22,None,0.5,None,15,None,5,None,0,None,None,None,"Active","Weekend"],
+    ["REC-004","Banana Bread","Bread",1,"1 loaf",None,0.5,22,None,0.75,None,15,None,5,None,0,None,None,None,"Active",""],
+    ["REC-005","Vanilla Cupcakes 6","Cake",6,"1 cupcake",None,1,22,None,0.4,None,15,None,5,None,0,None,None,None,"Active",""],
 ]
 
 for r,row in enumerate(recipes,5):
@@ -749,18 +753,18 @@ ws6["F4"] = "Notes"
 hdr_row(ws6,4,6)
 
 overheads = [
-    ["Rent","Cottage kitchen rent / shared kitchen",300,None,"Fixed",""],
-    ["Utilities","Electricity + gas",80,None,"Fixed",""],
-    ["Insurance","Liability + cottage food insurance",40,None,"Fixed",""],
-    ["Licenses","Cottage food permit + business license",15,None,"Fixed","$180/year"],
-    ["Internet/Phone","Website + phone",30,None,"Fixed",""],
-    ["Software","Accounting + Sheets + Canva",20,None,"Fixed",""],
-    ["Marketing","Instagram ads + flyers",50,None,"Variable",""],
-    ["Transportation","Market gas + delivery",60,None,"Variable",""],
-    ["Packaging Storage","Storage bins + shelves",10,None,"Fixed",""],
-    ["Cleaning","Supplies + cleaning",15,None,"Fixed",""],
-    ["Accounting","CPA + bookkeeping",25,None,"Fixed",""],
-    ["Other","Misc",20,None,"Variable",""],
+    ["Rent","Shared commercial kitchen / home kitchen allocation",350,None,"Fixed",""],
+    ["Utilities","Electricity + gas",95,None,"Fixed",""],
+    ["Insurance","Cottage food liability + business policy",35,None,"Fixed",""],
+    ["Licenses","State cottage food permit + business license",15,None,"Fixed","~$180/year"],
+    ["Internet/Phone","Website + phone line",40,None,"Fixed",""],
+    ["Software","Accounting + Google Workspace + Canva",25,None,"Fixed",""],
+    ["Marketing","Instagram/Facebook ads + flyers",60,None,"Variable",""],
+    ["Transportation","Farmers market gas + delivery",75,None,"Variable",""],
+    ["Packaging Storage","Bins, shelves, labels",12,None,"Fixed",""],
+    ["Cleaning","Sanitizer + cleaning supplies",18,None,"Fixed",""],
+    ["Accounting","CPA + bookkeeping",30,None,"Fixed",""],
+    ["Other","Miscellaneous",25,None,"Variable",""],
 ]
 
 for r,row in enumerate(overheads,5):
@@ -918,18 +922,18 @@ ws7["H4"] = "Notes"
 hdr_row(ws7,4,8)
 
 startups = [
-    ["Equipment","Stand Mixer KitchenAid 6qt",450,"2025-01-10","Amazon",60,None,""],
-    ["Equipment","Oven upgrade / Dutch oven",300,"2025-01-12","Local",60,None,""],
-    ["Equipment","Refrigerator extra",600,"2025-01-15","Home Depot",60,None,""],
-    ["Equipment","Baking sheets, pans, bowls",150,"2025-01-08","Restaurant Depot",36,None,""],
-    ["Equipment","Packaging sealer + scale",80,"2025-01-09","Amazon",36,None,""],
-    ["Initial Inventory","Flour, sugar, butter initial stock",200,"2025-01-15","Costco",1,None,"One-time"],
-    ["Packaging","Boxes, bags, labels, stickers initial",120,"2025-01-16","Pack Co",1,None,""],
-    ["Licenses","Cottage food permit + business license",200,"2025-01-05","City",12,None,"Annual but first year"],
-    ["Branding","Logo + website + domain",250,"2025-01-06","Fiverr + GoDaddy",24,None,""],
-    ["Marketing","Initial flyers, banners, samples",100,"2025-01-20","Local print",1,None,""],
-    ["Training","Food safety manager certification",150,"2025-01-03","ServSafe",60,None,""],
-    ["Other","Misc initial",100,"2025-01-25","",1,None,""],
+    ["Equipment","KitchenAid 6 qt stand mixer",449.99,"2026-01-10","Amazon",60,None,""],
+    ["Equipment","Dutch oven / oven upgrade",349.00,"2026-01-12","Sur La Table",60,None,""],
+    ["Equipment","Extra refrigerator",649.00,"2026-01-15","Home Depot",60,None,""],
+    ["Equipment","Baking sheets, pans, mixing bowls",175.00,"2026-01-08","Restaurant Depot",36,None,""],
+    ["Equipment","Digital scale + packaging sealer",85.00,"2026-01-09","Amazon",36,None,""],
+    ["Initial Inventory","Flour, sugar, butter, eggs opening stock",250.00,"2026-01-15","Costco",1,None,"One-time"],
+    ["Packaging","Boxes, bags, labels, stickers",150.00,"2026-01-16","WebstaurantStore",1,None,""],
+    ["Licenses","Cottage food permit + business license",200.00,"2026-01-05","State / City",12,None,"First year"],
+    ["Branding","Logo + website + domain",250.00,"2026-01-06","Fiverr + Squarespace",24,None,""],
+    ["Marketing","Flyers, banners, samples",120.00,"2026-01-20","Local print shop",1,None,""],
+    ["Training","ServSafe Food Manager certification",150.00,"2026-01-03","ServSafe",60,None,""],
+    ["Other","Miscellaneous initial supplies",100.00,"2026-01-25","",1,None,""],
 ]
 
 for r,row in enumerate(startups,5):
@@ -1105,7 +1109,7 @@ for c,h in enumerate(headers,1):
 hdr_row(ws_orders,1,len(headers))
 for r in range(2,22):
     ws_orders.cell(row=r, column=1, value=f"ORD-{1000+r}")
-    ws_orders.cell(row=r, column=2, value=date(2025,7, random.randint(1,20))).fill = INPUT_FILL
+    ws_orders.cell(row=r, column=2, value=date(2026,8, random.randint(1,28))).fill = INPUT_FILL
     ws_orders.cell(row=r, column=3, value=random.choice(["Emma Johnson","Liam Smith"])).fill = INPUT_FILL
     ws_orders.cell(row=r, column=4, value="Sourdough Loaf").fill = INPUT_FILL
     ws_orders.cell(row=r, column=5, value=1).fill = INPUT_FILL
@@ -1128,7 +1132,7 @@ for c,h in enumerate(headers,1):
 hdr_row(ws_book,1,len(headers))
 for r in range(2,12):
     ws_book.cell(row=r, column=1, value=r-1)
-    ws_book.cell(row=r, column=2, value=date(2025,7, r)).fill = INPUT_FILL
+    ws_book.cell(row=r, column=2, value=date(2026,8, r)).fill = INPUT_FILL
     ws_book.cell(row=r, column=3, value=random.choice(["Income","Expense"])).fill = INPUT_FILL
     ws_book.cell(row=r, column=4, value="Sales").fill = INPUT_FILL
     ws_book.cell(row=r, column=6, value=100 if r%2==0 else 0).number_format = "$#,##0.00"
@@ -1153,7 +1157,7 @@ for c,h in enumerate(headers,1):
     ws_markets.cell(row=1, column=c, value=h)
 hdr_row(ws_markets,1,len(headers))
 for r in range(2,12):
-    ws_markets.cell(row=r, column=1, value=date(2025,7, r)).fill = INPUT_FILL
+    ws_markets.cell(row=r, column=1, value=date(2026,8, r)).fill = INPUT_FILL
     ws_markets.cell(row=r, column=2, value="Farmers Market").fill = INPUT_FILL
     ws_markets.cell(row=r, column=3, value=400).fill = INPUT_FILL
     ws_markets.cell(row=r, column=4, value=50).fill = INPUT_FILL
@@ -1197,7 +1201,8 @@ ws_analytics["A6"] = "Months to Break-Even"
 ws_analytics["B6"] = "='Startup Costs'!B24"
 
 # Save
-output = "/home/user/Open-Claw/Cottage_Bakery_v4_ENHANCED.xlsx"
+_here = os.path.dirname(os.path.abspath(__file__))
+output = os.path.join(_here, "Cottage_Bakery_v4_ENHANCED.xlsx")
 convert_text_dates(wb)
 novality_finalize(wb, add_links=True)
 wb.save(output)
@@ -1230,5 +1235,5 @@ def lock_file(in_path, out_path, pwd="premium"):
     wb.save(out_path)
     print(f"Locked {out_path}")
 
-lock_file(output, "/home/user/Open-Claw/Cottage_Bakery_v4_ENHANCED_LOCKED.xlsx")
+lock_file(output, os.path.join(_here, "Cottage_Bakery_v4_ENHANCED_LOCKED.xlsx"))
 print("v4 done - no circular, no repair")
