@@ -9,7 +9,9 @@ Enhanced Cottage Bakery business spreadsheet built with `openpyxl`.
 |------|-------------|
 | `Cottage_Bakery_v4_ENHANCED.xlsx` | Working spreadsheet — all sheets editable |
 | `Cottage_Bakery_v4_ENHANCED_LOCKED.xlsx` | Locked version — password **`premium`** |
-| `build_cottage_bakery.py` | Script that generates both files |
+| `Cottage_Bakery_v4_DONATIONS.xlsx` | Donation-stand version — free products + donations tracking |
+| `Cottage_Bakery_v4_DONATIONS_LOCKED.xlsx` | Donation-stand version, locked — password **`premium`** |
+| `build_cottage_bakery.py` | Script that generates all four files |
 | `HOW-TO-USE.md` | Full step-by-step usage guide |
 
 ## Tabs
@@ -34,6 +36,12 @@ Orders · Bookkeeping · Markets & Events · Customers · Analytics (BONUS)
 - **Overhead** ~ $780/month (rent, utilities, insurance, licenses…)
 - **Startup** ~ $2,928 (KitchenAid mixer, oven, permits, branding…) →
   ~5.9-month break-even at $500/month profit
+
+## Donation stand version
+
+`Cottage_Bakery_v4_DONATIONS.xlsx` is the same layout, set up for free products
+that earn donations: product prices are $0, Bookkeeping has a Donations category,
+and the Dashboard shows a "Donations vs. Cost" summary at the top.
 
 ## Locked file
 

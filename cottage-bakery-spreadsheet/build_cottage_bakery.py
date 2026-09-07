@@ -17,6 +17,11 @@ from openpyxl.chart import BarChart, LineChart, PieChart, Reference
 from datetime import date, timedelta
 import os
 import random
+import sys
+
+# Run with:  python3 build_cottage_bakery.py --donation
+# to build the Donation Stand version (free products + donations tracking).
+DONATION_MODE = "--donation" in sys.argv
 
 wb = openpyxl.Workbook()
 wb.remove(wb.active)
@@ -74,9 +79,13 @@ def widths(ws, wlist):
 ws = wb.create_sheet("Instructions + Setup")
 ws.sheet_properties.tabColor = TERRA
 widths(ws, [5, 30, 50, 22])
-ws["A1"] = "🧁 Cottage Bakery v4 Enhanced"
+if DONATION_MODE:
+    ws["A1"] = "🧁 Cottage Bakery v4 — Donation Stand"
+    ws["C1"] = "Free products + donations tracking (same layout as the Enhanced version)"
+else:
+    ws["A1"] = "🧁 Cottage Bakery v4 Enhanced"
+    ws["C1"] = "Fixed per customer review - Multi-recipe + Unit Conversion + Overhead + Startup"
 ws["A1"].font = BIG_TITLE
-ws["C1"] = "Fixed per customer review - Multi-recipe + Unit Conversion + Overhead + Startup"
 ws["C1"].font = Font(name="Calibri", color=SAGE, bold=True, size=10, italic=True)
 ws.merge_cells("C1:D1")
 
@@ -99,8 +108,8 @@ steps = [
     ["4","Add recipes in Recipe Library (up to 50 recipes) or use Recipe Calculator for 3 recipes at once","10 min"],
     ["5","Add monthly fixed costs in Overhead tab - see hourly overhead rate auto","5 min"],
     ["6","Add one-time startup costs in Startup Costs tab - see break-even months & chart auto","5 min"],
-    ["7","Add products in Product List linked to Recipe Library cost","5 min"],
-    ["8","Log orders - check Dashboard daily","Daily"],
+    ["7","Set products to $0 (free) in Product List — cost per item still shows","5 min"] if DONATION_MODE else ["7","Add products in Product List linked to Recipe Library cost","5 min"],
+    ["8","Log donations in Bookkeeping (Category = Donations) — check Dashboard","Daily"] if DONATION_MODE else ["8","Log orders - check Dashboard daily","Daily"],
 ]
 for r,row in enumerate(steps,7):
     for c,v in enumerate(row,1):
@@ -728,6 +737,11 @@ for r,row in enumerate(products,2):
     for c in [14,15,16]:
         ws5.cell(row=r, column=c).number_format = "$#,##0.00"
 
+if DONATION_MODE:
+    for r in range(2,5):
+        ws5.cell(row=r, column=9, value=0)          # selling price = free
+        ws5.cell(row=r, column=12, value="Free")    # status
+
 body_rows(ws5,2,4,20)
 ws5.freeze_panes = "A2"
 
@@ -1065,15 +1079,45 @@ ws7.freeze_panes = "A5"
 ws_dash = wb.create_sheet("Dashboard")
 ws_dash.sheet_properties.tabColor = TERRA
 widths(ws_dash, [20,14,18,14])
-ws_dash["A1"] = "Dashboard v4 - Enhanced"
-ws_dash["A1"].font = BIG_TITLE
-ws_dash["A2"] = "Includes overhead hourly rate and break-even progress"
-ws_dash["A2"].font = BODY
 
-ws_dash["A4"] = "KPI"
-ws_dash["B4"] = "Value"
-ws_dash["C4"] = "Source"
-hdr_row(ws_dash,4,3)
+if DONATION_MODE:
+    ws_dash["A1"] = "Dashboard v4 — Donation Stand"
+    ws_dash["A1"].font = BIG_TITLE
+    ws_dash["A2"] = "Free products · donations tracked in Bookkeeping"
+    ws_dash["A2"].font = BODY
+
+    ws_dash["A4"] = "DONATIONS VS. COST"
+    ws_dash["A4"].fill = SUBHEADER_FILL
+    ws_dash["A4"].font = Font(color=WHITE, bold=True, size=11)
+    ws_dash.merge_cells("A4:D4")
+
+    don = [
+        ("Total Donations Received", '=SUMIFS(Bookkeeping!F:F,Bookkeeping!D:D,"Donations")', "$#,##0.00", "Every Bookkeeping income row with Category = Donations"),
+        ("Total Costs (Bookkeeping)", "=Bookkeeping!G102", "$#,##0.00", "Everything you spent (ingredients, supplies, fees…)"),
+        ("Net — Donations after Costs", "=B5-B6", "$#,##0.00", "Positive = the stand covered its costs"),
+        ("Free Items Given Away", "=SUM('Product List'!M:M)", "#,##0", "Log each free item in Orders with a $0 price"),
+    ]
+    for i,(label,form,fmt,src) in enumerate(don,5):
+        ws_dash.cell(row=i, column=1, value=label).font = BOLD
+        c = ws_dash.cell(row=i, column=2, value=form)
+        c.number_format = fmt
+        c.font = Font(bold=True, color=TERRA)
+        c.fill = PatternFill(start_color=CREAM, end_color=CREAM, fill_type="solid")
+        c.border = border
+        ws_dash.cell(row=i, column=3, value=src).font = BODY
+    body_rows(ws_dash,5,8,3)
+    kpi_top = 10
+else:
+    ws_dash["A1"] = "Dashboard v4 - Enhanced"
+    ws_dash["A1"].font = BIG_TITLE
+    ws_dash["A2"] = "Includes overhead hourly rate and break-even progress"
+    ws_dash["A2"].font = BODY
+    kpi_top = 4
+
+ws_dash.cell(row=kpi_top, column=1, value="KPI")
+ws_dash.cell(row=kpi_top, column=2, value="Value")
+ws_dash.cell(row=kpi_top, column=3, value="Source")
+hdr_row(ws_dash,kpi_top,3)
 
 kpis = [
     ("Total Revenue YTD","=Bookkeeping!F102","$#,##0.00"),
@@ -1088,7 +1132,7 @@ kpis = [
     ("Total Stock Value","='Ingredients + Stock'!K52","$#,##0.00"),
 ]
 
-for i,(label,form,fmt) in enumerate(kpis,5):
+for i,(label,form,fmt) in enumerate(kpis,kpi_top+1):
     ws_dash.cell(row=i, column=1, value=label).font = BOLD
     c = ws_dash.cell(row=i, column=2, value=form)
     c.number_format = fmt
@@ -1097,7 +1141,7 @@ for i,(label,form,fmt) in enumerate(kpis,5):
     c.border = border
     ws_dash.cell(row=i, column=3, value="").font = BODY
 
-body_rows(ws_dash,5,14,3)
+body_rows(ws_dash,kpi_top+1,kpi_top+10,3)
 
 # Orders (simplified)
 ws_orders = wb.create_sheet("Orders")
@@ -1113,7 +1157,7 @@ for r in range(2,22):
     ws_orders.cell(row=r, column=3, value=random.choice(["Emma Johnson","Liam Smith"])).fill = INPUT_FILL
     ws_orders.cell(row=r, column=4, value="Sourdough Loaf").fill = INPUT_FILL
     ws_orders.cell(row=r, column=5, value=1).fill = INPUT_FILL
-    ws_orders.cell(row=r, column=6, value=12).number_format = "$#,##0.00"
+    ws_orders.cell(row=r, column=6, value=0 if DONATION_MODE else 12).number_format = "$#,##0.00"
     ws_orders.cell(row=r, column=7).value = f"=E{r}*F{r}"
     ws_orders.cell(row=r, column=9).value = f"=G{r}-H{r}"
     ws_orders.cell(row=r, column=11, value="Pending").fill = INPUT_FILL
@@ -1133,13 +1177,25 @@ hdr_row(ws_book,1,len(headers))
 for r in range(2,12):
     ws_book.cell(row=r, column=1, value=r-1)
     ws_book.cell(row=r, column=2, value=date(2026,8, r)).fill = INPUT_FILL
-    ws_book.cell(row=r, column=3, value=random.choice(["Income","Expense"])).fill = INPUT_FILL
-    ws_book.cell(row=r, column=4, value="Sales").fill = INPUT_FILL
+    if DONATION_MODE:
+        ws_book.cell(row=r, column=3, value="Income" if r%2==0 else "Expense").fill = INPUT_FILL
+        ws_book.cell(row=r, column=4, value="Donations" if r%2==0 else "Supplies").fill = INPUT_FILL
+    else:
+        ws_book.cell(row=r, column=3, value=random.choice(["Income","Expense"])).fill = INPUT_FILL
+        ws_book.cell(row=r, column=4, value="Sales").fill = INPUT_FILL
     ws_book.cell(row=r, column=6, value=100 if r%2==0 else 0).number_format = "$#,##0.00"
     ws_book.cell(row=r, column=7, value=0 if r%2==0 else 50).number_format = "$#,##0.00"
     ws_book.cell(row=r, column=8).value = f"=F{r}-G{r}"
     ws_book.cell(row=r, column=9).value = f"=TEXT(B{r},\"YYYY-MM\")"
     ws_book.cell(row=r, column=13).value = f"=IF(ROW()=2,H2,M{r-1}+H{r})"
+
+if DONATION_MODE:
+    dv_type = DataValidation(type="list", formula1='"Income,Expense"', allow_blank=True)
+    dv_type.add("C2:C101")
+    ws_book.add_data_validation(dv_type)
+    dv_cat = DataValidation(type="list", formula1='"Donations,Sales,Supplies,Ingredients,Equipment,Permits,Marketing,Other"', allow_blank=True)
+    dv_cat.add("D2:D101")
+    ws_book.add_data_validation(dv_cat)
 ws_book["F102"] = "=SUM(F2:F101)"
 ws_book["G102"] = "=SUM(G2:G101)"
 ws_book["H102"] = "=F102-G102"
@@ -1202,7 +1258,12 @@ ws_analytics["B6"] = "='Startup Costs'!B24"
 
 # Save
 _here = os.path.dirname(os.path.abspath(__file__))
-output = os.path.join(_here, "Cottage_Bakery_v4_ENHANCED.xlsx")
+if DONATION_MODE:
+    _base = "Cottage_Bakery_v4_DONATIONS"
+else:
+    _base = "Cottage_Bakery_v4_ENHANCED"
+output = os.path.join(_here, _base + ".xlsx")
+locked_out = os.path.join(_here, _base + "_LOCKED.xlsx")
 convert_text_dates(wb)
 novality_finalize(wb, add_links=True)
 wb.save(output)
@@ -1235,5 +1296,5 @@ def lock_file(in_path, out_path, pwd="premium"):
     wb.save(out_path)
     print(f"Locked {out_path}")
 
-lock_file(output, os.path.join(_here, "Cottage_Bakery_v4_ENHANCED_LOCKED.xlsx"))
+lock_file(output, locked_out)
 print("v4 done - no circular, no repair")

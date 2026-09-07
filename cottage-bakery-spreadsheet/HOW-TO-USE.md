@@ -56,11 +56,28 @@ Batch cost ÷ batch yield = cost per unit. Add your margin to get the price.
 
 ---
 
-## Rebuild the file
+## Donation stand (free products)
+
+There is also a donation version: **Cottage_Bakery_v4_DONATIONS.xlsx** (and a
+`_LOCKED` one, password `premium`). It is the same spreadsheet, set up for free
+products:
+
+- Product prices are already $0, so they show as Free.
+- Bookkeeping has a Donations category (plus dropdowns for Type and Category).
+- The top of the Dashboard shows: donations received, total costs, and the difference.
+
+How to use it:
+
+1. Log every donation in **Bookkeeping** — Type: Income, Category: Donations.
+2. Log each item you give away in **Orders** with a $0 price (so the count shows).
+3. The Dashboard "Donations vs. Cost" box does the rest.
+
+## Rebuild the files
 
 ```
 pip install openpyxl
-python3 build_cottage_bakery.py
+python3 build_cottage_bakery.py             # normal version
+python3 build_cottage_bakery.py --donation  # donation version
 ```
 
-That makes both xlsx files again.
+That makes all four xlsx files again.
