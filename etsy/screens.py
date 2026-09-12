@@ -764,3 +764,43 @@ def _todo_lines(bk):
         return fn(bk)
     except Exception:
         return []
+
+
+# ---------------------------------------------------------------------------
+def screen_shopping(m, bk):
+    a = m.agg
+    pills = [(f"🛍️ {a['shop_total']} items", "info"),
+             (f"✅ {a['shop_bought']} bought", "ok"),
+             (f"💸 {_money(a['shop_spent'])} spent", "burgundy")]
+    rows = []
+    for s in m.shopping[:10]:
+        rows.append([
+            s["item"], s["category"], s["store"],
+            {"t": str(s["qty"]), "align": "c"},
+            {"t": _money(s["unit"]) if s["unit"] else "—", "align": "r"},
+            {"t": _money(s["cost"]) if s["cost"] else "—", "align": "r"},
+            {"tick": s["bought"] == "✓"},
+            s["notes"] or "—"])
+    H = 104 + 56 + 48 + (len(rows) + 1) * 46 + 24 + 54
+    img = Image.new("RGBA", (SW, H), hexrgb(CANVAS))
+    y = sheet_header(img, "🛍️  Shopping List",
+                     "Wrapping, cards, baking, decorations, party bits — the "
+                     "stuff that quietly eats the budget.")
+    y = pill_row(img, y + 8, pills) + 18
+    widths = [330, 160, 150, 80, 110, 110, 110, 272]
+    headers = ["Item", "Category", "Store", "Qty", "Unit", "Cost", "Bought",
+               "Notes"]
+    y = draw_table(img, 44, y, widths, headers, rows, hdr_bg=INFO)
+    draw_table(img, 44, y + 10, widths, [""] * 8,
+               [[{"t": "TOTALS", "bold": True},
+                 {"t": f"{a['shop_total']} items", "bold": True}, "",
+                 {"t": f"{a['shop_bought']} bought", "align": "c",
+                  "bold": True},
+                 "",
+                 {"t": _money(a["shop_spent"]), "align": "r", "bold": True},
+                 {"t": f"{a['shop_total'] - a['shop_bought']} to go", "align":
+                  "c", "bold": True},
+                 {"t": "rolls into the Budget tab", "bold": True}]],
+               row_h=48, hdr_bg=INFO)
+    _footer(img, H)
+    return img

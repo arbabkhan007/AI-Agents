@@ -74,6 +74,9 @@ DESCRIPTIONS = {
         "Builds the 15 Etsy listing images (2400x1800 JPEG, <1 MB).",
     "etsy/make_kit_zip.py":
         "Bundles this complete kit zip + generates SOURCE_CODE.md.",
+    "etsy/make_user_guide.py":
+        "Builds the 12-page illustrated user-guide PDF (A4, 200 dpi) "
+        "branded Novality Store.",
     "tools/make_banner_alpha.py":
         "Turns the raw AI banner art into the title-windowed PNG banners "
         "used on the cover sheet.",
@@ -91,6 +94,7 @@ spreadsheet on Etsy, in one folder.
 Christmas_Gift_Tracker_COMPLETE_KIT/
 ├── README.md                 <- you are here (master guide)
 ├── SOURCE_CODE.md            <- every Python file in one Markdown document
+├── Christmas_Gift_Tracker_User_Guide.pdf  <- 12-page illustrated user guide
 ├── products/                 <- the 6 finished Excel workbooks (ready to sell)
 ├── etsy/
 │   ├── LISTING_KIT.md        <- SEO title, 13 tags, description, alt texts
@@ -223,7 +227,8 @@ def main():
         count += add_dir(z, os.path.join(ROOT, "etsy", "fonts"),
                          os.path.join(PREFIX, "etsy", "fonts"))
         for fn in ("__init__.py", "screenlib.py", "screens.py",
-                   "make_listing_images.py", "make_kit_zip.py"):
+                   "make_listing_images.py", "make_kit_zip.py",
+                   "make_user_guide.py"):
             z.write(os.path.join(ROOT, "etsy", fn),
                     os.path.join(PREFIX, "etsy", fn))
             count += 1
@@ -240,6 +245,12 @@ def main():
         for fn in ("banner_festive.png", "banner_minimal.png"):
             z.write(os.path.join(ROOT, "assets", fn),
                     os.path.join(PREFIX, "assets", fn))
+            count += 1
+        # the illustrated user-guide PDF (if built)
+        guide = os.path.join(ROOT, "Christmas_Gift_Tracker_User_Guide.pdf")
+        if os.path.exists(guide):
+            z.write(guide, os.path.join(PREFIX,
+                                        "Christmas_Gift_Tracker_User_Guide.pdf"))
             count += 1
         # vendored xlsxwriter (no pycache / dist-info)
         count += add_dir(z, os.path.join(ROOT, "xlsxwriter"),
@@ -258,6 +269,7 @@ def main():
     print(f"  zip ok  : integrity verified")
     # sanity: every key artifact present
     for must in ("products/Christmas_Gift_Tracker_PREMIUM_Festive.xlsx",
+                 "Christmas_Gift_Tracker_User_Guide.pdf",
                  "etsy/LISTING_KIT.md", "etsy/images/01_hero.jpg",
                  "etsy/images/15_faq.jpg", "SOURCE_CODE.md", "README.md",
                  "christmas_tracker/book.py", "xlsxwriter/__init__.py"):
