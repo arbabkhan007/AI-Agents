@@ -215,7 +215,7 @@ def p01():
     y = chips_row(img, PW / 2, y + 20, [("Excel 2016 +", "ok"),
                   ("Microsoft 365", "ok"), ("Mac", "ok"),
                   ("Google Sheets", "ok"), ("No macros", "gold")], 24)
-    hand_note(img, PW / 2, y + 36, "Merry Christmas! 🎄", 56, BURGUNDY,
+    hand_note(img, PW / 2, y + 36, "Your December, sorted 🎄", 56, BURGUNDY,
               "ma")
     draw_text(img, (PW / 2, PH - 130), "Version 2026  •  Festive & Minimal "
               "themes included  •  © Novality Store", S.F("sans_md", 22),
@@ -593,8 +593,8 @@ def p12():
         "within a day."], "#3A342B", size=24)
     img.alpha_composite(strip(False, 150).resize((PW, 150), Image.LANCZOS),
                         (0, PH - 150))
-    draw_text(img, (PW / 2, PH - 118), "Merry Christmas, from all of us at "
-              "Novality Store 🎄", S.F("hand", 54), BURGUNDY, anchor="ma")
+    draw_text(img, (PW / 2, PH - 118), "Thank you for supporting our small "
+              "shop — Novality Store", S.F("hand", 54), BURGUNDY, anchor="ma")
     PAGES.append(img)
 
 
