@@ -15,6 +15,7 @@ still visible, which is what matters for layout checking.
 
 import argparse
 import datetime
+import os
 import re
 import sys
 import unicodedata
@@ -22,6 +23,14 @@ import unicodedata
 import openpyxl
 from openpyxl.utils import get_column_letter, range_boundaries
 from PIL import Image, ImageDraw, ImageFont
+
+# real emoji glyphs when the Novality Store font kit is available
+try:
+    sys.path.insert(0, os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))))
+    from etsy.crochet_lib import emoji_bitmap as _EMOJI_BITMAP
+except Exception:                                        # pragma: no cover
+    _EMOJI_BITMAP = None
 
 FONT_DIR = "/usr/share/fonts/truetype/dejavu/"
 PX_PER_WIDTH = 7.0
@@ -255,8 +264,11 @@ def render(path, sheet_title, out, rows=None, cols=None, zoom=1.0):
                 widths_px, tiles = [], []
                 for kind, ch in drawn:
                     if kind == "tile":
-                        wpx = int(lh * 0.95)
-                        tiles.append(wpx)
+                        if _EMOJI_BITMAP is not None:
+                            wpx = _EMOJI_BITMAP(
+                                ch, max(8, int(lh * 1.02))).width + 2
+                        else:
+                            wpx = int(lh * 0.95)
                     else:
                         wpx = d.textlength(ch, font=fnt)
                     widths_px.append(wpx)
@@ -270,13 +282,19 @@ def render(path, sheet_title, out, rows=None, cols=None, zoom=1.0):
                     cx = x1 + max(pad, box_w - line_w - pad)
                 for (kind, ch), wpx in zip(drawn, widths_px):
                     if kind == "tile":
-                        hue = (ord(ch) * 47) % 360
-                        import colorsys
-                        rgb = tuple(int(255 * v) for v in
-                                    colorsys.hsv_to_rgb(hue / 360.0, 0.55,
-                                                        0.85))
-                        d.rounded_rectangle([cx, ty + 1, cx + wpx - 2,
-                                             ty + lh - 2], radius=3, fill=rgb)
+                        if _EMOJI_BITMAP is not None:
+                            bmp = _EMOJI_BITMAP(ch, max(8, int(lh * 1.02)))
+                            img.paste(bmp, (int(cx), ty + max(
+                                0, (lh - bmp.height) // 2)), bmp)
+                        else:
+                            hue = (ord(ch) * 47) % 360
+                            import colorsys
+                            rgb = tuple(int(255 * v) for v in
+                                        colorsys.hsv_to_rgb(hue / 360.0,
+                                                            0.55, 0.85))
+                            d.rounded_rectangle([cx, ty + 1, cx + wpx - 2,
+                                                 ty + lh - 2], radius=3,
+                                                fill=rgb)
                     else:
                         d.text((cx, ty), ch, font=fnt, fill=col)
                     cx += wpx
