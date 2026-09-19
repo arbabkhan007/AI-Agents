@@ -92,6 +92,11 @@ DESCRIPTIONS = {
         "workbook screenshots.",
     "etsy/make_kit_zip_santa.py":
         "Bundles this complete kit zip.",
+    "etsy/make_listing_images_santa.py":
+        "Draws the 15 Etsy listing images (2400x1800 JPEG) from real "
+        "workbook screenshots.",
+    "etsy/make_listing_zip_santa.py":
+        "Bundles the standalone Etsy listing-kit zip (md + 15 images).",
 }
 
 SOURCE_FILES = list(DESCRIPTIONS.keys())
@@ -110,9 +115,12 @@ Secret_Santa_White_Elephant_Party_Tracker_COMPLETE_KIT/
 │                               <- 12-page illustrated user guide
 ├── products/                 <- the 6 finished Excel workbooks (ready to sell)
 ├── etsy/
+│   ├── LISTING_KIT_SANTA.md  <- SEO title, 13+7 tags, description, alt texts
+│   ├── images_santa/         <- 15 listing images (2400x1800 JPEG, <1 MB)
 │   ├── fonts/                <- OFL fonts used to render the guide
 │   ├── crochet_lib.py        <- shared image engine (emoji text, charts)
-│   ├── make_user_guide_santa.py   <- rebuild: python3 -m etsy.make_user_guide_santa
+│   ├── make_listing_images_santa.py <- rebuild images: python3 -m etsy.make_listing_images_santa
+│   ├── make_user_guide_santa.py   <- rebuild guide: python3 -m etsy.make_user_guide_santa
 │   └── make_kit_zip_santa.py      <- rebuild this zip: python3 -m etsy.make_kit_zip_santa
 ├── secret_santa_party_tracker.py  <- build CLI (entry point)
 ├── santa_tracker/            <- the spreadsheet generator (8 modules + 14 sheets)
@@ -141,14 +149,22 @@ Secret_Santa_White_Elephant_Party_Tracker_COMPLETE_KIT/
 - Author/branding: **Novality Store** (baked into file properties, cover
   sheet and every tab footer).
 
-## 2. The buyer guide
+## 2. The Etsy listing
+
+Everything is in **`etsy/LISTING_KIT_SANTA.md`**: title (127 chars), 13
+recommended tags + 7 spares, the full description, alt texts for the 15
+images, pricing and a publish checklist. Upload
+`etsy/images_santa/01_hero.jpg` .. `15_faq.jpg` in order - image 01
+becomes the thumbnail.
+
+## 3. The buyer guide
 
 `Secret_Santa_White_Elephant_Party_Tracker_User_Guide.pdf` is the 12-page
 illustrated how-to (real screenshots, chart figures, ten tips, FAQ). Attach
 it to the Etsy listing as a supporting PDF or drop it into the digital
 download.
 
-## 3. Rebuilding everything from source
+## 4. Rebuilding everything from source
 
 Requires Python 3.10+ and Pillow (`pip install pillow`) - xlsxwriter is
 vendored, openpyxl is only needed for verification.
@@ -162,6 +178,9 @@ python3 tools/verify_santa.py "products/Secret_Santa_White_Elephant_Tracker_*.xl
 python3 tools/calc_check_santa.py products/Secret_Santa_White_Elephant_Tracker_PREMIUM_Noel_EXAMPLE.xlsx
 python3 tools/layout_check_santa.py "products/Secret_Santa_White_Elephant_Tracker_*.xlsx"
 
+# rebuild the 15 listing images (needs etsy/fonts/ + products/)
+python3 -m etsy.make_listing_images_santa
+
 # rebuild the 12-page user guide
 python3 -m etsy.make_user_guide_santa
 
@@ -171,7 +190,7 @@ python3 -m etsy.make_kit_zip_santa
 
 See **SOURCE_CODE.md** for the annotated source of every file.
 
-## 4. Licences
+## 5. Licences
 
 - Product workbooks: (c) Novality Store - one party organiser per purchase,
   no resale or redistribution.
@@ -241,12 +260,20 @@ def main():
                 count += 1
         # guide engine + scripts + fonts
         for fn in ("__init__.py", "crochet_lib.py",
-                   "make_user_guide_santa.py", "make_kit_zip_santa.py"):
+                   "make_user_guide_santa.py", "make_kit_zip_santa.py",
+                   "make_listing_images_santa.py",
+                   "make_listing_zip_santa.py"):
             z.write(os.path.join(ROOT, "etsy", fn),
                     os.path.join(PREFIX, "etsy", fn))
             count += 1
         count += add_dir(z, os.path.join(ROOT, "etsy", "fonts"),
                          os.path.join(PREFIX, "etsy", "fonts"))
+        # Etsy listing kit (md + 15 listing images)
+        z.write(os.path.join(ROOT, "etsy", "LISTING_KIT_SANTA.md"),
+                os.path.join(PREFIX, "etsy", "LISTING_KIT_SANTA.md"))
+        count += 1
+        count += add_dir(z, os.path.join(ROOT, "etsy", "images_santa"),
+                         os.path.join(PREFIX, "etsy", "images_santa"))
         # spreadsheet source
         z.write(os.path.join(ROOT, "secret_santa_party_tracker.py"),
                 os.path.join(PREFIX, "secret_santa_party_tracker.py"))
@@ -290,7 +317,10 @@ def main():
     print(f"  size    : {size/1024/1024:.1f} MB")
     print(f"  zip ok  : integrity verified")
     # sanity: every key artifact present, no other-product artifacts leaked
-    for must in ("products/Secret_Santa_White_Elephant_Tracker_PREMIUM_"
+    for must in ("etsy/LISTING_KIT_SANTA.md",
+                 "etsy/images_santa/01_hero.jpg",
+                 "etsy/images_santa/15_faq.jpg",
+                 "products/Secret_Santa_White_Elephant_Tracker_PREMIUM_"
                  "Noel.xlsx",
                  "products/Secret_Santa_White_Elephant_Tracker_BASIC_"
                  "Arctic.xlsx",
