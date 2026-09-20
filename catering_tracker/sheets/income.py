@@ -48,8 +48,9 @@ def build(bk):
         ('="Outstanding: "&Currency&TEXT(%s,"#,##0")' % bk.kpi("outstanding"),
          "warn", "Outstanding: %s" % demo.money(
              bk.cached("outstanding", 0))),
-        ('="Overdue: "&%s&" invoice%s"' % (bk.kpi("overdue"), "s"),
-         "bad", "Overdue: %d invoice%s"
+        ('="Overdue: "&%s&IF(%s=1," invoice"," invoices")'
+         % (bk.kpi("overdue"), bk.kpi("overdue")), "bad",
+         "Overdue: %d invoice%s"
          % (bk.cached("overdue", 0), "s" if bk.cached("overdue", 0) != 1
             else "")),
     ])

@@ -65,11 +65,15 @@ def build(bk):
         row = C.DATA_MONTH_FIRST + i
         ws.write(r(row), 7, label, S.note_plain)              # H
         ws.write_formula(r(row), 8,
-                         "=SUMPRODUCT((%s<>\"\")*(MONTH(%s)=%d)*%s)"
+                         # comma form + --: a "" formula column (received) would raise
+                         # #VALUE! with the * form in Excel
+                         "=SUMPRODUCT(--((%s<>\"\")*(MONTH(%s)=%d)),%s)"
                          % (IN_DATE, IN_DATE, i + 1, IN_RECV),
                          S.note_plain, _c(demo, ("months", i, 1)))
         ws.write_formula(r(row), 9,
-                         "=SUMPRODUCT((%s<>\"\")*(MONTH(%s)=%d)*%s)"
+                         # comma form + --: a "" formula column (received) would raise
+                         # #VALUE! with the * form in Excel
+                         "=SUMPRODUCT(--((%s<>\"\")*(MONTH(%s)=%d)),%s)"
                          % (EX_DATE, EX_DATE, i + 1, EX_AMT),
                          S.note_plain, _c(demo, ("months", i, 2)))
         ws.write_formula(r(row), 10, "=I%d-J%d" % (row, row),
@@ -133,11 +137,11 @@ def build(bk):
         ws.write_formula(r(row), 16,
                          "=IF(%s!$C$%d=\"\",\"\",%s!$C$%d)"
                          % (cl, src, cl, src), S.note_plain,
-                         _c(demo, ("clients_pool", i, 0)))
+                         _c(demo, ("clients_pool", i, 0), missing=""))
         ws.write_formula(r(row), 17,
                          "=IF($Q%d=\"\",\"\",SUMIF(%s,$Q%d,%s))"
                          % (row, IN_CLIENT, row, IN_RECV), S.note_plain,
-                         _c(demo, ("clients_pool", i, 1)))
+                         _c(demo, ("clients_pool", i, 1), missing=""))
 
     # ------------------------------------------------------------------
     # menu pool  T26:U40  (item + how many booked events feature it)
@@ -152,12 +156,13 @@ def build(bk):
             ws.write_formula(r(row), 19,
                              "=IF(%s!$C$%d=\"\",\"\",%s!$C$%d)"
                              % (me, src, me, src), S.note_plain,
-                             _c(demo, ("menu_pool", i, 0)))
+                             _c(demo, ("menu_pool", i, 0), missing=""))
             ws.write_formula(r(row), 20,
                              "=IF($T%d=\"\",\"\",SUMPRODUCT((%s<>\"\")*"
                              "IFERROR(--ISNUMBER(SEARCH($T%d,%s)),0)))"
                              % (row, EV_MENU, row, EV_MENU),
-                             S.note_plain, _c(demo, ("menu_pool", i, 1)))
+                             S.note_plain,
+                             _c(demo, ("menu_pool", i, 1), missing=""))
 
     # ------------------------------------------------------------------
     # upcoming-events pool  AA2:AC41  (date-sorted, feeds the calendar)
@@ -198,8 +203,12 @@ def build(bk):
     for i in range(C.DATA_DUE_ROWS):
         row = C.DATA_DUE_FIRST + i
         ws.write_formula(r(row), 26,
-                         "=IFERROR(AGGREGATE(15,6,%s/(%s>0),%d),\"\")"
-                         % (IN_DUE, IN_BAL, i + 1), S.note_plain,
+                         # (due<>"") guard: empty rows have a "" balance and
+                         # ("" > 0) is TRUE in Excel, which would leak 0
+                         # dates into the pool.
+                         "=IFERROR(AGGREGATE(15,6,%s/((%s<>\"\")*(%s>0)),"
+                         "%d),\"\")"
+                         % (IN_DUE, IN_DUE, IN_BAL, i + 1), S.note_plain,
                          _dd(dues, i, 0))
         ws.write_formula(r(row), 27,
                          "=IF($AA%d=\"\",\"\",INDEX(%s,MATCH($AA%d,%s,0))"
@@ -257,7 +266,7 @@ def _dd(dues, i, j):
     try:
         v = dues[i][j]
     except IndexError:
-        return 0 if j == 2 else ""
+        return ""          # formula returns "" for empty pool rows
     return v
 
 
@@ -322,10 +331,13 @@ def _kpi_formulas(bk, R):
         SH_BUY = "%s!$G$%d:$G$%d" % (shq, C.ROW_FIRST, C.last_row("shopping"))
         SH_COST = "%s!$I$%d:$I$%d" % (shq, C.ROW_FIRST, C.last_row("shopping"))
         SH_TICK = "%s!$J$%d:$J$%d" % (shq, C.ROW_FIRST, C.last_row("shopping"))
-        K("shop_lines", "=SUMPRODUCT((%s>0)*(%s<>\"%s\"))"
-          % (SH_BUY, SH_TICK, C.TICK))
-        K("shop_cost", "=SUMPRODUCT((%s<>\"%s\")*(%s>0)*%s)"
-          % (SH_TICK, C.TICK, SH_BUY, SH_COST))
+        # ISNUMBER guards the to-buy formula column: ("" > 0) is TRUE in
+        # Excel, counting every empty row as a line to buy.  Comma form
+        # keeps the cost column's "" formulas from raising #VALUE!.
+        K("shop_lines", "=SUMPRODUCT(ISNUMBER(%s)*(%s>0)*(%s<>\"%s\"))"
+          % (SH_BUY, SH_BUY, SH_TICK, C.TICK))
+        K("shop_cost", "=SUMPRODUCT(ISNUMBER(%s)*(%s>0)*(%s<>\"%s\"),%s)"
+          % (SH_BUY, SH_BUY, SH_TICK, C.TICK, SH_COST))
     if has("staff"):
         stq = bk.q("staff")
         ST_NAME = "%s!$C$%d:$C$%d" % (stq, C.ROW_FIRST, C.last_row("staff"))

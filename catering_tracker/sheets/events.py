@@ -43,7 +43,11 @@ def build(bk):
     bk.title_block("events", "Events",
                    "Every booking - costs, pricing and profit per event",
                    LAST_COL)
-    live = ('COUNTIF(%s,"<>%s")' % (bk.rng("events", "status"), C.ES_CANCEL))
+    # COUNTIF(range,"<>x") counts blank cells too in Excel; SUMPRODUCT
+    # over non-blank statuses gives the real active-booking count.
+    live = ('SUMPRODUCT((%s<>"")*(%s<>"%s"))'
+            % (bk.rng("events", "status"), bk.rng("events", "status"),
+               C.ES_CANCEL))
     booked = (" + ".join('COUNTIF(%s,"%s")'
                          % (bk.rng("events", "status"), s)
                          for s in (C.ES_QUOTED, C.ES_DEPOSIT, C.ES_CONFIRMED,
@@ -55,7 +59,8 @@ def build(bk):
          if demo.demo else "Bookings: 0"),
         ('="In the pipeline: "&%s' % booked, "info",
          "In the pipeline: %d" % sum(
-             1 for e in demo.events if e["status"] != C.ES_CANCEL)
+             1 for e in demo.events if e["status"] in
+             (C.ES_QUOTED, C.ES_DEPOSIT, C.ES_CONFIRMED, C.ES_DONE))
          if demo.demo else "In the pipeline: 0"),
         ('="Booked value: "&Currency&TEXT(SUMPRODUCT((%s<>"%s")*%s),"#,##0")'
          % (bk.rng("events", "status"), C.ES_CANCEL,
@@ -133,23 +138,25 @@ def build(bk):
 
     # totals
     common.totals_row(bk, "events", C.last_row("events") + 1, {
-        "guests": ("=SUMPRODUCT((%s<>\"\")*%s)"
+        # comma form: SUMPRODUCT treats non-numeric entries ("" formulas in
+        # the profit column, blank cells) as zeros instead of #VALUE!.
+        "guests": ("=SUMPRODUCT(--(%s<>\"\"),%s)"
                    % (bk.rng("events", "date"), bk.rng("events", "guests")),
                    "num", sum(e["guests"] for e in demo.events)),
-        "staff_req": ("=SUMPRODUCT((%s<>\"\")*%s)"
+        "staff_req": ("=SUMPRODUCT(--(%s<>\"\"),%s)"
                       % (bk.rng("events", "date"),
                          bk.rng("events", "staff_req")),
                       "num", sum(e["staff_req"] for e in demo.events)),
-        "cost": ("=SUMPRODUCT((%s<>\"\")*%s)"
+        "cost": ("=SUMPRODUCT(--(%s<>\"\"),%s)"
                  % (bk.rng("events", "date"), bk.rng("events", "cost")),
                  "money0", sum(e["cost"] for e in demo.events)),
-        "price": ("=SUMPRODUCT((%s<>\"\")*%s)"
+        "price": ("=SUMPRODUCT(--(%s<>\"\"),%s)"
                   % (bk.rng("events", "date"), bk.rng("events", "price")),
                   "money0", sum(e["price"] for e in demo.events)),
-        "profit": ("=SUMPRODUCT((%s<>\"\")*%s)"
+        "profit": ("=SUMPRODUCT(--(%s<>\"\"),%s)"
                    % (bk.rng("events", "date"), bk.rng("events", "profit")),
                    "money0", sum(e["profit"] for e in demo.events)),
-        "deposit": ("=SUMPRODUCT((%s<>\"\")*%s)"
+        "deposit": ("=SUMPRODUCT(--(%s<>\"\"),%s)"
                     % (bk.rng("events", "date"),
                        bk.rng("events", "deposit")),
                     "money0", sum(e["deposit"] for e in demo.events)),

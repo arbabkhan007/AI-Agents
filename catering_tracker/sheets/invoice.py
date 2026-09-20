@@ -147,21 +147,23 @@ def build(bk):
 
     # fix the two %-label formulas properly (they need the live rate)
     ws.write_formula(r(R_SUM + 3), 3,
-                     '="Tax ("&TEXT(TaxRate,"0.0%%")&" - from Setup)"',
+                     '="Tax ("&TEXT(TaxRate,"0.0%")&" - from Setup)"',
                      S.f(**S.base(font_size=10.5, bold=True,
                                   font_color=th.ink, bg_color=th.alt,
                                   align="right", valign="vcenter", indent=1,
                                   border=1, border_color=th.border)),
-                     "Tax (0.0% - from Setup)")
+                     "Tax (%.1f%% - from Setup)"
+                     % (100 * demo.settings["tax"]))
     bk.stats["formulas"] += 1
     ws.write_formula(r(R_SUM + 5), 3,
-                     '="Deposit to confirm ("&TEXT(DepositPct,"0%%")&'
+                     '="Deposit to confirm ("&TEXT(DepositPct,"0%")&'
                      '" - from Setup)"',
                      S.f(**S.base(font_size=10.5, bold=True,
                                   font_color=th.ink, bg_color=th.alt,
                                   align="right", valign="vcenter", indent=1,
                                   border=1, border_color=th.border)),
-                     "Deposit to confirm (0% - from Setup)")
+                     "Deposit to confirm (%.0f%% - from Setup)"
+                     % (100 * demo.settings["deposit"]))
     bk.stats["formulas"] += 1
 
     # ------------------------------------------------------------------

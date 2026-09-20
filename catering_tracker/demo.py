@@ -806,9 +806,10 @@ class Model(object):
                                   if i["client"] == cl["name"]))
                              for cl in self.clients]
 
-        # menu popularity (events featuring each dish)
+        # menu popularity (events featuring each dish) - counts ALL event
+        # rows, matching the SEARCH()-based formula in the _Data pool
         a["menu_pool"] = [(m["item"],
-                           sum(1 for e in live if m["item"] in e["menu"]))
+                           sum(1 for e in ev if m["item"] in e["menu"]))
                           for m in self.menu]
 
         # checklist tick state for the EXAMPLE build

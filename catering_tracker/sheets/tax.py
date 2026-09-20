@@ -43,8 +43,9 @@ def build(bk):
     bk.stats_strip("tax", [
         ('="Report year: "&ReportYear', "accent",
          "Report year: %s" % demo.settings["year"]),
-        ('="Tax rate: "&TEXT(%s,"0.0%%")' % bk.q("setup") and
-         '="Tax rate: "&TEXT(TaxRate,"0.0%%")', "info",
+        # single % only - a %% here reaches Excel literally (it is not
+        # Python-escaped: no % operator is applied to this string)
+        ('="Tax rate: "&TEXT(TaxRate,"0.0%")', "info",
          "Tax rate: %.1f%%" % (100 * demo.settings["tax"])),
         ('="Collected to date: "&Currency&TEXT(%s,"#,##0.00")'
          % bk.kpi("tax_collected"), "gold",
@@ -121,7 +122,8 @@ def build(bk):
                 S.cell(kind, (row % 2) == 0)
             ws.write_blank(r(row), ci(colL) - 1, None, fmt)
         ws.write_formula(r(row), 1,
-                         '=IF($C%d="","",ROW()-%d)' % (row, C.ROW_FIRST - 1),
+                         # log starts at LOG_FIRST, not ROW_FIRST
+                         '=IF($C%d="","",ROW()-%d)' % (row, LOG_FIRST - 1),
                          S.idx((row % 2) == 0), i + 1 if demo.demo and
                          i < len(demo.tax_paid) else "")
         bk.stats["formulas"] += 1

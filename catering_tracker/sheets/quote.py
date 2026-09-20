@@ -152,7 +152,7 @@ def build(bk):
     ws.merge_range(r(24), 1, r(25), 5, "", callout)
     ws.write_formula(r(24), 1,
                      '=IF($E$%d="","",Currency&TEXT($E$%d,"#,##0.00")&'
-                     '"  for the event   \u00b7   "&Currency&TEXT($E$%d,'
+                     '" for the event   \u00b7   "&Currency&TEXT($E$%d,'
                      '"#,##0.00")&" per guest")'
                      % (O["price"], O["price"], O["per_guest"]),
                      callout,

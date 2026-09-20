@@ -75,9 +75,12 @@ def build(bk):
     ws.set_row(r(9), 30)
     ws.set_row(r(10), 8)
     _minicard(bk, 8, 1, 3, "EVENTS ON THE BOOKS",
-              '=COUNTIF(%s,"<>%s")+COUNTIF(%s,"%s")'
-              % (bk.rng("events", "status"), C.ES_CANCEL,
-                 bk.rng("events", "status"), C.ES_CANCEL),
+              # COUNTIF(range,"<>x") counts blank cells too in Excel, so a
+              # COUNTIF pair always returns the full row count.  SUMPRODUCT
+              # over non-blank cells gives the real number.
+              '=SUMPRODUCT((%s<>"")*(%s<>"%s"))'
+              % (bk.rng("events", "status"), bk.rng("events", "status"),
+                 C.ES_CANCEL),
               demo.agg.get("events_total", 0) - demo.agg.get(
                   "events_cancelled", 0) if demo.demo else 0, "0")
     _minicard(bk, 8, 5, 3, "CONFIRMED & COMING UP",

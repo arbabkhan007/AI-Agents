@@ -126,9 +126,9 @@ def build(bk):
         (10, 12, "GUESTS SERVED", bk.kpi("guests_total"), "#,##0",
          bk.cached("guests_total", 0)),
         (13, 9, "AVG ORDER VALUE", bk.kpi("avg_order"), "#,##0",
-         round(bk.cached("avg_order", 0))),
+         bk.cached("avg_order", 0)),
         (13, 12, "AVG PROFIT / EVENT", bk.kpi("avg_profit"), "#,##0",
-         round(bk.cached("avg_profit", 0))),
+         bk.cached("avg_profit", 0)),
     ]
     for row, col, label, formula, nf, val in cards:
         fmt = S.kpi_label(th.primary_2, size=9)

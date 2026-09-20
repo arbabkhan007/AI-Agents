@@ -85,7 +85,9 @@ def build(bk):
     common.databar(bk, "shopping", "est_cost", color=th.gold)
 
     common.totals_row(bk, "shopping", C.last_row("shopping") + 1, {
-        "est_cost": ('=SUMPRODUCT((%s<>"%s")*(%s<>"")*%s)'
+        # comma form + --: the est-cost column holds "" formulas on empty
+        # rows; the * form turns those into #VALUE! in Excel.
+        "est_cost": ('=SUMPRODUCT(--((%s<>"%s")*(%s<>"")),%s)'
                      % (bk.rng("shopping", "purchased"), C.TICK,
                         bk.rng("shopping", "ingredient"),
                         bk.rng("shopping", "est_cost")),
@@ -109,7 +111,7 @@ def build(bk):
 
 
 def _calc_formulas(bk, rownum):
-    inv = bk.q("inventory")
+    inv = bk.name("inventory")      # raw name: the templates quote it
     first, last = C.ROW_FIRST, C.last_row("inventory")
     return {
         "n": '=IF($D%d="","",ROW()-%d)' % (rownum, C.ROW_FIRST - 1),
