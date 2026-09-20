@@ -81,8 +81,11 @@ def build(bk):
         _input(bk, row, value, span=2, kind=kind)
         _hint(bk, row, hint)
 
+    # pass the LIST, not a joined string: xlsxwriter only quotes literal
+    # lists when given as a list - a plain string is written unquoted and
+    # Excel discards the validation ("Removed Feature: Data validation")
     bk.validate("setup", r(C.SU_CURRENCY), 2, r(C.SU_CURRENCY), 3,
-                ",".join(C.CURRENCIES), title="Currency symbol",
+                list(C.CURRENCIES), title="Currency symbol",
                 message="Pick a symbol, or type your own (e.g. Rs).",
                 error=None)
     _decimal_dv(bk, C.SU_TAX, 0, 0.5)

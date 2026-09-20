@@ -96,16 +96,19 @@ def build(bk):
          "input_message": "Pick a client from the Clients tab (or type a "
                           "new name and add them there)."})
     bk.stats["validations"] += 1
-    ws.data_validation(
-        r(C.ROW_FIRST), ci("H"), r(C.last_row("events")), ci("H"),
-        {"validate": "list", "source": "=MenuItems", "ignore_blank": True,
-         "show_input": True, "input_title": "Menu",
-         "input_message": "Pick a dish from Menu Costing, or type a "
-                          "combination (comma separated).",
-         "show_error": True, "error_title": "Not on the menu list",
-         "error_message": "That's not one of your priced menu items - "
-                          "continue anyway?", "error_type": "warning"})
-    bk.stats["validations"] += 1
+    if bk.has("menu"):
+        # MenuItems only exists when the Menu Costing tab does (PREMIUM);
+        # a dangling name would make Excel drop the validation on open
+        ws.data_validation(
+            r(C.ROW_FIRST), ci("H"), r(C.last_row("events")), ci("H"),
+            {"validate": "list", "source": "=MenuItems", "ignore_blank": True,
+             "show_input": True, "input_title": "Menu",
+             "input_message": "Pick a dish from Menu Costing, or type a "
+                              "combination (comma separated).",
+             "show_error": True, "error_title": "Not on the menu list",
+             "error_message": "That's not one of your priced menu items - "
+                              "continue anyway?", "error_type": "warning"})
+        bk.stats["validations"] += 1
     common.date_dv(bk, "events", ["date"])
     common.whole_dv(bk, "events", ["guests", "staff_req"], 0, 100000)
     common.money_dv(bk, "events", ["cost", "price", "deposit"])

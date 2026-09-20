@@ -142,7 +142,9 @@ def build(bk):
     bk.stats["validations"] += 1
     ws.conditional_format(
         r(HEADER_ROW), TICK_COL, r(end), TICK_COL,
-        {"type": "cell", "criteria": "==", "value": C.TICK,
+        # string values in a cellIs rule must be quoted, otherwise the
+        # formula is invalid and Excel drops the rule on open
+        {"type": "cell", "criteria": "==", "value": '"%s"' % C.TICK,
          "format": S.cf(bg=th.ok_soft, fg=th.ok, bold=True, size=13)})
     bk.stats["cond_formats"] += 1
 
