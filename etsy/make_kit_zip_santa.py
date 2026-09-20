@@ -220,7 +220,8 @@ def build_source_md():
         n_lines = code.count("\n") + 1
         parts.append(f"\n## `{f}`\n\n")
         parts.append(f"*{DESCRIPTIONS[f]}* ({n_lines:,} lines)\n\n")
-        parts.append("```python\n" + code.rstrip("\n") + "\n```\n\n")
+        parts.append("````python\n" + code.rstrip("\n") +
+                     "\n````\n\n")   # 4-backtick fence: code may embed ```
         parts.append("---")
     return "".join(parts)
 
