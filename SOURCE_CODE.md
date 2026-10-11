@@ -1,77 +1,95 @@
-# Pet Sitting & Dog Walking Business Spreadsheet - source code
+# Pet Sitting & Dog Walking Business Spreadsheet
 
-Complete source code of the generator that writes the `.xlsx` product.
+*Complete source code of the generator that writes the .xlsx product*
 
-Writes a 27 tab `.xlsx` workbook with about 50,000 formulas: client and pet records, bookings, visit logs, pricing, invoices, payments, expenses, mileage, a dashboard, reports and automatic reminders. Document author is **Novality Store**; every formula cell is locked and every sheet protected with the password **`premium`**, while the cells you are meant to type in stay open.
+A pure Python program that writes a 27 tab Excel workbook for a pet sitting and dog walking business: clients, pets, bookings, visit logs, pricing, invoices, payments, expenses, mileage, staff, inventory, reminders, a dashboard, reports and a budget.
 
-Pure Python, one dependency. Tested on XlsxWriter 3.2.0 and on the much older 0.3.0, so it does not rely on anything recent. The workbook itself is Excel 2010 safe - no dynamic arrays, no `XLOOKUP`, no `IFS`, nothing that needs array entry - and it opens in Google Sheets, LibreOffice and Numbers.
+**What it produces**
+
+| | |
+| --- | --- |
+| Tabs | 27 (26 visible + 1 hidden calculation engine) |
+| Formulas | about 50,800, all Excel 2010 safe |
+| Author | Novality Store |
+| Protection | every sheet, password `premium` |
+| Example data | 9 clients, 12 pets, 32 bookings, 23 invoices |
+| Dependency | XlsxWriter (openpyxl only for the checks) |
+
+**How to run it**
 
 ```bash
-python build_pet_sitting_workbook.py --help
-
-  -o, --output PATH     where to write the file
-  --blank               no example data, just the empty workbook
-  --no-protect          leave the sheets unlocked
-  --password TEXT       protection password (default: premium)
-  --author TEXT         document author  (default: Novality Store)
-  --business TEXT       business name on the cover and invoices
-  --currency SYMBOL     currency symbol  (default: $)
-  --unit {km,miles}     mileage unit
-  --rows N              rows of capacity in the big registers
-  --today YYYY-MM-DD    pretend it is this date (for the demo data)
+pip install XlsxWriter
+python build_pet_sitting_workbook.py
 ```
+
+The workbook lands in `output/Pet Sitting Business Spreadsheet.xlsx`.
+Every formula cell is locked and every sheet is protected with the password `premium`, while the cream coloured cells you are meant to type in stay open.
+
+**Useful options**
+
+```text
+-o, --output PATH     where to write the file
+--blank               no example data, just the empty workbook
+--no-protect          leave the sheets unlocked
+--password TEXT       protection password (default: premium)
+--author TEXT         document author  (default: Novality Store)
+--business TEXT       business name on the cover and invoices
+--currency SYMBOL     currency symbol  (default: $)
+--unit {km,miles}     mileage unit
+--rows N              rows of capacity in the big registers
+--today YYYY-MM-DD    pretend it is this date (for the demo data)
+```
+
+Excel 2010 safe throughout: no dynamic arrays, no `XLOOKUP`, no `IFS`, nothing that needs array entry - so it opens in Excel 2010 and later, Google Sheets, LibreOffice and Numbers.
 
 ---
 
 ## Contents
 
-* [1. Run it](#1-run-it)
-  * [`build_pet_sitting_workbook.py`](#build_pet_sitting_workbookpy)
-* [2. The package](#2-the-package)
-  * [`pet_sitting_spreadsheet/__init__.py`](#pet_sitting_spreadsheet__init__py)
-  * [`pet_sitting_spreadsheet/__main__.py`](#pet_sitting_spreadsheet__main__py)
-  * [`pet_sitting_spreadsheet/cli.py`](#pet_sitting_spreadsheetclipy)
-  * [`pet_sitting_spreadsheet/config.py`](#pet_sitting_spreadsheetconfigpy)
-  * [`pet_sitting_spreadsheet/layout.py`](#pet_sitting_spreadsheetlayoutpy)
-  * [`pet_sitting_spreadsheet/formats.py`](#pet_sitting_spreadsheetformatspy)
-  * [`pet_sitting_spreadsheet/writer.py`](#pet_sitting_spreadsheetwriterpy)
-  * [`pet_sitting_spreadsheet/names.py`](#pet_sitting_spreadsheetnamespy)
-  * [`pet_sitting_spreadsheet/build.py`](#pet_sitting_spreadsheetbuildpy)
-  * [`pet_sitting_spreadsheet/sample_data.py`](#pet_sitting_spreadsheetsample_datapy)
-* [3. The registers](#3-the-registers)
-  * [`pet_sitting_spreadsheet/sheets/__init__.py`](#pet_sitting_spreadsheetsheets__init__py)
-  * [`pet_sitting_spreadsheet/sheets/common.py`](#pet_sitting_spreadsheetsheetscommonpy)
-  * [`pet_sitting_spreadsheet/sheets/lists.py`](#pet_sitting_spreadsheetsheetslistspy)
-  * [`pet_sitting_spreadsheet/sheets/settings.py`](#pet_sitting_spreadsheetsheetssettingspy)
-  * [`pet_sitting_spreadsheet/sheets/services.py`](#pet_sitting_spreadsheetsheetsservicespy)
-  * [`pet_sitting_spreadsheet/sheets/clients.py`](#pet_sitting_spreadsheetsheetsclientspy)
-  * [`pet_sitting_spreadsheet/sheets/pets.py`](#pet_sitting_spreadsheetsheetspetspy)
-  * [`pet_sitting_spreadsheet/sheets/bookings.py`](#pet_sitting_spreadsheetsheetsbookingspy)
-  * [`pet_sitting_spreadsheet/sheets/visits.py`](#pet_sitting_spreadsheetsheetsvisitspy)
-  * [`pet_sitting_spreadsheet/sheets/health.py`](#pet_sitting_spreadsheetsheetshealthpy)
-  * [`pet_sitting_spreadsheet/sheets/incidents.py`](#pet_sitting_spreadsheetsheetsincidentspy)
-  * [`pet_sitting_spreadsheet/sheets/messages.py`](#pet_sitting_spreadsheetsheetsmessagespy)
-  * [`pet_sitting_spreadsheet/sheets/invoices.py`](#pet_sitting_spreadsheetsheetsinvoicespy)
-  * [`pet_sitting_spreadsheet/sheets/payments.py`](#pet_sitting_spreadsheetsheetspaymentspy)
-  * [`pet_sitting_spreadsheet/sheets/expenses.py`](#pet_sitting_spreadsheetsheetsexpensespy)
-  * [`pet_sitting_spreadsheet/sheets/mileage.py`](#pet_sitting_spreadsheetsheetsmileagepy)
-  * [`pet_sitting_spreadsheet/sheets/staff.py`](#pet_sitting_spreadsheetsheetsstaffpy)
-  * [`pet_sitting_spreadsheet/sheets/inventory.py`](#pet_sitting_spreadsheetsheetsinventorypy)
-  * [`pet_sitting_spreadsheet/sheets/reminders.py`](#pet_sitting_spreadsheetsheetsreminderspy)
-* [4. The pages](#4-the-pages)
-  * [`pet_sitting_spreadsheet/sheets/calc.py`](#pet_sitting_spreadsheetsheetscalcpy)
-  * [`pet_sitting_spreadsheet/sheets/dashboard.py`](#pet_sitting_spreadsheetsheetsdashboardpy)
-  * [`pet_sitting_spreadsheet/sheets/reports.py`](#pet_sitting_spreadsheetsheetsreportspy)
-  * [`pet_sitting_spreadsheet/sheets/budget.py`](#pet_sitting_spreadsheetsheetsbudgetpy)
-  * [`pet_sitting_spreadsheet/sheets/start_here.py`](#pet_sitting_spreadsheetsheetsstart_herepy)
-  * [`pet_sitting_spreadsheet/sheets/printables.py`](#pet_sitting_spreadsheetsheetsprintablespy)
-  * [`pet_sitting_spreadsheet/sheets/help_tab.py`](#pet_sitting_spreadsheetsheetshelp_tabpy)
-* [5. Quality checks (optional)](#5-quality-checks-optional)
-  * [`tools/validate_workbook.py`](#toolsvalidate_workbookpy)
-  * [`tools/check_sample_data.py`](#toolscheck_sample_datapy)
-  * [`tools/recalc_check.py`](#toolsrecalc_checkpy)
-  * [`tools/export_source_md.py`](#toolsexport_source_mdpy)
-  * [`tools/make_download_zip.py`](#toolsmake_download_zippy)
+| # | File | Lines | What it does |
+| --- | --- | --- | --- |
+| 1 | [`build_pet_sitting_workbook.py`](#build_pet_sitting_workbookpy) | 32 | Build the Pet Sitting & Dog Walking Business Spreadsheet |
+| 2 | [`pet_sitting_spreadsheet/__init__.py`](#pet_sitting_spreadsheet__init__py) | 29 | Pet Sitting & Dog Walking Business Spreadsheet... |
+| 2 | [`pet_sitting_spreadsheet/__main__.py`](#pet_sitting_spreadsheet__main__py) | 6 | ``python -m pet_sitting_spreadsheet`` |
+| 2 | [`pet_sitting_spreadsheet/cli.py`](#pet_sitting_spreadsheetclipy) | 111 | Command line front end |
+| 2 | [`pet_sitting_spreadsheet/config.py`](#pet_sitting_spreadsheetconfigpy) | 215 | Configuration for the Pet Sitting & Dog Walking Business Spreadsheet generator |
+| 2 | [`pet_sitting_spreadsheet/layout.py`](#pet_sitting_spreadsheetlayoutpy) | 243 | Layout engine |
+| 2 | [`pet_sitting_spreadsheet/formats.py`](#pet_sitting_spreadsheetformatspy) | 190 | Cell format factory |
+| 2 | [`pet_sitting_spreadsheet/writer.py`](#pet_sitting_spreadsheetwriterpy) | 448 | Sheet writing helpers shared by every tab of the workbook |
+| 2 | [`pet_sitting_spreadsheet/names.py`](#pet_sitting_spreadsheetnamespy) | 40 | Workbook level defined names that point at the register sheets |
+| 2 | [`pet_sitting_spreadsheet/build.py`](#pet_sitting_spreadsheetbuildpy) | 148 | Workbook builder: puts every tab together in the right order |
+| 2 | [`pet_sitting_spreadsheet/sample_data.py`](#pet_sitting_spreadsheetsample_datapy) | 903 | Demo data |
+| 3 | [`pet_sitting_spreadsheet/sheets/__init__.py`](#pet_sitting_spreadsheetsheets__init__py) | 14 | One module per tab of the workbook |
+| 3 | [`pet_sitting_spreadsheet/sheets/common.py`](#pet_sitting_spreadsheetsheetscommonpy) | 110 | Small building blocks shared by the register sheets |
+| 3 | [`pet_sitting_spreadsheet/sheets/lists.py`](#pet_sitting_spreadsheetsheetslistspy) | 190 | The `Lists` tab: every drop down list in the workbook lives here |
+| 3 | [`pet_sitting_spreadsheet/sheets/settings.py`](#pet_sitting_spreadsheetsheetssettingspy) | 275 | The `Settings` tab |
+| 3 | [`pet_sitting_spreadsheet/sheets/services.py`](#pet_sitting_spreadsheetsheetsservicespy) | 92 | `Services` - the service catalogue and price list that drives booking costs |
+| 3 | [`pet_sitting_spreadsheet/sheets/clients.py`](#pet_sitting_spreadsheetsheetsclientspy) | 152 | `Clients` - the client database with lifetime value and follow-up flags |
+| 3 | [`pet_sitting_spreadsheet/sheets/pets.py`](#pet_sitting_spreadsheetsheetspetspy) | 136 | `Pets` - full pet profiles: care routine, medical, vaccinations, warnings |
+| 3 | [`pet_sitting_spreadsheet/sheets/bookings.py`](#pet_sitting_spreadsheetsheetsbookingspy) | 225 | `Bookings` - the scheduling engine: prices, surcharges, conflicts, alerts |
+| 3 | [`pet_sitting_spreadsheet/sheets/visits.py`](#pet_sitting_spreadsheetsheetsvisitspy) | 134 | `Visit Log` - the daily pet care log, one row per visit or walk |
+| 3 | [`pet_sitting_spreadsheet/sheets/health.py`](#pet_sitting_spreadsheetsheetshealthpy) | 85 | `Health Log` - medication administration, vaccinations and vet events |
+| 3 | [`pet_sitting_spreadsheet/sheets/incidents.py`](#pet_sitting_spreadsheetsheetsincidentspy) | 137 | `Incidents` - safety, emergency contacts and the incident report register |
+| 3 | [`pet_sitting_spreadsheet/sheets/messages.py`](#pet_sitting_spreadsheetsheetsmessagespy) | 85 | `Messages` - client communication, feedback, complaints and follow-ups |
+| 3 | [`pet_sitting_spreadsheet/sheets/invoices.py`](#pet_sitting_spreadsheetsheetsinvoicespy) | 158 | `Invoices` - invoice register with automatic numbering, tax and ageing |
+| 3 | [`pet_sitting_spreadsheet/sheets/payments.py`](#pet_sitting_spreadsheetsheetspaymentspy) | 89 | `Payments` - money received, deposits, tips, refunds and reconciliation |
+| 3 | [`pet_sitting_spreadsheet/sheets/expenses.py`](#pet_sitting_spreadsheetsheetsexpensespy) | 87 | `Expenses` - every business cost, with tax, deductibility and approvals |
+| 3 | [`pet_sitting_spreadsheet/sheets/mileage.py`](#pet_sitting_spreadsheetsheetsmileagepy) | 96 | `Mileage` - trip log with odometer readings and reimbursement maths |
+| 3 | [`pet_sitting_spreadsheet/sheets/staff.py`](#pet_sitting_spreadsheetsheetsstaffpy) | 120 | `Staff` - team directory, workload, timesheet totals and pay |
+| 3 | [`pet_sitting_spreadsheet/sheets/inventory.py`](#pet_sitting_spreadsheetsheetsinventorypy) | 99 | `Inventory` - pet supplies, stock levels, reorder alerts and value |
+| 3 | [`pet_sitting_spreadsheet/sheets/reminders.py`](#pet_sitting_spreadsheetsheetsreminderspy) | 255 | `Reminders` - the alert centre plus a custom task list |
+| 4 | [`pet_sitting_spreadsheet/sheets/calc.py`](#pet_sitting_spreadsheetsheetscalcpy) | 213 | `Calc` - hidden helper sheet |
+| 4 | [`pet_sitting_spreadsheet/sheets/dashboard.py`](#pet_sitting_spreadsheetsheetsdashboardpy) | 435 | `Dashboard` - the one page view of the business |
+| 4 | [`pet_sitting_spreadsheet/sheets/reports.py`](#pet_sitting_spreadsheetsheetsreportspy) | 411 | `Reports` - printable business analytics for any date range |
+| 4 | [`pet_sitting_spreadsheet/sheets/budget.py`](#pet_sitting_spreadsheetsheetsbudgetpy) | 324 | `Budget` - targets, budget vs actual, break-even, forecast and cash flow |
+| 4 | [`pet_sitting_spreadsheet/sheets/start_here.py`](#pet_sitting_spreadsheetsheetsstart_herepy) | 220 | `Start Here` - welcome page, navigation menu and setup checklist |
+| 4 | [`pet_sitting_spreadsheet/sheets/printables.py`](#pet_sitting_spreadsheetsheetsprintablespy) | 751 | The four print-ready tabs: invoice, pet care sheet, visit report, forms |
+| 4 | [`pet_sitting_spreadsheet/sheets/help_tab.py`](#pet_sitting_spreadsheetsheetshelp_tabpy) | 296 | `Help` - instructions, formula notes, troubleshooting and version log |
+| 5 | [`tools/validate_workbook.py`](#toolsvalidate_workbookpy) | 287 | Static checks on a generated workbook |
+| 5 | [`tools/check_sample_data.py`](#toolscheck_sample_datapy) | 172 | Cross-check the example records in a generated workbook |
+| 5 | [`tools/recalc_check.py`](#toolsrecalc_checkpy) | 193 | Really calculate every formula in a generated workbook and report any cell... |
+| 5 | [`tools/export_source_md.py`](#toolsexport_source_mdpy) | 308 | Write every source file of the generator into one clean markdown document |
+| 5 | [`tools/make_download_zip.py`](#toolsmake_download_zippy) | 124 | Pack the generator into a single zip people can download and run |
 
 ---
 
@@ -88,7 +106,7 @@ The workbook lands in `output/Pet Sitting Business Spreadsheet.xlsx`.
 
 ### `build_pet_sitting_workbook.py`
 
-Build the Pet Sitting & Dog Walking Business Spreadsheet. *(32 lines)*
+Build the Pet Sitting & Dog Walking Business Spreadsheet *(32 lines)*
 
 ````python
 #!/usr/bin/env python3
@@ -133,7 +151,7 @@ Configuration, the formula template engine, cell formats, the sheet writer and t
 
 ### `pet_sitting_spreadsheet/__init__.py`
 
-Pet Sitting & Dog Walking Business Spreadsheet ============================================== Generates a ready-to-sell Excel workbook for pet sitters and dog walkers: clients, pets, bookings, visit logs, health records, invoices, payments, expenses, mileage, staff, inventory, a dashboard, reports, a budget, a reminder centre and printable forms. *(29 lines)*
+Pet Sitting & Dog Walking Business Spreadsheet ============================================== Generates a ready-to-sell... *(29 lines)*
 
 ````python
 """
@@ -169,7 +187,7 @@ __author__ = AUTHOR
 
 ### `pet_sitting_spreadsheet/__main__.py`
 
-``python -m pet_sitting_spreadsheet``. *(6 lines)*
+``python -m pet_sitting_spreadsheet`` *(6 lines)*
 
 ````python
 """``python -m pet_sitting_spreadsheet``."""
@@ -182,7 +200,7 @@ if __name__ == "__main__":
 
 ### `pet_sitting_spreadsheet/cli.py`
 
-Command line front end. *(111 lines)*
+Command line front end *(111 lines)*
 
 ````python
 """Command line front end.
@@ -300,7 +318,7 @@ if __name__ == "__main__":        # pragma: no cover
 
 ### `pet_sitting_spreadsheet/config.py`
 
-Configuration for the Pet Sitting & Dog Walking Business Spreadsheet generator. *(215 lines)*
+Configuration for the Pet Sitting & Dog Walking Business Spreadsheet generator *(215 lines)*
 
 ````python
 """
@@ -522,7 +540,7 @@ class Config:
 
 ### `pet_sitting_spreadsheet/layout.py`
 
-Layout engine. *(243 lines)*
+Layout engine *(243 lines)*
 
 ````python
 """
@@ -772,7 +790,7 @@ def join_nonblank(parts: Sequence[str]) -> str:
 
 ### `pet_sitting_spreadsheet/formats.py`
 
-Cell format factory. *(190 lines)*
+Cell format factory *(190 lines)*
 
 ````python
 """
@@ -969,7 +987,7 @@ class FormatBook:
 
 ### `pet_sitting_spreadsheet/writer.py`
 
-Sheet writing helpers shared by every tab of the workbook. *(448 lines)*
+Sheet writing helpers shared by every tab of the workbook *(448 lines)*
 
 ````python
 """
@@ -1424,7 +1442,7 @@ def cf_bar(color: str = "#6366F1") -> Dict[str, Any]:
 
 ### `pet_sitting_spreadsheet/names.py`
 
-Workbook level defined names that point at the register sheets. *(40 lines)*
+Workbook level defined names that point at the register sheets *(40 lines)*
 
 ````python
 """Workbook level defined names that point at the register sheets.
@@ -1471,7 +1489,7 @@ def define_cross_sheet_names(book, reg: Registry) -> None:
 
 ### `pet_sitting_spreadsheet/build.py`
 
-Workbook builder: puts every tab together in the right order. *(148 lines)*
+Workbook builder: puts every tab together in the right order *(148 lines)*
 
 ````python
 """Workbook builder: puts every tab together in the right order.
@@ -1626,7 +1644,7 @@ def _set_properties(book, cfg: Config) -> None:
 
 ### `pet_sitting_spreadsheet/sample_data.py`
 
-Demo data. *(903 lines)*
+Demo data *(903 lines)*
 
 ````python
 """
@@ -2538,11 +2556,11 @@ def _build(cfg: Config) -> Sample:
 
 ## 3. The registers
 
-One module per data tab. Each returns a `SheetSpec` - a list of columns with their formulas - and the writer turns that into a formatted, validated, protected sheet.
+One module per data tab. Each returns a list of columns with their formulas, and the writer turns that into a formatted, validated, protected sheet.
 
 ### `pet_sitting_spreadsheet/sheets/__init__.py`
 
-One module per tab of the workbook. *(14 lines)*
+One module per tab of the workbook *(14 lines)*
 
 ````python
 """One module per tab of the workbook."""
@@ -2563,7 +2581,7 @@ __all__ = [
 
 ### `pet_sitting_spreadsheet/sheets/common.py`
 
-Small building blocks shared by the register sheets. *(110 lines)*
+Small building blocks shared by the register sheets *(110 lines)*
 
 ````python
 """Small building blocks shared by the register sheets."""
@@ -2680,7 +2698,7 @@ def blank(trigger: str, body: str) -> str:
 
 ### `pet_sitting_spreadsheet/sheets/lists.py`
 
-The `Lists` tab: every drop down list in the workbook lives here. *(190 lines)*
+The `Lists` tab: every drop down list in the workbook lives here *(190 lines)*
 
 ````python
 """
@@ -2877,7 +2895,7 @@ def options(name: str) -> List[str]:
 
 ### `pet_sitting_spreadsheet/sheets/settings.py`
 
-The `Settings` tab. *(275 lines)*
+The `Settings` tab *(275 lines)*
 
 ````python
 """
@@ -3159,7 +3177,7 @@ def _time(text: str) -> _dt.time:
 
 ### `pet_sitting_spreadsheet/sheets/services.py`
 
-`Services` - the service catalogue and price list that drives booking costs. *(92 lines)*
+`Services` - the service catalogue and price list that drives booking costs *(92 lines)*
 
 ````python
 """`Services` - the service catalogue and price list that drives booking costs."""
@@ -3258,7 +3276,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/clients.py`
 
-`Clients` - the client database with lifetime value and follow-up flags. *(152 lines)*
+`Clients` - the client database with lifetime value and follow-up flags *(152 lines)*
 
 ````python
 """`Clients` - the client database with lifetime value and follow-up flags."""
@@ -3417,7 +3435,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/pets.py`
 
-`Pets` - full pet profiles: care routine, medical, vaccinations, warnings. *(136 lines)*
+`Pets` - full pet profiles: care routine, medical, vaccinations, warnings *(136 lines)*
 
 ````python
 """`Pets` - full pet profiles: care routine, medical, vaccinations, warnings."""
@@ -3560,7 +3578,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/bookings.py`
 
-`Bookings` - the scheduling engine: prices, surcharges, conflicts, alerts. *(225 lines)*
+`Bookings` - the scheduling engine: prices, surcharges, conflicts, alerts *(225 lines)*
 
 ````python
 """`Bookings` - the scheduling engine: prices, surcharges, conflicts, alerts."""
@@ -3792,7 +3810,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/visits.py`
 
-`Visit Log` - the daily pet care log, one row per visit or walk. *(134 lines)*
+`Visit Log` - the daily pet care log, one row per visit or walk *(134 lines)*
 
 ````python
 """`Visit Log` - the daily pet care log, one row per visit or walk."""
@@ -3933,7 +3951,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/health.py`
 
-`Health Log` - medication administration, vaccinations and vet events. *(85 lines)*
+`Health Log` - medication administration, vaccinations and vet events *(85 lines)*
 
 ````python
 """`Health Log` - medication administration, vaccinations and vet events."""
@@ -4025,7 +4043,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/incidents.py`
 
-`Incidents` - safety, emergency contacts and the incident report register. *(137 lines)*
+`Incidents` - safety, emergency contacts and the incident report register *(137 lines)*
 
 ````python
 """`Incidents` - safety, emergency contacts and the incident report register."""
@@ -4169,7 +4187,7 @@ def decorate(sheet, fmts, cfg: Config) -> None:
 
 ### `pet_sitting_spreadsheet/sheets/messages.py`
 
-`Messages` - client communication, feedback, complaints and follow-ups. *(85 lines)*
+`Messages` - client communication, feedback, complaints and follow-ups *(85 lines)*
 
 ````python
 """`Messages` - client communication, feedback, complaints and follow-ups."""
@@ -4261,7 +4279,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/invoices.py`
 
-`Invoices` - invoice register with automatic numbering, tax and ageing. *(158 lines)*
+`Invoices` - invoice register with automatic numbering, tax and ageing *(158 lines)*
 
 ````python
 """`Invoices` - invoice register with automatic numbering, tax and ageing."""
@@ -4426,7 +4444,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/payments.py`
 
-`Payments` - money received, deposits, tips, refunds and reconciliation. *(89 lines)*
+`Payments` - money received, deposits, tips, refunds and reconciliation *(89 lines)*
 
 ````python
 """`Payments` - money received, deposits, tips, refunds and reconciliation."""
@@ -4522,7 +4540,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/expenses.py`
 
-`Expenses` - every business cost, with tax, deductibility and approvals. *(87 lines)*
+`Expenses` - every business cost, with tax, deductibility and approvals *(87 lines)*
 
 ````python
 """`Expenses` - every business cost, with tax, deductibility and approvals."""
@@ -4616,7 +4634,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/mileage.py`
 
-`Mileage` - trip log with odometer readings and reimbursement maths. *(96 lines)*
+`Mileage` - trip log with odometer readings and reimbursement maths *(96 lines)*
 
 ````python
 """`Mileage` - trip log with odometer readings and reimbursement maths."""
@@ -4719,7 +4737,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/staff.py`
 
-`Staff` - team directory, workload, timesheet totals and pay. *(120 lines)*
+`Staff` - team directory, workload, timesheet totals and pay *(120 lines)*
 
 ````python
 """`Staff` - team directory, workload, timesheet totals and pay."""
@@ -4846,7 +4864,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/inventory.py`
 
-`Inventory` - pet supplies, stock levels, reorder alerts and value. *(99 lines)*
+`Inventory` - pet supplies, stock levels, reorder alerts and value *(99 lines)*
 
 ````python
 """`Inventory` - pet supplies, stock levels, reorder alerts and value."""
@@ -4952,7 +4970,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/reminders.py`
 
-`Reminders` - the alert centre plus a custom task list. *(255 lines)*
+`Reminders` - the alert centre plus a custom task list *(255 lines)*
 
 ````python
 """`Reminders` - the alert centre plus a custom task list."""
@@ -5220,7 +5238,7 @@ The tabs that read the registers: the hidden calculation engine, the dashboard, 
 
 ### `pet_sitting_spreadsheet/sheets/calc.py`
 
-`Calc` - hidden helper sheet. *(213 lines)*
+`Calc` - hidden helper sheet *(213 lines)*
 
 ````python
 """
@@ -5440,7 +5458,7 @@ def spec(cfg: Config) -> SheetSpec:
 
 ### `pet_sitting_spreadsheet/sheets/dashboard.py`
 
-`Dashboard` - the one page view of the business. *(435 lines)*
+`Dashboard` - the one page view of the business *(435 lines)*
 
 ````python
 """`Dashboard` - the one page view of the business."""
@@ -5882,7 +5900,7 @@ def build(book, fmts, cfg: Config, reg: Registry) -> SheetWriter:
 
 ### `pet_sitting_spreadsheet/sheets/reports.py`
 
-`Reports` - printable business analytics for any date range. *(411 lines)*
+`Reports` - printable business analytics for any date range *(411 lines)*
 
 ````python
 """`Reports` - printable business analytics for any date range."""
@@ -6300,7 +6318,7 @@ def _end_of_year(cfg: Config) -> _dt.date:
 
 ### `pet_sitting_spreadsheet/sheets/budget.py`
 
-`Budget` - targets, budget vs actual, break-even, forecast and cash flow. *(324 lines)*
+`Budget` - targets, budget vs actual, break-even, forecast and cash flow *(324 lines)*
 
 ````python
 """`Budget` - targets, budget vs actual, break-even, forecast and cash flow."""
@@ -6631,7 +6649,7 @@ def build(book, fmts, cfg: Config, reg: Registry) -> SheetWriter:
 
 ### `pet_sitting_spreadsheet/sheets/start_here.py`
 
-`Start Here` - welcome page, navigation menu and setup checklist. *(220 lines)*
+`Start Here` - welcome page, navigation menu and setup checklist *(220 lines)*
 
 ````python
 """`Start Here` - welcome page, navigation menu and setup checklist."""
@@ -6858,7 +6876,7 @@ def build(book, fmts, cfg: Config, reg: Registry) -> SheetWriter:
 
 ### `pet_sitting_spreadsheet/sheets/printables.py`
 
-The four print-ready tabs: invoice, pet care sheet, visit report, forms. *(751 lines)*
+The four print-ready tabs: invoice, pet care sheet, visit report, forms *(751 lines)*
 
 ````python
 """The four print-ready tabs: invoice, pet care sheet, visit report, forms.
@@ -7616,7 +7634,7 @@ def build_forms(book, fmts, cfg: Config, reg: Registry) -> SheetWriter:
 
 ### `pet_sitting_spreadsheet/sheets/help_tab.py`
 
-`Help` - instructions, formula notes, troubleshooting and version log. *(296 lines)*
+`Help` - instructions, formula notes, troubleshooting and version log *(296 lines)*
 
 ````python
 """`Help` - instructions, formula notes, troubleshooting and version log."""
@@ -7925,7 +7943,7 @@ Not needed to build the workbook - these are the checks that keep it honest. The
 
 ### `tools/validate_workbook.py`
 
-Static checks on a generated workbook. *(287 lines)*
+Static checks on a generated workbook *(287 lines)*
 
 ````python
 """Static checks on a generated workbook.
@@ -8219,7 +8237,7 @@ if __name__ == "__main__":
 
 ### `tools/check_sample_data.py`
 
-Cross-check the example records in a generated workbook. *(172 lines)*
+Cross-check the example records in a generated workbook *(172 lines)*
 
 ````python
 """Cross-check the example records in a generated workbook.
@@ -8398,7 +8416,7 @@ if __name__ == "__main__":
 
 ### `tools/recalc_check.py`
 
-Really calculate every formula in a generated workbook and report any cell that ends up as an Excel error (#REF!, #DIV/0!, #VALUE! ...). *(193 lines)*
+Really calculate every formula in a generated workbook and report any cell that ends up as an Excel error (#REF!,... *(193 lines)*
 
 ````python
 """Really calculate every formula in a generated workbook and report any cell
@@ -8598,10 +8616,10 @@ if __name__ == "__main__":
 
 ### `tools/export_source_md.py`
 
-Write every source file of the generator into one markdown document. *(199 lines)*
+Write every source file of the generator into one clean markdown document *(308 lines)*
 
 ````python
-"""Write every source file of the generator into one markdown document.
+"""Write every source file of the generator into one clean markdown document.
 
     python tools/export_source_md.py                 # -> SOURCE_CODE.md
     python tools/export_source_md.py -o /tmp/src.md
@@ -8610,6 +8628,10 @@ Handy when the code has to travel somewhere that is not a git checkout:
 one file, every module in reading order, each in a fenced block with its
 real path above it, plus a short description taken from the module's own
 docstring so the two can never disagree.
+
+The layout is deliberately plain - a short cover, a contents table, then
+the code - so it reads well in any markdown viewer and survives being
+printed to PDF.
 """
 
 from __future__ import annotations
@@ -8623,8 +8645,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 TITLE = "Pet Sitting & Dog Walking Business Spreadsheet"
-SUBTITLE = ("Complete source code of the generator that writes the "
-            "`.xlsx` product.")
+SUBTITLE = "Complete source code of the generator that writes the .xlsx product"
 
 #: (section heading, intro paragraph, [file paths])
 SECTIONS = [
@@ -8651,9 +8672,9 @@ SECTIONS = [
       "pet_sitting_spreadsheet/build.py",
       "pet_sitting_spreadsheet/sample_data.py"]),
     ("3. The registers",
-     "One module per data tab. Each returns a `SheetSpec` - a list of "
-     "columns with their formulas - and the writer turns that into a "
-     "formatted, validated, protected sheet.",
+     "One module per data tab. Each returns a list of columns with their "
+     "formulas, and the writer turns that into a formatted, validated, "
+     "protected sheet.",
      ["pet_sitting_spreadsheet/sheets/__init__.py",
       "pet_sitting_spreadsheet/sheets/common.py",
       "pet_sitting_spreadsheet/sheets/lists.py",
@@ -8694,28 +8715,167 @@ SECTIONS = [
       "tools/make_download_zip.py"]),
 ]
 
+APPENDIX = """\
+## Appendix
 
-def blurb(path: str) -> str:
-    """First sentence of the module docstring, as a one line description."""
+### A. Build the workbook
+
+```bash
+python build_pet_sitting_workbook.py                       # demo data
+python build_pet_sitting_workbook.py --blank               # empty workbook
+python build_pet_sitting_workbook.py --business "Paws & Claws"
+python build_pet_sitting_workbook.py --currency "£" --unit miles
+python build_pet_sitting_workbook.py --rows 1000           # more capacity
+python build_pet_sitting_workbook.py --password secret     # own password
+python build_pet_sitting_workbook.py --author "Your Name"
+```
+
+### B. Check it
+
+```bash
+python tools/validate_workbook.py "output/Pet Sitting Business Spreadsheet.xlsx"
+python tools/check_sample_data.py "output/Pet Sitting Business Spreadsheet.xlsx"
+
+# real recalculation - build a small workbook first, the full one is slow
+python build_pet_sitting_workbook.py --rows 120 -o /tmp/small.xlsx
+python tools/recalc_check.py /tmp/small.xlsx
+```
+
+### C. Colour palette
+
+Defined once in `pet_sitting_spreadsheet/config.py`; every sheet module
+reads it from there.
+
+| Colour | Hex | Used for |
+| --- | --- | --- |
+| ink | `#0F172A` | titles, darkest text, overview tab colours |
+| primary | `#4338CA` | header bands, profit series |
+| primary_mid | `#6366F1` | section bands, revenue series, data bars |
+| primary_soft | `#EEF2FF` | table headers, alternating rows |
+| accent | `#F59E0B` | KPI tiles, accents, print tab colours |
+| accent_soft | `#FFFBEB` | soft accent panels |
+| input_bg | `#FFFDF5` | cells you type in (cream) |
+| calc_bg | `#F1F5F9` | calculated cells (grey) |
+| grey_text | `#64748B` | notes and secondary text |
+| line | `#CBD5E1` | hairlines and borders |
+| good | `#D1FAE5` / `#047857` | paid, in stock, resolved |
+| warn | `#FEF3C7` / `#B45309` | due soon, low stock |
+| bad | `#FFE4E6` / `#BE123C` | overdue, out of stock, expired |
+| info | `#DBEAFE` / `#1D4ED8` | neutral information |
+| note_bg | `#F8FAFC` | note boxes |
+
+### D. File tree
+
+```
+build_pet_sitting_workbook.py
+README.md
+SOURCE_CODE.md
+pet_sitting_spreadsheet/
+    __init__.py   __main__.py   cli.py        config.py
+    layout.py     formats.py    writer.py     names.py
+    build.py      sample_data.py
+    sheets/
+        __init__.py   common.py     lists.py       settings.py
+        services.py   clients.py    pets.py        bookings.py
+        visits.py     health.py     incidents.py   messages.py
+        invoices.py   payments.py   expenses.py    mileage.py
+        staff.py      inventory.py  reminders.py   calc.py
+        dashboard.py  reports.py    budget.py      start_here.py
+        printables.py help_tab.py
+tools/
+    validate_workbook.py   check_sample_data.py   recalc_check.py
+    export_source_md.py    make_download_zip.py
+```
+"""
+
+
+def read(path: str) -> str:
     with open(os.path.join(ROOT, path), encoding="utf-8") as handle:
-        source = handle.read()
+        return handle.read().rstrip("\n")
+
+
+def blurb(path: str, limit: int = 78) -> str:
+    """First sentence of the module docstring, as a one line description."""
     try:
-        text = ast.get_docstring(ast.parse(source)) or ""
+        text = ast.get_docstring(ast.parse(read(path))) or ""
     except SyntaxError:                                  # pragma: no cover
         text = ""
     text = " ".join(text.split())
-    if not text:
-        return ""
     cut = re.search(r"\.(\s|$)", text)
     if cut:
         text = text[:cut.start()]
-    return text.strip().rstrip(".")
+    text = text.strip().rstrip(".")
+    if len(text) > limit:
+        text = text[:limit].rsplit(" ", 1)[0] + "..."
+    return text
 
 
-def anchor(heading: str) -> str:
-    slug = heading.lower()
-    slug = re.sub(r"[^\w\s-]", "", slug)
+def anchor(text: str) -> str:
+    slug = re.sub(r"[^\w\s-]", "", text.lower())
     return re.sub(r"\s+", "-", slug.strip())
+
+
+def cover() -> list:
+    """The short front page: what it is, how to run it, the key numbers."""
+    return [
+        f"# {TITLE}",
+        "",
+        f"*{SUBTITLE}*",
+        "",
+        "A pure Python program that writes a 27 tab Excel workbook for a pet "
+        "sitting and dog walking business: clients, pets, bookings, visit "
+        "logs, pricing, invoices, payments, expenses, mileage, staff, "
+        "inventory, reminders, a dashboard, reports and a budget.",
+        "",
+        "**What it produces**",
+        "",
+        "| | |",
+        "| --- | --- |",
+        "| Tabs | 27 (26 visible + 1 hidden calculation engine) |",
+        "| Formulas | about 50,800, all Excel 2010 safe |",
+        "| Author | Novality Store |",
+        "| Protection | every sheet, password `premium` |",
+        "| Example data | 9 clients, 12 pets, 32 bookings, 23 invoices |",
+        "| Dependency | XlsxWriter (openpyxl only for the checks) |",
+        "",
+        "**How to run it**",
+        "",
+        "```bash",
+        "pip install XlsxWriter",
+        "python build_pet_sitting_workbook.py",
+        "```",
+        "",
+        "The workbook lands in `output/Pet Sitting Business Spreadsheet.xlsx`.",
+        "Every formula cell is locked and every sheet is protected with the "
+        "password `premium`, while the cream coloured cells you are meant to "
+        "type in stay open.",
+        "",
+        "**Useful options**",
+        "",
+        "```text",
+        "-o, --output PATH     where to write the file",
+        "--blank               no example data, just the empty workbook",
+        "--no-protect          leave the sheets unlocked",
+        "--password TEXT       protection password (default: premium)",
+        "--author TEXT         document author  (default: Novality Store)",
+        "--business TEXT       business name on the cover and invoices",
+        "--currency SYMBOL     currency symbol  (default: $)",
+        "--unit {km,miles}     mileage unit",
+        "--rows N              rows of capacity in the big registers",
+        "--today YYYY-MM-DD    pretend it is this date (for the demo data)",
+        "```",
+        "",
+        "Excel 2010 safe throughout: no dynamic arrays, no `XLOOKUP`, no "
+        "`IFS`, nothing that needs array entry - so it opens in Excel 2010 "
+        "and later, Google Sheets, LibreOffice and Numbers.",
+        "",
+        "---",
+        "",
+        "## Contents",
+        "",
+        "| # | File | Lines | What it does |",
+        "| --- | --- | --- | --- |",
+    ]
 
 
 def main(argv=None) -> int:
@@ -8723,78 +8883,45 @@ def main(argv=None) -> int:
     parser.add_argument("-o", "--output", default="SOURCE_CODE.md")
     args = parser.parse_args(argv)
 
-    lines = [f"# {TITLE} - source code", "", SUBTITLE, ""]
-    lines += [
-        "Writes a 27 tab `.xlsx` workbook with about 50,000 formulas: client "
-        "and pet records, bookings, visit logs, pricing, invoices, payments, "
-        "expenses, mileage, a dashboard, reports and automatic reminders. "
-        "Document author is **Novality Store**; every formula cell is locked "
-        "and every sheet protected with the password **`premium`**, while "
-        "the cells you are meant to type in stay open.",
-        "",
-        "Pure Python, one dependency. Tested on XlsxWriter 3.2.0 and on the "
-        "much older 0.3.0, so it does not rely on anything recent. The "
-        "workbook itself is Excel 2010 safe - no dynamic arrays, no "
-        "`XLOOKUP`, no `IFS`, nothing that needs array entry - and it opens "
-        "in Google Sheets, LibreOffice and Numbers.",
-        "",
-        "```bash",
-        "python build_pet_sitting_workbook.py --help",
-        "",
-        "  -o, --output PATH     where to write the file",
-        "  --blank               no example data, just the empty workbook",
-        "  --no-protect          leave the sheets unlocked",
-        "  --password TEXT       protection password (default: premium)",
-        "  --author TEXT         document author  (default: Novality Store)",
-        "  --business TEXT       business name on the cover and invoices",
-        "  --currency SYMBOL     currency symbol  (default: $)",
-        "  --unit {km,miles}     mileage unit",
-        "  --rows N              rows of capacity in the big registers",
-        "  --today YYYY-MM-DD    pretend it is this date (for the demo data)",
-        "```",
-        "",
-        "---",
-        "",
-        "## Contents",
-        "",
-    ]
-
-    for heading, _intro, paths in SECTIONS:
-        lines.append(f"* [{heading}](#{anchor(heading)})")
+    lines = cover()
+    total = 0
+    files = 0
+    for number, (heading, _intro, paths) in enumerate(SECTIONS, start=1):
         for path in paths:
-            lines.append(f"  * [`{path}`](#{anchor(path)})")
+            count = len(read(path).splitlines())
+            total += count
+            files += 1
+            lines.append(
+                f"| {number} | [`{path}`](#{anchor(path)}) | {count} | "
+                f"{blurb(path) or '-'} |")
+
     lines += ["", "---", ""]
 
-    total = 0
     for heading, intro, paths in SECTIONS:
         lines += [f"## {heading}", "", intro, ""]
         for path in paths:
-            full = os.path.join(ROOT, path)
-            with open(full, encoding="utf-8") as handle:
-                code = handle.read().rstrip("\n")
+            code = read(path)
             count = len(code.splitlines())
-            total += count
-            note = blurb(path)
+            note = blurb(path, limit=120)
             lines.append(f"### `{path}`")
             lines.append("")
             if note:
-                lines.append(f"{note}. *({count} lines)*")
+                lines.append(f"{note} *({count} lines)*")
             else:
                 lines.append(f"*({count} lines)*")
             # four backticks, so a fence inside a docstring cannot
             # close the block early
             lines += ["", "````python", code, "````", ""]
-        lines.append("---")
-        lines.append("")
+        lines += ["---", ""]
 
-    lines += [f"*{total:,} lines of Python in "
-              f"{sum(len(p) for _h, _i, p in SECTIONS)} files.*", ""]
+    lines += [APPENDIX, ""]
+    lines += [f"*{files} files, {total:,} lines of Python.*", ""]
 
-    out = args.output
-    with open(out, "w", encoding="utf-8") as handle:
+    with open(args.output, "w", encoding="utf-8") as handle:
         handle.write("\n".join(lines))
-    size = os.path.getsize(out)
-    print(f"{out}  ({total:,} lines of source, {size / 1024:.0f} KB)")
+    size = os.path.getsize(args.output)
+    print(f"{args.output}  ({files} files, {total:,} lines, "
+          f"{size / 1024:.0f} KB)")
     return 0
 
 
@@ -8804,7 +8931,7 @@ if __name__ == "__main__":
 
 ### `tools/make_download_zip.py`
 
-Pack the generator into a single zip people can download and run. *(124 lines)*
+Pack the generator into a single zip people can download and run *(124 lines)*
 
 ````python
 """Pack the generator into a single zip people can download and run.
@@ -8935,4 +9062,76 @@ if __name__ == "__main__":
 
 ---
 
-*8,529 lines of Python in 42 files.*
+## Appendix
+
+### A. Build the workbook
+
+```bash
+python build_pet_sitting_workbook.py                       # demo data
+python build_pet_sitting_workbook.py --blank               # empty workbook
+python build_pet_sitting_workbook.py --business "Paws & Claws"
+python build_pet_sitting_workbook.py --currency "£" --unit miles
+python build_pet_sitting_workbook.py --rows 1000           # more capacity
+python build_pet_sitting_workbook.py --password secret     # own password
+python build_pet_sitting_workbook.py --author "Your Name"
+```
+
+### B. Check it
+
+```bash
+python tools/validate_workbook.py "output/Pet Sitting Business Spreadsheet.xlsx"
+python tools/check_sample_data.py "output/Pet Sitting Business Spreadsheet.xlsx"
+
+# real recalculation - build a small workbook first, the full one is slow
+python build_pet_sitting_workbook.py --rows 120 -o /tmp/small.xlsx
+python tools/recalc_check.py /tmp/small.xlsx
+```
+
+### C. Colour palette
+
+Defined once in `pet_sitting_spreadsheet/config.py`; every sheet module
+reads it from there.
+
+| Colour | Hex | Used for |
+| --- | --- | --- |
+| ink | `#0F172A` | titles, darkest text, overview tab colours |
+| primary | `#4338CA` | header bands, profit series |
+| primary_mid | `#6366F1` | section bands, revenue series, data bars |
+| primary_soft | `#EEF2FF` | table headers, alternating rows |
+| accent | `#F59E0B` | KPI tiles, accents, print tab colours |
+| accent_soft | `#FFFBEB` | soft accent panels |
+| input_bg | `#FFFDF5` | cells you type in (cream) |
+| calc_bg | `#F1F5F9` | calculated cells (grey) |
+| grey_text | `#64748B` | notes and secondary text |
+| line | `#CBD5E1` | hairlines and borders |
+| good | `#D1FAE5` / `#047857` | paid, in stock, resolved |
+| warn | `#FEF3C7` / `#B45309` | due soon, low stock |
+| bad | `#FFE4E6` / `#BE123C` | overdue, out of stock, expired |
+| info | `#DBEAFE` / `#1D4ED8` | neutral information |
+| note_bg | `#F8FAFC` | note boxes |
+
+### D. File tree
+
+```
+build_pet_sitting_workbook.py
+README.md
+SOURCE_CODE.md
+pet_sitting_spreadsheet/
+    __init__.py   __main__.py   cli.py        config.py
+    layout.py     formats.py    writer.py     names.py
+    build.py      sample_data.py
+    sheets/
+        __init__.py   common.py     lists.py       settings.py
+        services.py   clients.py    pets.py        bookings.py
+        visits.py     health.py     incidents.py   messages.py
+        invoices.py   payments.py   expenses.py    mileage.py
+        staff.py      inventory.py  reminders.py   calc.py
+        dashboard.py  reports.py    budget.py      start_here.py
+        printables.py help_tab.py
+tools/
+    validate_workbook.py   check_sample_data.py   recalc_check.py
+    export_source_md.py    make_download_zip.py
+```
+
+
+*42 files, 8,638 lines of Python.*
