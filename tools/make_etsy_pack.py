@@ -1,11 +1,18 @@
-"""Pack the Etsy product bundle into one downloadable zip.
+#!/usr/bin/env python3
+"""
+Pack a product for the buyer: the workbooks, the docs and the photos.
 
-    python tools/make_etsy_pack.py
+    python tools/make_etsy_pack.py                 # pet sitting
+    python tools/make_etsy_pack.py --product meal  # meal planner
 
-Gathers the two workbooks (filled and blank), the Etsy listing images, the
-listing copy, the README and the full source code document, and writes:
+Writes
 
     download/pet-sitting-spreadsheet-etsy-pack.zip
+    download/meal-planner-grocery-list-etsy-pack.zip
+
+The photos come from `etsy-images-2000px/` because Etsy wants 2000 px; the
+1024 px originals are the ones in `etsy-images/`. Timestamps are fixed so
+the zip only changes when something in it changes.
 """
 
 from __future__ import annotations
@@ -16,23 +23,51 @@ import sys
 import zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_OUT = os.path.join("download", "pet-sitting-spreadsheet-etsy-pack.zip")
-
-FILLED = os.path.join("output", "Pet Sitting Business Spreadsheet.xlsx")
-BLANK = os.path.join(
-    "output", "Pet Sitting Business Spreadsheet (Blank - No Example Data).xlsx")
-#: 2000 x 2000 versions - Etsy asks for at least 2000 px on the
-#: shortest side.  The 1024 px originals stay in etsy-images/.
-IMAGES = "etsy-images-2000px"
-DOCS = ["README.md", "SOURCE_CODE.md", "HOW_TO_USE.md", "ETSY_LISTING.md"]
-SOURCE_TREES = ["pet_sitting_spreadsheet", "tools"]
-BUILD_SCRIPT = "build_pet_sitting_workbook.py"
 
 #: Same date for every entry, so the zip only changes when the content does.
 STAMP = (2026, 1, 1, 0, 0, 0)
 
+IMAGES = "etsy-images"
+IMAGES_2000 = "etsy-images-2000px"
+OUTPUT = "output"
 
-def gather() -> list:
+PRODUCTS = {
+    "pet": {
+        "output": os.path.join("download",
+                               "pet-sitting-spreadsheet-etsy-pack.zip"),
+        "prefix": "",
+        "workbooks": [
+            ("output/Pet Sitting Business Spreadsheet.xlsx",
+             "Pet Sitting Business Spreadsheet.xlsx"),
+            ("output/Pet Sitting Business Spreadsheet "
+             "(Blank - No Example Data).xlsx",
+             "Pet Sitting Business Spreadsheet (Blank).xlsx"),
+        ],
+        "docs": [("HOW_TO_USE.md", "HOW_TO_USE.md"),
+                 ("README.md", "README.md"),
+                 ("SOURCE_CODE.md", "SOURCE_CODE.md")],
+        "trees": ["pet_sitting_spreadsheet", "tools"],
+    },
+    "meal": {
+        "output": os.path.join("download",
+                               "meal-planner-grocery-list-etsy-pack.zip"),
+        "prefix": "meal-",
+        "workbooks": [
+            ("output/Meal Planner & Grocery List.xlsx",
+             "Meal Planner & Grocery List.xlsx"),
+            ("output/Meal Planner & Grocery List "
+             "(Blank - No Example Data).xlsx",
+             "Meal Planner & Grocery List (Blank).xlsx"),
+        ],
+        "docs": [("HOW_TO_USE_MEAL.md", "HOW_TO_USE_MEAL.md"),
+                 ("README_MEAL.md", "README_MEAL.md"),
+                 ("SOURCE_CODE_MEAL.md", "SOURCE_CODE_MEAL.md")],
+        "trees": ["meal_planner_spreadsheet", "tools"],
+    },
+}
+
+
+def gather(product: dict) -> list:
     """`[(archive name, disk path)]` for everything that goes in the zip."""
     items = []
 
@@ -42,18 +77,20 @@ def gather() -> list:
             raise SystemExit(f"missing file: {path}")
         items.append((archive_name, full))
 
-    for name in DOCS:
-        add(name, name)
-    add("Pet Sitting Business Spreadsheet.xlsx", FILLED)
-    add("Pet Sitting Business Spreadsheet (Blank).xlsx", BLANK)
-    add(BUILD_SCRIPT, BUILD_SCRIPT)
+    for path, name in product["workbooks"]:
+        add(name, path)
+    for path, name in product["docs"]:
+        add(name, path)
 
-    folder = os.path.join(ROOT, IMAGES)
-    for name in sorted(os.listdir(folder)):
-        if name.lower().endswith((".jpg", ".jpeg", ".png")):
-            add(f"etsy-images/{name}", os.path.join(IMAGES, name))
+    folder = os.path.join(ROOT, IMAGES_2000)
+    if os.path.isdir(folder):
+        for name in sorted(os.listdir(folder)):
+            if not name.startswith(product["prefix"]):
+                continue
+            if name.lower().endswith((".jpg", ".jpeg", ".png")):
+                add(f"{IMAGES}/{name}", os.path.join(IMAGES_2000, name))
 
-    for tree in SOURCE_TREES:
+    for tree in product["trees"]:
         base = os.path.join(ROOT, tree)
         for dirpath, dirnames, filenames in os.walk(base):
             dirnames[:] = sorted(d for d in dirnames if d != "__pycache__")
@@ -67,15 +104,17 @@ def gather() -> list:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("-o", "--output", default=DEFAULT_OUT)
+    parser.add_argument("--product", choices=sorted(PRODUCTS), default="pet")
+    parser.add_argument("-o", "--output", default=None)
     args = parser.parse_args(argv)
 
-    out = os.path.join(ROOT, args.output)
+    product = PRODUCTS[args.product]
+    out = os.path.join(ROOT, args.output or product["output"])
     folder = os.path.dirname(out)
     if folder and not os.path.isdir(folder):
         os.makedirs(folder)
 
-    items = gather()
+    items = gather(product)
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zf:
         for archive_name, disk_path in items:
             info = zipfile.ZipInfo.from_file(disk_path, archive_name)
@@ -86,7 +125,8 @@ def main(argv=None) -> int:
                 zf.writestr(info, handle.read())
 
     size = os.path.getsize(out)
-    print(f"{args.output}  ({len(items)} files, {size / 1024 / 1024:.1f} MB)")
+    print(f"{os.path.relpath(out, ROOT)}  ({len(items)} files, "
+          f"{size / 1024 / 1024:.1f} MB)")
     for archive_name, _ in items:
         print(f"    {archive_name}")
     return 0

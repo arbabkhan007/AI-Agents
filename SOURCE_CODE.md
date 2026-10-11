@@ -22,7 +22,6 @@ pip install XlsxWriter
 python build_pet_sitting_workbook.py
 ```
 
-The workbook lands in `output/Pet Sitting Business Spreadsheet.xlsx`.
 Every formula cell is locked and every sheet is protected with the password `premium`, while the cream coloured cells you are meant to type in stay open.
 
 **Useful options**
@@ -87,8 +86,8 @@ Excel 2010 safe throughout: no dynamic arrays, no `XLOOKUP`, no `IFS`, nothing t
 | 4 | [`pet_sitting_spreadsheet/sheets/help_tab.py`](#pet_sitting_spreadsheetsheetshelp_tabpy) | 296 | `Help` - instructions, formula notes, troubleshooting and version log |
 | 5 | [`tools/validate_workbook.py`](#toolsvalidate_workbookpy) | 287 | Static checks on a generated workbook |
 | 5 | [`tools/check_sample_data.py`](#toolscheck_sample_datapy) | 172 | Cross-check the example records in a generated workbook |
-| 5 | [`tools/recalc_check.py`](#toolsrecalc_checkpy) | 193 | Really calculate every formula in a generated workbook and report any cell... |
-| 5 | [`tools/export_source_md.py`](#toolsexport_source_mdpy) | 308 | Write every source file of the generator into one clean markdown document |
+| 5 | [`tools/recalc_check.py`](#toolsrecalc_checkpy) | 212 | Recalculate a small build and check the numbers come out right |
+| 5 | [`tools/export_source_md.py`](#toolsexport_source_mdpy) | 555 | Write every source file of a generator into one clean markdown document |
 | 5 | [`tools/make_download_zip.py`](#toolsmake_download_zippy) | 124 | Pack the generator into a single zip people can download and run |
 
 ---
@@ -8416,212 +8415,234 @@ if __name__ == "__main__":
 
 ### `tools/recalc_check.py`
 
-Really calculate every formula in a generated workbook and report any cell that ends up as an Excel error (#REF!,... *(193 lines)*
+Recalculate a small build and check the numbers come out right *(212 lines)*
 
 ````python
-"""Really calculate every formula in a generated workbook and report any cell
-that ends up as an Excel error (#REF!, #DIV/0!, #VALUE! ...).
+#!/usr/bin/env python3
+"""
+Recalculate a small build and check the numbers come out right.
 
-`validate_workbook.py` reads the file; this one *runs* it.  It loads the
-workbook into the `formulas` calculation engine, evaluates the whole
-dependency graph and then looks at the answer in every formula cell, so a
-formula that parses perfectly but divides by zero on an empty row is still
-caught.
+    python tools/recalc_check.py
+    python tools/recalc_check.py --rows 60 --keep
 
-    pip install formulas openpyxl
-    python tools/recalc_check.py "output/Pet Sitting Business Spreadsheet.xlsx"
+The `formulas` library evaluates the workbook, then a handful of cells are
+compared with values worked out by hand from the example data.  It is the
+closest thing to opening the file in Excel without having Excel.
 
-Notes
------
-* The engine cannot resolve `OFFSET()` based defined names, so a working
-  copy of the file is made first with those names flattened to plain
-  ranges.  The copy is a test artefact - the real workbook keeps its
-  dynamic names and is never touched.
-* Only cells that actually hold a formula are judged, so help text that
-  merely mentions "#N/A" is not mistaken for a broken formula.
-* The engine is hungry: a full-size 400-row build is around 50,000
-  formulas and wants several GB of memory.  Check a smaller build
-  instead - the formulas are identical, there are just fewer rows of
-  them:
-
-      python build_pet_sitting_workbook.py --rows 120 -o /tmp/small.xlsx
-      python tools/recalc_check.py /tmp/small.xlsx
-
-  Pass --force to run it on a full-size file anyway.
+The cell addresses come from the layout registry in this package rather
+than from the file, so the tool never has to hold the whole workbook in
+memory at the same time as the calculation engine.
 """
 
 from __future__ import annotations
 
 import argparse
-import collections
+import datetime as dt
+import gc
 import os
-import re
+import shutil
+import subprocess
 import sys
 import tempfile
-import time
 
-#: Formula count above which the engine needs more memory than a laptop
-#: is likely to enjoy handing over.
-BIG = 25000
-
-ERROR_TEXT = re.compile(r"#(REF!|VALUE!|NAME\?|DIV/0!|NUM!|NULL!|N/A)")
-
-# OFFSET(Sheet!$A$5,0,0,MAX(1,COUNTIF(Sheet!$A$5:$A$254,"?*")),1)
-DYNAMIC_NAME = re.compile(
-    r"^OFFSET\((?P<sheet>'[^']+'|[A-Za-z0-9_.]+)!"
-    r"\$(?P<col>[A-Z]+)\$(?P<row>\d+),0,0,"
-    r"MAX\(1,COUNTIF\([^,]+,\"\?\*\"\)\),1\)$")
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
 
 
-def flatten_dynamic_names(src: str, dst: str) -> int:
-    """Save a copy of *src* at *dst* with OFFSET names turned into ranges."""
-    import warnings
-    import openpyxl
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        book = openpyxl.load_workbook(src)
-    changed = 0
-    for _name, defined in list(book.defined_names.items()):
-        match = DYNAMIC_NAME.match(defined.value or "")
-        if not match:
-            continue
-        last = re.search(r":\$[A-Z]+\$(\d+)", defined.value)
-        if not last:
-            continue
-        col = match.group("col")
-        defined.value = (f"{match.group('sheet')}!"
-                         f"${col}${match.group('row')}:${col}${last.group(1)}")
-        changed += 1
-    book.save(dst)
-    return changed
+def build(rows: int, target: str) -> str:
+    cmd = [sys.executable, os.path.join(ROOT, "build_meal_planner_workbook.py"),
+           "--rows", str(rows), "--quiet", "-o", target]
+    subprocess.run(cmd, check=True, cwd=ROOT, stdout=subprocess.DEVNULL)
+    return target
 
 
-def formula_cells(path: str) -> set:
-    """`{(SHEET NAME upper, coordinate)}` for every cell holding a formula."""
-    import warnings
-    import openpyxl
+def registry_for(cfg):
+    """Declare every sheet in memory so cell addresses can be looked up."""
+    from meal_planner_spreadsheet import build as build_mod
+    from meal_planner_spreadsheet.layout import Registry
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        book = openpyxl.load_workbook(path)
-    cells = set()
-    for sheet in book.worksheets:
-        upper = sheet.title.upper()
-        for row in sheet.iter_rows():
-            for cell in row:
-                value = cell.value
-                if isinstance(value, str) and value.startswith("="):
-                    cells.add((upper, cell.coordinate))
-    return cells
+    registry = Registry()
+    registry.strict = False
+    for name in build_mod.SHEET_ORDER:
+        build_mod.module_for(name).build(None, registry, cfg, None)
+    registry.strict = True
+    for name in build_mod.SHEET_ORDER:
+        build_mod.module_for(name).build(None, registry, cfg, None)
+    return registry
 
 
-def cell_text(value) -> str:
+def weekday_of(value):
+    """Monday = 0, for a datetime or an Excel serial number."""
+    if value is None:
+        return None
+    if hasattr(value, "weekday"):
+        return value.weekday()
     try:
-        return str(value.value[0, 0])
-    except Exception:
-        try:
-            return str(value.value)
-        except Exception:
-            return ""
+        return (dt.date(1899, 12, 30)
+                + dt.timedelta(days=float(value))).weekday()
+    except (TypeError, ValueError):
+        return None
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("workbook")
-    parser.add_argument("--list", type=int, default=12, metavar="N",
-                        help="how many example cells to print per error type")
+    parser.add_argument("--rows", type=int, default=100,
+                        help="rows per register in the test build.  The "
+                             "example data needs about 100 rows to fit, so "
+                             "going lower silently drops records.")
     parser.add_argument("--keep", action="store_true",
-                        help="keep the flattened working copy")
-    parser.add_argument("--force", action="store_true",
-                        help="check a big workbook even though the engine "
-                             "will need several GB of memory")
+                        help="keep the test workbook for inspection")
+    parser.add_argument("--workbook", default=None,
+                        help="recalculate an existing workbook instead of "
+                             "building one")
     args = parser.parse_args(argv)
 
-    path = args.workbook
-    if not os.path.isfile(path):
-        print(f"no such file: {path}")
-        return 2
+    from meal_planner_spreadsheet.config import Config
+    from meal_planner_spreadsheet import sample_data
+
+    cfg = Config()
+    if args.rows:
+        cfg.scale_rows(args.rows)
+    samples = sample_data.build_samples(cfg)
+    registry = registry_for(cfg)
+
+    def cell(sheet: str, key: str, offset: int) -> str:
+        spec = registry[sheet]
+        return f"{spec.letter(key)}{spec.first_data_row + offset}"
+
+    def offset_of(sheet: str, key: str, value) -> int:
+        for offset, record in samples[sheet].items():
+            if record.get(key) == value:
+                return offset
+        raise KeyError(f"{sheet}: no sample row with {key}={value!r}")
+
+    tmpdir = tempfile.mkdtemp(prefix="meal-recalc-")
     try:
+        path = args.workbook or build(args.rows,
+                                      os.path.join(tmpdir, "recalc.xlsx"))
+        print(f"recalculating {os.path.basename(path)}")
+
         import formulas
-    except ImportError:
-        print("this check needs the calculation engine: pip install formulas")
-        return 2
+        model = formulas.ExcelModel().loads(path).finish()
+        solution = model.calculate()
+        base = os.path.basename(path)
 
-    print(path, flush=True)
-    started = time.time()
-    folder = tempfile.mkdtemp(prefix="recalc_")
-    working = os.path.join(folder, os.path.basename(path))
-    count = flatten_dynamic_names(path, working)
-    print(f"  . flattened {count} dynamic names into a working copy",
-          flush=True)
+        def raw(sheet: str, cell_ref: str):
+            key = f"'[{base}]{sheet.upper()}'!{cell_ref}"
+            item = solution.get(key)
+            if item is None:
+                return None
+            try:
+                return item.value[0, 0]
+            except Exception:
+                return item
 
-    wanted = formula_cells(path)
-    print(f"  . {len(wanted):,} formula cells to check", flush=True)
-    if len(wanted) > BIG and not args.force:
-        print("  ! that is a lot - the engine would need several GB of "
-              "memory.\n"
-              "    Check a smaller build instead (the formulas are the "
-              "same, there\n"
-              "    are just fewer rows of them):\n"
-              "      python build_pet_sitting_workbook.py --rows 120 "
-              "-o /tmp/small.xlsx\n"
-              "      python tools/recalc_check.py /tmp/small.xlsx\n"
-              "    or pass --force to go ahead anyway.")
-        return 2
+        # ---- the cells to check, and what they should come to ---------------
+        pending = []
 
-    model = formulas.ExcelModel().loads(working).finish()
-    print(f"  . loaded in {time.time() - started:.0f}s", flush=True)
-    clock = time.time()
-    solution = model.calculate()
-    print(f"  . calculated {len(solution):,} nodes in "
-          f"{time.time() - clock:.0f}s", flush=True)
+        def check(label, sheet, key, offset, expected, tolerance=0.01,
+                  transform=None):
+            pending.append((label, sheet, cell(sheet, key, offset),
+                            expected, tolerance, transform))
 
-    book = os.path.basename(working).upper()
-    counts = collections.Counter()
-    examples = collections.defaultdict(list)
-    seen = 0
-    for key, value in solution.items():
-        if "!" not in key or "]" not in key:
-            continue
-        sheet, _, coord = key.partition("!")
-        sheet = sheet.split("]")[-1].rstrip("'").upper()
-        if book and sheet.endswith(".XLSX"):
-            continue
-        coord = coord.replace("$", "")
-        if (sheet, coord) not in wanted:
-            continue
-        seen += 1
-        found = ERROR_TEXT.search(cell_text(value))
-        if not found:
-            continue
-        token = f"{sheet} {found.group(0)}"
-        counts[token] += 1
-        if len(examples[token]) < args.list:
-            examples[token].append(coord)
+        porridge = offset_of("Recipes", "recipe", "Porridge with banana")
+        check("Recipes: total time is prep + cook", "Recipes",
+              "total_time", porridge, 13)
+        check("Recipes: ingredient count", "Recipes",
+              "ingredient_count", porridge, 4)
+        # porridge is on the plan seven times, four of them already cooked
+        check("Recipes: times cooked", "Recipes",
+              "times_planned", porridge, 4)
 
-    print(f"  . {seen:,} of them evaluated by the engine", flush=True)
-    if not counts:
-        print("  OK - every formula worked out to a real answer")
+        oats = offset_of("Recipe Ingredients", "recipe", "Porridge with banana")
+        check("Recipe Ingredients: price looked up by name",
+              "Recipe Ingredients", "price", oats, 0.0019, 0.0001)
+        check("Recipe Ingredients: line cost = qty x price",
+              "Recipe Ingredients", "line_cost", oats, 0.152, 0.0005)
+        check("Recipe Ingredients: line number inside the recipe",
+              "Recipe Ingredients", "line_no", oats, 1)
+
+        rice = offset_of("Ingredients", "ingredient", "Rice")
+        check("Ingredients: pantry quantity for rice", "Ingredients",
+              "in_pantry", rice, 1200)
+        oat_ing = offset_of("Ingredients", "ingredient", "Oats")
+        check("Ingredients: pantry quantity for oats", "Ingredients",
+              "in_pantry", oat_ing, 900)
+        check("Ingredients: recipes that use oats", "Ingredients",
+              "recipe_count", oat_ing, 3)
+
+        plan = offset_of("Meal Plan", "recipe", "Porridge with banana")
+        check("Meal Plan: calories = recipe x servings", "Meal Plan",
+              "calories", plan, 1280, 0.5)
+        check("Meal Plan: week starting is a Monday", "Meal Plan",
+              "week_start", plan, 0, transform=weekday_of)
+
+        chicken = offset_of("Grocery List", "item", "Chicken breast")
+        check("Grocery List: line total = qty x price", "Grocery List",
+              "line_total", chicken, 5.94)
+        check("Grocery List: sees what is already in the pantry",
+              "Grocery List", "in_pantry", chicken, 250)
+
+        spinach = offset_of("Food Waste", "waste_id", "W-01")
+        check("Food Waste: cost = qty x price", "Food Waste",
+              "cost", spinach, 0.552, 0.005)
+
+        check("Recipe Costs: total cost from its ingredients",
+              "Recipe Costs", "total_cost", porridge,
+              80 * 0.0019 + 480 * 0.0013 + 2 * 0.19 + 2 * 0.12)
+
+        # ---- pull the values out and free the engine ------------------------
+        results = [(label, sheet, cell_ref,
+                    (transform(raw(sheet, cell_ref)) if transform
+                     else raw(sheet, cell_ref)), expected, tol)
+                   for label, sheet, cell_ref, expected, tol, transform
+                   in pending]
+        del solution, model
+        gc.collect()
+
+        failures = 0
+        for label, sheet, cell_ref, got, expected, tol in results:
+            ok = False
+            if got is not None:
+                try:
+                    ok = abs(float(got) - float(expected)) <= tol
+                except (TypeError, ValueError):
+                    ok = str(got) == str(expected)
+            if not ok:
+                failures += 1
+            print(f"  {'ok  ' if ok else 'FAIL'}  {label:48s} "
+                  f"expected {expected!r:>12}  got {got!r}")
+
+        print()
+        if failures:
+            print(f"FAIL - {failures} of {len(results)} checks failed")
+            return 1
+        print(f"PASS - all {len(results)} recalculated values are right")
         return 0
-    print(f"  ! {sum(counts.values())} cell(s) ended up as an error:")
-    for token, number in counts.most_common():
-        print(f"    - {token} x{number}: {', '.join(examples[token])}")
-    return 1
+    finally:
+        if args.keep:
+            print(f"test workbook kept in {tmpdir}")
+        else:
+            shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
 ````
 
 ### `tools/export_source_md.py`
 
-Write every source file of the generator into one clean markdown document *(308 lines)*
+Write every source file of a generator into one clean markdown document *(555 lines)*
 
 ````python
-"""Write every source file of the generator into one clean markdown document.
+#!/usr/bin/env python3
+"""
+Write every source file of a generator into one clean markdown document.
 
-    python tools/export_source_md.py                 # -> SOURCE_CODE.md
+    python tools/export_source_md.py                      # pet sitting
+    python tools/export_source_md.py --product meal       # meal planner
     python tools/export_source_md.py -o /tmp/src.md
 
 Handy when the code has to travel somewhere that is not a git checkout:
@@ -8644,11 +8665,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-TITLE = "Pet Sitting & Dog Walking Business Spreadsheet"
-SUBTITLE = "Complete source code of the generator that writes the .xlsx product"
-
-#: (section heading, intro paragraph, [file paths])
-SECTIONS = [
+PET_SECTIONS = [
     ("1. Run it",
      "Save the files below keeping these exact paths, then run the one "
      "liner. Nothing else is needed - no project file, no build step.\n\n"
@@ -8715,7 +8732,86 @@ SECTIONS = [
       "tools/make_download_zip.py"]),
 ]
 
-APPENDIX = """\
+MEAL_SECTIONS = [
+    ("1. Run it",
+     "Save the files below keeping these exact paths, then run the one "
+     "liner. Nothing else is needed - no project file, no build step.\n\n"
+     "```bash\n"
+     "pip install XlsxWriter\n"
+     "python build_meal_planner_workbook.py\n"
+     "```\n\n"
+     "The workbook lands in "
+     "`output/Meal Planner & Grocery List.xlsx`.",
+     ["build_meal_planner_workbook.py"]),
+    ("2. The package",
+     "Configuration, the formula template engine, cell formats, the sheet "
+     "writer and the demo data. These are the parts every tab leans on.",
+     ["meal_planner_spreadsheet/__init__.py",
+      "meal_planner_spreadsheet/__main__.py",
+      "meal_planner_spreadsheet/cli.py",
+      "meal_planner_spreadsheet/config.py",
+      "meal_planner_spreadsheet/layout.py",
+      "meal_planner_spreadsheet/formats.py",
+      "meal_planner_spreadsheet/writer.py",
+      "meal_planner_spreadsheet/names.py",
+      "meal_planner_spreadsheet/build.py",
+      "meal_planner_spreadsheet/sample_data.py"]),
+    ("3. The registers",
+     "One module per data tab. Each returns a list of columns with their "
+     "formulas, and the writer turns that into a formatted, validated, "
+     "protected sheet.",
+     ["meal_planner_spreadsheet/sheets/__init__.py",
+      "meal_planner_spreadsheet/sheets/lists.py",
+      "meal_planner_spreadsheet/sheets/settings.py",
+      "meal_planner_spreadsheet/sheets/household.py",
+      "meal_planner_spreadsheet/sheets/recipes.py",
+      "meal_planner_spreadsheet/sheets/recipe_ingredients.py",
+      "meal_planner_spreadsheet/sheets/ingredients.py",
+      "meal_planner_spreadsheet/sheets/meal_plan.py",
+      "meal_planner_spreadsheet/sheets/grocery_list.py",
+      "meal_planner_spreadsheet/sheets/pantry.py",
+      "meal_planner_spreadsheet/sheets/staples.py",
+      "meal_planner_spreadsheet/sheets/leftovers.py",
+      "meal_planner_spreadsheet/sheets/food_waste.py",
+      "meal_planner_spreadsheet/sheets/meal_prep.py",
+      "meal_planner_spreadsheet/sheets/dietary_filters.py",
+      "meal_planner_spreadsheet/sheets/rotation.py",
+      "meal_planner_spreadsheet/sheets/food_safety.py",
+      "meal_planner_spreadsheet/sheets/fridge_freezer.py",
+      "meal_planner_spreadsheet/sheets/grocery_spending.py",
+      "meal_planner_spreadsheet/sheets/store_prices.py",
+      "meal_planner_spreadsheet/sheets/stores.py",
+      "meal_planner_spreadsheet/sheets/events.py",
+      "meal_planner_spreadsheet/sheets/sustainability.py",
+      "meal_planner_spreadsheet/sheets/recipe_costs.py",
+      "meal_planner_spreadsheet/sheets/converter.py"]),
+    ("4. The pages",
+     "The tabs that read the registers: the dashboard, the weekly and "
+     "monthly planners, the nutrition log, the budget, the goals, the "
+     "reports, the welcome tab, the three printable pages and the help tab.",
+     ["meal_planner_spreadsheet/sheets/dashboard.py",
+      "meal_planner_spreadsheet/sheets/weekly_planner.py",
+      "meal_planner_spreadsheet/sheets/monthly_planner.py",
+      "meal_planner_spreadsheet/sheets/nutrition.py",
+      "meal_planner_spreadsheet/sheets/budget.py",
+      "meal_planner_spreadsheet/sheets/goals.py",
+      "meal_planner_spreadsheet/sheets/reports.py",
+      "meal_planner_spreadsheet/sheets/start_here.py",
+      "meal_planner_spreadsheet/sheets/print_week.py",
+      "meal_planner_spreadsheet/sheets/print_shopping.py",
+      "meal_planner_spreadsheet/sheets/print_recipe.py",
+      "meal_planner_spreadsheet/sheets/help.py"]),
+    ("5. Quality checks (optional)",
+     "Not needed to build the workbook - these are the checks that keep it "
+     "honest. The first two need `openpyxl`, the third needs `formulas`.",
+     ["tools/validate_meal_workbook.py",
+      "tools/check_meal_sample.py",
+      "tools/recalc_check.py",
+      "tools/export_source_md.py",
+      "tools/make_download_zip.py"]),
+]
+
+PET_APPENDIX = """\
 ## Appendix
 
 ### A. Build the workbook
@@ -8788,6 +8884,194 @@ tools/
 ```
 """
 
+MEAL_APPENDIX = """\
+## Appendix
+
+### A. Build the workbook
+
+```bash
+python build_meal_planner_workbook.py                       # demo data
+python build_meal_planner_workbook.py --blank               # empty workbook
+python build_meal_planner_workbook.py --household "The Khans"
+python build_meal_planner_workbook.py --cook "Ayesha"
+python build_meal_planner_workbook.py --currency "£" --units Imperial
+python build_meal_planner_workbook.py --budget 150          # a week
+python build_meal_planner_workbook.py --year 2027
+python build_meal_planner_workbook.py --week-start Sunday
+python build_meal_planner_workbook.py --rows 300            # more capacity
+python build_meal_planner_workbook.py --password secret     # own password
+python build_meal_planner_workbook.py --author "Your Name"
+```
+
+### B. Check it
+
+```bash
+python tools/validate_meal_workbook.py "output/Meal Planner & Grocery List.xlsx"
+python tools/check_meal_sample.py "output/Meal Planner & Grocery List.xlsx"
+
+# real recalculation - build a small workbook first, the full one is slow
+python build_meal_planner_workbook.py --rows 100 -o /tmp/small.xlsx
+python tools/recalc_check.py /tmp/small.xlsx
+```
+
+### C. Colour palette
+
+Defined once in `meal_planner_spreadsheet/config.py`; every sheet module
+reads it from there.
+
+| Colour | Hex | Used for |
+| --- | --- | --- |
+| ink | `#1E2C22` | titles, darkest text |
+| primary | `#2F5E43` | header bands, tab colours |
+| primary_mid | `#4E8A63` | section bands, navigation strip |
+| primary_soft | `#E2EFE6` | totals, alternating rows |
+| accent | `#D9703C` | terracotta accents, KPI money tiles |
+| accent_soft | `#FBE9DC` | soft accent panels |
+| input_bg | `#FFFDF7` | cells you type in (warm cream) |
+| calc_bg | `#EFF4F0` | calculated cells (soft sage) |
+| grey_text | `#5A6560` | notes and secondary text |
+| line | `#C2D4C7` | hairlines and borders |
+| good | `#D9F2E4` / `#0E6B45` | fresh, on target, in stock |
+| warn | `#FFF1CF` / `#8A5A00` | use soon, close to budget |
+| bad | `#FBD9DD` / `#9C1C2E` | expired, over budget, bin it |
+| info | `#DEE8FA` / `#2A4A8B` | neutral information |
+| note_bg | `#F7FAF8` | note boxes |
+
+### D. How a formula is written
+
+No sheet module contains a hard coded column letter.  Formulas are
+templates, and the layout engine expands them:
+
+```
+"=IF({recipe}{r}=\"\",\"\",SUMIFS([[Recipe Ingredients.line_cost]],"
+ "[[Recipe Ingredients.recipe]],{recipe}{r}))"
+```
+
+| Token | Becomes |
+| --- | --- |
+| `{r}` | the current Excel row number |
+| `{key}` | the column letter of that column on the same sheet |
+| `{key_first}` / `{key_last}` | the top and bottom of that column |
+| `[[Sheet.key]]` | the whole data range of that column |
+| `[[Sheet.key#r]]` | one cell of that column, on the same row |
+
+So a column can be moved, widened or deleted in the sheet module and every
+formula follows.
+
+### E. File tree
+
+```
+build_meal_planner_workbook.py
+README_MEAL.md
+SOURCE_CODE_MEAL.md
+meal_planner_spreadsheet/
+    __init__.py   __main__.py   cli.py        config.py
+    layout.py     formats.py    writer.py     names.py
+    build.py      sample_data.py
+    sheets/
+        __init__.py    lists.py        settings.py      household.py
+        recipes.py     recipe_ingredients.py            ingredients.py
+        meal_plan.py   grocery_list.py pantry.py        staples.py
+        leftovers.py   food_waste.py   meal_prep.py     dietary_filters.py
+        rotation.py    food_safety.py  fridge_freezer.py grocery_spending.py
+        store_prices.py stores.py      events.py        sustainability.py
+        recipe_costs.py converter.py   dashboard.py     weekly_planner.py
+        monthly_planner.py nutrition.py budget.py       goals.py
+        reports.py     start_here.py   print_week.py    print_shopping.py
+        print_recipe.py help.py
+tools/
+    validate_meal_workbook.py   check_meal_sample.py   recalc_check.py
+    export_source_md.py         make_download_zip.py
+```
+"""
+
+PRODUCTS = {
+    "pet": {
+        "title": "Pet Sitting & Dog Walking Business Spreadsheet",
+        "subtitle": "Complete source code of the generator that writes the "
+                    ".xlsx product",
+        "output": "SOURCE_CODE.md",
+        "sections": PET_SECTIONS,
+        "appendix": PET_APPENDIX,
+        "cover": [
+            "A pure Python program that writes a 27 tab Excel workbook for a "
+            "pet sitting and dog walking business: clients, pets, bookings, "
+            "visit logs, pricing, invoices, payments, expenses, mileage, "
+            "staff, inventory, reminders, a dashboard, reports and a budget.",
+            "",
+            "**What it produces**",
+            "",
+            "| | |",
+            "| --- | --- |",
+            "| Tabs | 27 (26 visible + 1 hidden calculation engine) |",
+            "| Formulas | about 50,800, all Excel 2010 safe |",
+            "| Author | Novality Store |",
+            "| Protection | every sheet, password `premium` |",
+            "| Example data | 9 clients, 12 pets, 32 bookings, 23 invoices |",
+            "| Dependency | XlsxWriter (openpyxl only for the checks) |",
+        ],
+        "options": [
+            "-o, --output PATH     where to write the file",
+            "--blank               no example data, just the empty workbook",
+            "--no-protect          leave the sheets unlocked",
+            "--password TEXT       protection password (default: premium)",
+            "--author TEXT         document author  (default: Novality Store)",
+            "--business TEXT       business name on the cover and invoices",
+            "--currency SYMBOL     currency symbol  (default: $)",
+            "--unit {km,miles}     mileage unit",
+            "--rows N              rows of capacity in the big registers",
+            "--today YYYY-MM-DD    pretend it is this date (for the demo data)",
+        ],
+        "script": "build_pet_sitting_workbook.py",
+    },
+    "meal": {
+        "title": "Automated Meal Planner & Grocery List Spreadsheet",
+        "subtitle": "Complete source code of the generator that writes the "
+                    ".xlsx product",
+        "output": "SOURCE_CODE_MEAL.md",
+        "sections": MEAL_SECTIONS,
+        "appendix": MEAL_APPENDIX,
+        "cover": [
+            "A pure Python program that writes a 36 tab Excel workbook for a "
+            "household: a weekly and monthly meal planner, a recipe book "
+            "with costings, an automatic grocery list, a pantry with use-by "
+            "dates, a food budget, a nutrition log and printable pages for "
+            "the fridge door.",
+            "",
+            "**What it produces**",
+            "",
+            "| | |",
+            "| --- | --- |",
+            "| Tabs | 36, all visible |",
+            "| Formulas | about 79,000, all Excel 2010 safe |",
+            "| Author | Novality Store |",
+            "| Protection | every sheet, password `premium` |",
+            "| Charts | none - the numbers are the report |",
+            "| Example data | 38 recipes, 62 ingredients, 107 planned meals |",
+            "| Dependency | XlsxWriter (openpyxl only for the checks) |",
+        ],
+        "options": [
+            "-o, --output PATH     where to write the file",
+            "--blank               no example data, just the empty workbook",
+            "--no-protect          leave the sheets unlocked",
+            "--password TEXT       protection password (default: premium)",
+            "--author TEXT         document author  (default: Novality Store)",
+            "--household TEXT      household name on the Settings tab",
+            "--cook TEXT           main cook's name",
+            "--currency SYMBOL     currency symbol  (default: $)",
+            "--currency-code TEXT  three letter code  (default: USD)",
+            "--units {Metric,Imperial}  measurement system",
+            "--week-start {Monday,Sunday}",
+            "--year N              planning year",
+            "--budget N            weekly grocery budget",
+            "--servings N          default servings per meal",
+            "--rows N              rows of capacity in the big registers",
+            "--today YYYY-MM-DD    pretend it is this date (for the demo data)",
+        ],
+        "script": "build_meal_planner_workbook.py",
+    },
+}
+
 
 def read(path: str) -> str:
     with open(os.path.join(ROOT, path), encoding="utf-8") as handle:
@@ -8798,7 +9082,7 @@ def blurb(path: str, limit: int = 78) -> str:
     """First sentence of the module docstring, as a one line description."""
     try:
         text = ast.get_docstring(ast.parse(read(path))) or ""
-    except SyntaxError:                                  # pragma: no cover
+    except (SyntaxError, OSError):                     # pragma: no cover
         text = ""
     text = " ".join(text.split())
     cut = re.search(r"\.(\s|$)", text)
@@ -8815,37 +9099,22 @@ def anchor(text: str) -> str:
     return re.sub(r"\s+", "-", slug.strip())
 
 
-def cover() -> list:
+def cover(product: dict) -> list:
     """The short front page: what it is, how to run it, the key numbers."""
     return [
-        f"# {TITLE}",
+        f"# {product['title']}",
         "",
-        f"*{SUBTITLE}*",
+        f"*{product['subtitle']}*",
         "",
-        "A pure Python program that writes a 27 tab Excel workbook for a pet "
-        "sitting and dog walking business: clients, pets, bookings, visit "
-        "logs, pricing, invoices, payments, expenses, mileage, staff, "
-        "inventory, reminders, a dashboard, reports and a budget.",
-        "",
-        "**What it produces**",
-        "",
-        "| | |",
-        "| --- | --- |",
-        "| Tabs | 27 (26 visible + 1 hidden calculation engine) |",
-        "| Formulas | about 50,800, all Excel 2010 safe |",
-        "| Author | Novality Store |",
-        "| Protection | every sheet, password `premium` |",
-        "| Example data | 9 clients, 12 pets, 32 bookings, 23 invoices |",
-        "| Dependency | XlsxWriter (openpyxl only for the checks) |",
+    ] + product["cover"] + [
         "",
         "**How to run it**",
         "",
         "```bash",
         "pip install XlsxWriter",
-        "python build_pet_sitting_workbook.py",
+        f"python {product['script']}",
         "```",
         "",
-        "The workbook lands in `output/Pet Sitting Business Spreadsheet.xlsx`.",
         "Every formula cell is locked and every sheet is protected with the "
         "password `premium`, while the cream coloured cells you are meant to "
         "type in stay open.",
@@ -8853,16 +9122,7 @@ def cover() -> list:
         "**Useful options**",
         "",
         "```text",
-        "-o, --output PATH     where to write the file",
-        "--blank               no example data, just the empty workbook",
-        "--no-protect          leave the sheets unlocked",
-        "--password TEXT       protection password (default: premium)",
-        "--author TEXT         document author  (default: Novality Store)",
-        "--business TEXT       business name on the cover and invoices",
-        "--currency SYMBOL     currency symbol  (default: $)",
-        "--unit {km,miles}     mileage unit",
-        "--rows N              rows of capacity in the big registers",
-        "--today YYYY-MM-DD    pretend it is this date (for the demo data)",
+    ] + product["options"] + [
         "```",
         "",
         "Excel 2010 safe throughout: no dynamic arrays, no `XLOOKUP`, no "
@@ -8880,13 +9140,18 @@ def cover() -> list:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("-o", "--output", default="SOURCE_CODE.md")
+    parser.add_argument("--product", choices=sorted(PRODUCTS), default="pet")
+    parser.add_argument("-o", "--output", default=None)
     args = parser.parse_args(argv)
 
-    lines = cover()
+    product = PRODUCTS[args.product]
+    output = args.output or product["output"]
+
+    lines = cover(product)
     total = 0
     files = 0
-    for number, (heading, _intro, paths) in enumerate(SECTIONS, start=1):
+    for number, (heading, _intro, paths) in enumerate(product["sections"],
+                                                      start=1):
         for path in paths:
             count = len(read(path).splitlines())
             total += count
@@ -8897,7 +9162,7 @@ def main(argv=None) -> int:
 
     lines += ["", "---", ""]
 
-    for heading, intro, paths in SECTIONS:
+    for heading, intro, paths in product["sections"]:
         lines += [f"## {heading}", "", intro, ""]
         for path in paths:
             code = read(path)
@@ -8914,13 +9179,13 @@ def main(argv=None) -> int:
             lines += ["", "````python", code, "````", ""]
         lines += ["---", ""]
 
-    lines += [APPENDIX, ""]
+    lines += [product["appendix"], ""]
     lines += [f"*{files} files, {total:,} lines of Python.*", ""]
 
-    with open(args.output, "w", encoding="utf-8") as handle:
+    with open(output, "w", encoding="utf-8") as handle:
         handle.write("\n".join(lines))
-    size = os.path.getsize(args.output)
-    print(f"{args.output}  ({files} files, {total:,} lines, "
+    size = os.path.getsize(output)
+    print(f"{output}  ({files} files, {total:,} lines, "
           f"{size / 1024:.0f} KB)")
     return 0
 
@@ -9134,4 +9399,4 @@ tools/
 ```
 
 
-*42 files, 8,638 lines of Python.*
+*42 files, 8,904 lines of Python.*

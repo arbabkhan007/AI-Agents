@@ -1,193 +1,212 @@
-"""Really calculate every formula in a generated workbook and report any cell
-that ends up as an Excel error (#REF!, #DIV/0!, #VALUE! ...).
+#!/usr/bin/env python3
+"""
+Recalculate a small build and check the numbers come out right.
 
-`validate_workbook.py` reads the file; this one *runs* it.  It loads the
-workbook into the `formulas` calculation engine, evaluates the whole
-dependency graph and then looks at the answer in every formula cell, so a
-formula that parses perfectly but divides by zero on an empty row is still
-caught.
+    python tools/recalc_check.py
+    python tools/recalc_check.py --rows 60 --keep
 
-    pip install formulas openpyxl
-    python tools/recalc_check.py "output/Pet Sitting Business Spreadsheet.xlsx"
+The `formulas` library evaluates the workbook, then a handful of cells are
+compared with values worked out by hand from the example data.  It is the
+closest thing to opening the file in Excel without having Excel.
 
-Notes
------
-* The engine cannot resolve `OFFSET()` based defined names, so a working
-  copy of the file is made first with those names flattened to plain
-  ranges.  The copy is a test artefact - the real workbook keeps its
-  dynamic names and is never touched.
-* Only cells that actually hold a formula are judged, so help text that
-  merely mentions "#N/A" is not mistaken for a broken formula.
-* The engine is hungry: a full-size 400-row build is around 50,000
-  formulas and wants several GB of memory.  Check a smaller build
-  instead - the formulas are identical, there are just fewer rows of
-  them:
-
-      python build_pet_sitting_workbook.py --rows 120 -o /tmp/small.xlsx
-      python tools/recalc_check.py /tmp/small.xlsx
-
-  Pass --force to run it on a full-size file anyway.
+The cell addresses come from the layout registry in this package rather
+than from the file, so the tool never has to hold the whole workbook in
+memory at the same time as the calculation engine.
 """
 
 from __future__ import annotations
 
 import argparse
-import collections
+import datetime as dt
+import gc
 import os
-import re
+import shutil
+import subprocess
 import sys
 import tempfile
-import time
 
-#: Formula count above which the engine needs more memory than a laptop
-#: is likely to enjoy handing over.
-BIG = 25000
-
-ERROR_TEXT = re.compile(r"#(REF!|VALUE!|NAME\?|DIV/0!|NUM!|NULL!|N/A)")
-
-# OFFSET(Sheet!$A$5,0,0,MAX(1,COUNTIF(Sheet!$A$5:$A$254,"?*")),1)
-DYNAMIC_NAME = re.compile(
-    r"^OFFSET\((?P<sheet>'[^']+'|[A-Za-z0-9_.]+)!"
-    r"\$(?P<col>[A-Z]+)\$(?P<row>\d+),0,0,"
-    r"MAX\(1,COUNTIF\([^,]+,\"\?\*\"\)\),1\)$")
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
 
 
-def flatten_dynamic_names(src: str, dst: str) -> int:
-    """Save a copy of *src* at *dst* with OFFSET names turned into ranges."""
-    import warnings
-    import openpyxl
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        book = openpyxl.load_workbook(src)
-    changed = 0
-    for _name, defined in list(book.defined_names.items()):
-        match = DYNAMIC_NAME.match(defined.value or "")
-        if not match:
-            continue
-        last = re.search(r":\$[A-Z]+\$(\d+)", defined.value)
-        if not last:
-            continue
-        col = match.group("col")
-        defined.value = (f"{match.group('sheet')}!"
-                         f"${col}${match.group('row')}:${col}${last.group(1)}")
-        changed += 1
-    book.save(dst)
-    return changed
+def build(rows: int, target: str) -> str:
+    cmd = [sys.executable, os.path.join(ROOT, "build_meal_planner_workbook.py"),
+           "--rows", str(rows), "--quiet", "-o", target]
+    subprocess.run(cmd, check=True, cwd=ROOT, stdout=subprocess.DEVNULL)
+    return target
 
 
-def formula_cells(path: str) -> set:
-    """`{(SHEET NAME upper, coordinate)}` for every cell holding a formula."""
-    import warnings
-    import openpyxl
+def registry_for(cfg):
+    """Declare every sheet in memory so cell addresses can be looked up."""
+    from meal_planner_spreadsheet import build as build_mod
+    from meal_planner_spreadsheet.layout import Registry
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        book = openpyxl.load_workbook(path)
-    cells = set()
-    for sheet in book.worksheets:
-        upper = sheet.title.upper()
-        for row in sheet.iter_rows():
-            for cell in row:
-                value = cell.value
-                if isinstance(value, str) and value.startswith("="):
-                    cells.add((upper, cell.coordinate))
-    return cells
+    registry = Registry()
+    registry.strict = False
+    for name in build_mod.SHEET_ORDER:
+        build_mod.module_for(name).build(None, registry, cfg, None)
+    registry.strict = True
+    for name in build_mod.SHEET_ORDER:
+        build_mod.module_for(name).build(None, registry, cfg, None)
+    return registry
 
 
-def cell_text(value) -> str:
+def weekday_of(value):
+    """Monday = 0, for a datetime or an Excel serial number."""
+    if value is None:
+        return None
+    if hasattr(value, "weekday"):
+        return value.weekday()
     try:
-        return str(value.value[0, 0])
-    except Exception:
-        try:
-            return str(value.value)
-        except Exception:
-            return ""
+        return (dt.date(1899, 12, 30)
+                + dt.timedelta(days=float(value))).weekday()
+    except (TypeError, ValueError):
+        return None
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("workbook")
-    parser.add_argument("--list", type=int, default=12, metavar="N",
-                        help="how many example cells to print per error type")
+    parser.add_argument("--rows", type=int, default=100,
+                        help="rows per register in the test build.  The "
+                             "example data needs about 100 rows to fit, so "
+                             "going lower silently drops records.")
     parser.add_argument("--keep", action="store_true",
-                        help="keep the flattened working copy")
-    parser.add_argument("--force", action="store_true",
-                        help="check a big workbook even though the engine "
-                             "will need several GB of memory")
+                        help="keep the test workbook for inspection")
+    parser.add_argument("--workbook", default=None,
+                        help="recalculate an existing workbook instead of "
+                             "building one")
     args = parser.parse_args(argv)
 
-    path = args.workbook
-    if not os.path.isfile(path):
-        print(f"no such file: {path}")
-        return 2
+    from meal_planner_spreadsheet.config import Config
+    from meal_planner_spreadsheet import sample_data
+
+    cfg = Config()
+    if args.rows:
+        cfg.scale_rows(args.rows)
+    samples = sample_data.build_samples(cfg)
+    registry = registry_for(cfg)
+
+    def cell(sheet: str, key: str, offset: int) -> str:
+        spec = registry[sheet]
+        return f"{spec.letter(key)}{spec.first_data_row + offset}"
+
+    def offset_of(sheet: str, key: str, value) -> int:
+        for offset, record in samples[sheet].items():
+            if record.get(key) == value:
+                return offset
+        raise KeyError(f"{sheet}: no sample row with {key}={value!r}")
+
+    tmpdir = tempfile.mkdtemp(prefix="meal-recalc-")
     try:
+        path = args.workbook or build(args.rows,
+                                      os.path.join(tmpdir, "recalc.xlsx"))
+        print(f"recalculating {os.path.basename(path)}")
+
         import formulas
-    except ImportError:
-        print("this check needs the calculation engine: pip install formulas")
-        return 2
+        model = formulas.ExcelModel().loads(path).finish()
+        solution = model.calculate()
+        base = os.path.basename(path)
 
-    print(path, flush=True)
-    started = time.time()
-    folder = tempfile.mkdtemp(prefix="recalc_")
-    working = os.path.join(folder, os.path.basename(path))
-    count = flatten_dynamic_names(path, working)
-    print(f"  . flattened {count} dynamic names into a working copy",
-          flush=True)
+        def raw(sheet: str, cell_ref: str):
+            key = f"'[{base}]{sheet.upper()}'!{cell_ref}"
+            item = solution.get(key)
+            if item is None:
+                return None
+            try:
+                return item.value[0, 0]
+            except Exception:
+                return item
 
-    wanted = formula_cells(path)
-    print(f"  . {len(wanted):,} formula cells to check", flush=True)
-    if len(wanted) > BIG and not args.force:
-        print("  ! that is a lot - the engine would need several GB of "
-              "memory.\n"
-              "    Check a smaller build instead (the formulas are the "
-              "same, there\n"
-              "    are just fewer rows of them):\n"
-              "      python build_pet_sitting_workbook.py --rows 120 "
-              "-o /tmp/small.xlsx\n"
-              "      python tools/recalc_check.py /tmp/small.xlsx\n"
-              "    or pass --force to go ahead anyway.")
-        return 2
+        # ---- the cells to check, and what they should come to ---------------
+        pending = []
 
-    model = formulas.ExcelModel().loads(working).finish()
-    print(f"  . loaded in {time.time() - started:.0f}s", flush=True)
-    clock = time.time()
-    solution = model.calculate()
-    print(f"  . calculated {len(solution):,} nodes in "
-          f"{time.time() - clock:.0f}s", flush=True)
+        def check(label, sheet, key, offset, expected, tolerance=0.01,
+                  transform=None):
+            pending.append((label, sheet, cell(sheet, key, offset),
+                            expected, tolerance, transform))
 
-    book = os.path.basename(working).upper()
-    counts = collections.Counter()
-    examples = collections.defaultdict(list)
-    seen = 0
-    for key, value in solution.items():
-        if "!" not in key or "]" not in key:
-            continue
-        sheet, _, coord = key.partition("!")
-        sheet = sheet.split("]")[-1].rstrip("'").upper()
-        if book and sheet.endswith(".XLSX"):
-            continue
-        coord = coord.replace("$", "")
-        if (sheet, coord) not in wanted:
-            continue
-        seen += 1
-        found = ERROR_TEXT.search(cell_text(value))
-        if not found:
-            continue
-        token = f"{sheet} {found.group(0)}"
-        counts[token] += 1
-        if len(examples[token]) < args.list:
-            examples[token].append(coord)
+        porridge = offset_of("Recipes", "recipe", "Porridge with banana")
+        check("Recipes: total time is prep + cook", "Recipes",
+              "total_time", porridge, 13)
+        check("Recipes: ingredient count", "Recipes",
+              "ingredient_count", porridge, 4)
+        # porridge is on the plan seven times, four of them already cooked
+        check("Recipes: times cooked", "Recipes",
+              "times_planned", porridge, 4)
 
-    print(f"  . {seen:,} of them evaluated by the engine", flush=True)
-    if not counts:
-        print("  OK - every formula worked out to a real answer")
+        oats = offset_of("Recipe Ingredients", "recipe", "Porridge with banana")
+        check("Recipe Ingredients: price looked up by name",
+              "Recipe Ingredients", "price", oats, 0.0019, 0.0001)
+        check("Recipe Ingredients: line cost = qty x price",
+              "Recipe Ingredients", "line_cost", oats, 0.152, 0.0005)
+        check("Recipe Ingredients: line number inside the recipe",
+              "Recipe Ingredients", "line_no", oats, 1)
+
+        rice = offset_of("Ingredients", "ingredient", "Rice")
+        check("Ingredients: pantry quantity for rice", "Ingredients",
+              "in_pantry", rice, 1200)
+        oat_ing = offset_of("Ingredients", "ingredient", "Oats")
+        check("Ingredients: pantry quantity for oats", "Ingredients",
+              "in_pantry", oat_ing, 900)
+        check("Ingredients: recipes that use oats", "Ingredients",
+              "recipe_count", oat_ing, 3)
+
+        plan = offset_of("Meal Plan", "recipe", "Porridge with banana")
+        check("Meal Plan: calories = recipe x servings", "Meal Plan",
+              "calories", plan, 1280, 0.5)
+        check("Meal Plan: week starting is a Monday", "Meal Plan",
+              "week_start", plan, 0, transform=weekday_of)
+
+        chicken = offset_of("Grocery List", "item", "Chicken breast")
+        check("Grocery List: line total = qty x price", "Grocery List",
+              "line_total", chicken, 5.94)
+        check("Grocery List: sees what is already in the pantry",
+              "Grocery List", "in_pantry", chicken, 250)
+
+        spinach = offset_of("Food Waste", "waste_id", "W-01")
+        check("Food Waste: cost = qty x price", "Food Waste",
+              "cost", spinach, 0.552, 0.005)
+
+        check("Recipe Costs: total cost from its ingredients",
+              "Recipe Costs", "total_cost", porridge,
+              80 * 0.0019 + 480 * 0.0013 + 2 * 0.19 + 2 * 0.12)
+
+        # ---- pull the values out and free the engine ------------------------
+        results = [(label, sheet, cell_ref,
+                    (transform(raw(sheet, cell_ref)) if transform
+                     else raw(sheet, cell_ref)), expected, tol)
+                   for label, sheet, cell_ref, expected, tol, transform
+                   in pending]
+        del solution, model
+        gc.collect()
+
+        failures = 0
+        for label, sheet, cell_ref, got, expected, tol in results:
+            ok = False
+            if got is not None:
+                try:
+                    ok = abs(float(got) - float(expected)) <= tol
+                except (TypeError, ValueError):
+                    ok = str(got) == str(expected)
+            if not ok:
+                failures += 1
+            print(f"  {'ok  ' if ok else 'FAIL'}  {label:48s} "
+                  f"expected {expected!r:>12}  got {got!r}")
+
+        print()
+        if failures:
+            print(f"FAIL - {failures} of {len(results)} checks failed")
+            return 1
+        print(f"PASS - all {len(results)} recalculated values are right")
         return 0
-    print(f"  ! {sum(counts.values())} cell(s) ended up as an error:")
-    for token, number in counts.most_common():
-        print(f"    - {token} x{number}: {', '.join(examples[token])}")
-    return 1
+    finally:
+        if args.keep:
+            print(f"test workbook kept in {tmpdir}")
+        else:
+            shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
