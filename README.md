@@ -280,7 +280,16 @@ minutes and a lot of memory, so build small first.
 
 ---
 
-## 5. Things worth knowing
+## 5. How to use the workbook
+
+[`HOW_TO_USE.md`](HOW_TO_USE.md) is the customer manual: the two rules (cream
+cells are for typing, grey cells are calculated; every sheet is protected with
+the password `premium`), a twenty-minute first-time setup walkthrough of the
+Settings and Services tabs, the daily and weekly workflow, a tab-by-tab guide
+to what to type where, how the pricing chain works, invoicing and part
+payments, reading the Dashboard, printing, common tasks and troubleshooting.
+
+## 6. Things worth knowing
 
 * **Everything is a formula.** Row IDs (`BK-0001`, `INV-1001`), totals, taxes,
   balances, statuses, reminders and the dashboard are all calculated. Type a

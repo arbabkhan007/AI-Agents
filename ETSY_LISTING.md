@@ -80,6 +80,11 @@ Microsoft Excel 2010 or newer, LibreOffice Calc, Google Sheets or Apple
 Numbers. No add-ins, no macros, no subscription. Formulas are kept simple on
 purpose - no dynamic arrays - so it opens everywhere.
 
+WHAT YOU GET
+Both workbooks, fifteen listing photos, the full source code and a
+step-by-step "How to use it" guide that walks you through setup, the daily
+workflow, every tab and what to type where. No spreadsheet experience needed.
+
 INSTANT DOWNLOAD
 Nothing is posted to you. You get the files the moment payment clears.
 
@@ -151,7 +156,20 @@ images are square and safe to crop.
 
 ---
 
-## 5. Listing details
+## 5. What is in the download
+
+```text
+Pet Sitting Business Spreadsheet.xlsx            filled with example data
+Pet Sitting Business Spreadsheet (Blank).xlsx    empty, ready for your data
+etsy-images/                                     15 listing photos, 2000x2000
+HOW_TO_USE.md                                    step by step customer manual
+SOURCE_CODE.md                                   the full generator source
+ETSY_LISTING.md                                  this file
+README.md                                        build and design notes
+source-code/                                     the Python generator
+```
+
+## 6. Listing details
 
 | Field | Value |
 | --- | --- |

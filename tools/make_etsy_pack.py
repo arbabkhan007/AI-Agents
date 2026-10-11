@@ -24,7 +24,7 @@ BLANK = os.path.join(
 #: 2000 x 2000 versions - Etsy asks for at least 2000 px on the
 #: shortest side.  The 1024 px originals stay in etsy-images/.
 IMAGES = "etsy-images-2000px"
-DOCS = ["README.md", "SOURCE_CODE.md", "ETSY_LISTING.md"]
+DOCS = ["README.md", "SOURCE_CODE.md", "HOW_TO_USE.md", "ETSY_LISTING.md"]
 SOURCE_TREES = ["pet_sitting_spreadsheet", "tools"]
 BUILD_SCRIPT = "build_pet_sitting_workbook.py"
 
