@@ -1,326 +1,299 @@
-# 500+ AI Agent Projects & Use Cases
+# Pet Sitting &amp; Dog Walking Business Spreadsheet
 
-<div align="center">
+A ready-to-use Excel workbook for a pet sitting and dog walking business, and
+the Python program that builds it. Twenty-seven tabs, roughly 50,800 live
+formulas, one hidden calculation engine, a modern indigo-and-amber design and
+enough example data that every chart and report shows real numbers on the first
+open.
 
-[![GitHub Stars](https://img.shields.io/github/stars/ashishpatel26/500-AI-Agents-Projects?style=for-the-badge&color=yellow)](https://github.com/ashishpatel26/500-AI-Agents-Projects/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/ashishpatel26/500-AI-Agents-Projects?style=for-the-badge&color=blue)](https://github.com/ashishpatel26/500-AI-Agents-Projects/network/members)
-[![Contributors](https://img.shields.io/github/contributors/ashishpatel26/500-AI-Agents-Projects?style=for-the-badge&color=green)](https://github.com/ashishpatel26/500-AI-Agents-Projects/graphs/contributors)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=for-the-badge)](CONTRIBUTION.md)
-[![License: MIT](https://img.shields.io/badge/License-MIT-red?style=for-the-badge)](LICENSE)
-[![Last Commit](https://img.shields.io/github/last-commit/ashishpatel26/500-AI-Agents-Projects?style=for-the-badge)](https://github.com/ashishpatel26/500-AI-Agents-Projects/commits/main)
-
-**The most comprehensive collection of AI agent projects, use cases, and working implementations.**
-
-[🚀 Quick Start](#-quick-start) • [🗺️ Browse Agents](#-browse-by-framework) • [🏭 By Industry](#-industry-use-cases) • [🤝 Contribute](#-contributing) • [📊 Frameworks Compared](#-framework-comparison)
-
-</div>
+* Author: **Novality Store**
+* Sheet protection password: **`premium`**
+* Works in Excel 2010 and later, LibreOffice Calc and Google Sheets.
+* Formulas deliberately avoid XLOOKUP, IFS and dynamic arrays so older Excel
+  versions still calculate.
 
 ---
 
-![AI Agent Use Cases](images/AIAgentUseCase.jpg)
-
-## What is this?
-
-A curated collection of **500+ AI agent projects** — production examples, tutorials, and working code spanning every major framework (LangGraph, CrewAI, AutoGen, Agno) and industry (Healthcare, Finance, Education, Cybersecurity, and more).
-
-**Who it's for:**
-- 🧑‍💻 **Developers** building their first or next AI agent
-- 🔬 **Researchers** surveying the agent landscape
-- 🏢 **Teams** evaluating frameworks for production use
-- 🎓 **Students** learning agent architectures from real examples
-
----
-
-## ⚡ Quick Start
-
-Pick a framework and run an agent in under 5 minutes:
+## 1. The quick version
 
 ```bash
-# Clone the repo
-git clone https://github.com/ashishpatel26/500-AI-Agents-Projects.git
-cd 500-AI-Agents-Projects
-
-# Run any agent from the agents/ directory
-cd agents/01-web-research-agent
-pip install -r requirements.txt
-cp .env.example .env        # add your API key
-python agent.py
+pip install XlsxWriter
+python build_pet_sitting_workbook.py
 ```
 
-> All agents in `agents/` are self-contained with their own `requirements.txt` and `.env.example`. No monorepo setup needed.
+The workbook appears at `output/Pet Sitting Business Spreadsheet.xlsx`
+(about 860 KB). Open it and read the **Start Here** tab.
+
+Options you will actually use:
+
+| Option | What it does |
+| --- | --- |
+| `--blank` | Empty registers, no example records |
+| `--business "Paws & Claws"` | Your business name on the cover and invoices |
+| `--currency "£"` `--currency-code GBP` | Currency symbol and code |
+| `--unit miles` | Mileage in miles instead of km |
+| `--password secret` | Change the sheet protection password |
+| `--author "Your Name"` | Document author / creator |
+| `--rows 1000` | More rows of capacity in the big registers |
+| `--today 2026-01-01` | Treat this date as "today" when writing example data |
+| `--no-protect` | Leave sheets unprotected (development only) |
 
 ---
 
-## 🗺️ Navigation Guide
+## 2. What is on each tab
 
-| I want to... | Go to |
-|---|---|
-| Run a working agent right now | [`agents/`](agents/) |
-| Browse by AI framework | [Framework-wise Use Cases](#-browse-by-framework) |
-| Browse by industry | [Industry Use Cases](#-industry-use-cases) |
-| Understand which framework to use | [Framework Comparison](#-framework-comparison) |
-| Add my own agent | [Contributing](CONTRIBUTION.md) |
-| Learn with a course | [`crewai_mcp_course/`](crewai_mcp_course/) |
+The tabs run in the order you work through a job: set up, book it, visit it,
+invoice it, get paid, count the money.
 
----
+### Start Here
+A one-screen cover: what the workbook does, how the tabs fit together, which
+cells you type in and what the colours mean. Read it first.
 
-## 📊 Framework Comparison
+### Dashboard
+The numbers you check every morning. Twelve KPI tiles (revenue collected,
+invoiced, outstanding, overdue, expenses, net profit, profit margin, mileage
+claim, cash per visit, bookings in the period, completed visits, upcoming
+visits, missed visits, active clients, pets on the books, average rating), a
+twelve-month revenue, expenses and profit chart, a top-ten clients list and a
+best-performing services list. The period is driven by the two named cells
+`Dash_Year` and `Dash_MonthName`, so switching the month is one drop-down, and
+sparklines under the month table give you the shape of the year in one row.
 
-Choosing a framework? Here's when to use each:
+### Settings
+Every preference in one place: business name and address, contact details,
+working hours, tax name and rate, default deposit percentage, mileage rate per
+distance unit, currency symbol and code, financial year start, invoice terms,
+late fee and the target revenue/expense figures the Budget tab compares
+against. Nothing is hard-coded anywhere else — every other tab reads these
+cells.
 
-| Framework | Best For | Complexity | Multi-Agent | Streaming | Local LLM |
-|---|---|---|---|---|---|
-| **LangGraph** | Stateful workflows, RAG pipelines, complex graphs | ⭐⭐⭐ | ✅ | ✅ | ✅ |
-| **CrewAI** | Role-based teams, business automation, rapid prototyping | ⭐⭐ | ✅ | ✅ | ✅ |
-| **AutoGen** | Code generation, research, self-healing workflows | ⭐⭐⭐ | ✅ | ✅ | ✅ |
-| **Agno** | Lightweight single agents, tool integration, fast iteration | ⭐ | ✅ | ✅ | ✅ |
-| **LlamaIndex** | Document Q&A, enterprise RAG, data pipelines | ⭐⭐ | ⚠️ | ✅ | ✅ |
+### Lists
+The drop-down source data: client types, pet species, service categories,
+payment methods, expense categories, staff roles, visit outcomes and so on.
+Each list is a dynamic name with forty rows of head-room, so adding a sixth
+payment method is a one-cell edit.
 
-**Quick decision guide:**
-- Just starting out → **Agno** or **CrewAI**
-- Need stateful graphs + RAG → **LangGraph**
-- Building code-writing / research agents → **AutoGen**
-- Enterprise document pipelines → **LlamaIndex**
+### Services
+Your service catalogue with price, cost, duration, extra-pet fee, weekend
+surcharge and deposit percentage. Every price used anywhere in the workbook
+comes from this tab, so a price rise is one edit, not thirty.
 
----
+### Clients
+Name, contact details, address, type, status, preferred pet care instructions,
+emergency contact, how they heard about you, plus live columns for bookings,
+lifetime revenue, amount outstanding, last visit and next visit. A client
+summary block at the top of the tab shows active, inactive and overdue counts.
 
-## 🏭 Industry Use Cases
+### Pets
+Every animal: name, species, breed, age, weight, owner (looked up from
+Clients), feeding schedule, medication, allergies, behaviour notes, vet details
+and insurance. Colour-coded by pet type.
 
-![Industry Mind Map](images/industry_usecase1.png)
+### Bookings
+The scheduling heart of the workbook. Date, time, client, pet(s), service,
+sitter, location, status, notes, plus calculated base charge, extra-pet fee,
+weekend surcharge, subtotal, tax and total. A `Schedule check` column flags a
+double-booking for the same sitter, and `Days until` and `Timing` columns tell
+you what is coming up and what is late.
 
-| Use Case | Industry | Description | Code |
-|---|---|---|---|
-| **HIA (Health Insights Agent)** | Healthcare | Analyses medical reports and provides health insights | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/harshhh28/hia.git) |
-| **AI Health Assistant** | Healthcare | Diagnoses and monitors diseases using patient data | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/ahmadvh/AI-Agents-for-Medical-Diagnostics.git) |
-| **Automated Trading Bot** | Finance | Automates stock trading with real-time market analysis | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/MingyuJ666/Stockagent.git) |
-| **Agent Wallet SDK** | Finance | Non-custodial smart contract wallet SDK for AI agents with enforced spend limits | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/up2itnow0822/agent-wallet-sdk) |
-| **Virtual AI Tutor** | Education | Provides personalized education tailored to users | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/hqanhh/EduGPT.git) |
-| **24/7 AI Chatbot** | Customer Service | Handles customer queries around the clock | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/NirDiamant/GenAI_Agents/blob/main/all_agents_tutorials/customer_support_agent_langgraph.ipynb) |
-| **Product Recommendation Agent** | Retail | Suggests products based on user preferences and history | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/microsoft/RecAI) |
-| **Self-Driving Delivery Agent** | Transportation | Optimizes routes and autonomously delivers packages | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/sled-group/driVLMe) |
-| **Factory Process Monitoring Agent** | Manufacturing | Monitors production lines and ensures quality control | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/yuchenxia/llm4ias) |
-| **Property Pricing Agent** | Real Estate | Analyzes market trends to determine property prices | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/AleksNeStu/ai-real-estate-assistant) |
-| **Smart Farming Assistant** | Agriculture | Provides insights on crop health and yield predictions | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/mohammed97ashraf/LLM_Agri_Bot) |
-| **Energy Demand Forecasting Agent** | Energy | Predicts energy usage to optimize grid management | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/yecchen/MIRAI) |
-| **Content Personalization Agent** | Entertainment | Recommends personalized media based on preferences | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/crosleythomas/MirrorGPT) |
-| **Legal Document Review Assistant** | Legal | Automates document review and highlights key clauses | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/firica/legalai) |
-| **Recruitment Recommendation Agent** | Human Resources | Suggests best-fit candidates for job openings | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/sentient-engineering/jobber) |
-| **Virtual Travel Assistant** | Hospitality | Plans travel itineraries based on preferences | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/nirbar1985/ai-travel-agent) |
-| **AI Game Companion Agent** | Gaming | Enhances player experience with real-time assistance | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/onjas-buidl/LLM-agent-game) |
-| **Real-Time Threat Detection Agent** | Cybersecurity | Identifies potential threats and mitigates attacks | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/NVISOsecurity/cyber-security-llm-agents) |
-| **E-commerce Personal Shopper Agent** | E-commerce | Helps customers find products they'll love | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/Hoanganhvu123/ShoppingGPT) |
-| **Logistics Optimization Agent** | Supply Chain | Plans efficient delivery routes and manages inventory | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/microsoft/OptiGuide) |
-| **Vibe Hacking Agent** | Cybersecurity | Autonomous Multi-Agent Based Red Team Testing Service | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/PurpleAILAB/Decepticon) |
-| **Citadel** | Software Development | Orchestrates Claude Code agent fleets with lifecycle hooks, skills, campaign management, and postmortem-driven architecture | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/SethGammon/Citadel) |
-| **MediSuite-AI-Agent** | Health Insurance | Automates hospital / insurance claiming workflow | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/ahmedmansour5/MediSuite-Ai-Agent) |
-| **Lina Egyptian Medical Chatbot** | Healthcare | Egyptian medical assistant chatbot | [![GitHub](https://img.shields.io/badge/Code-GitHub-black?logo=github)](https://github.com/dina-khalid/Lina-Egyptian-Medical-Chatbot) |
+### Visit Log
+What actually happened on the job: check-in and check-out times, duration,
+hours worked, GPS distance travelled, outcome, notes, medication given, food
+and water checks, and the client rating. `Duration` and `Hours worked` are
+computed from the clock times, so the mileage and wage figures are always
+consistent with the log.
 
----
+### Health Log
+Weight, medication, allergies, flea and worm treatments, vaccinations and
+dental checks per pet over time, with the last treatment date and a
+`Next due` column that drives the reminders on the Health Log.
 
-## 🔧 Browse by Framework
+### Incidents
+Anything that went wrong: date, pet, sitter, severity, description, action
+taken, cost, insurance claim number and owner-notified flag. Colour-coded by
+severity so the red ones find you.
 
-### CrewAI
+### Messages
+Client communication log: date, direction, client, subject, channel, message
+body, who handled it and whether it was resolved.
 
-Role-based multi-agent framework. Great for business automation.
+### Invoices
+Invoice number, date, due date, client, related booking, description, line
+amounts, tax, total, amount paid and balance due. Payment status
+(Paid / Part paid / Overdue / Unpaid) is calculated, so is the days overdue.
+Two invoice templates and the numbered invoice sheet are driven from here.
 
-| Use Case | Industry | Description | GitHub |
-|---|---|---|---|
-| 📧 Email Auto Responder Flow | Communication | Automates email responses based on predefined criteria | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/email_auto_responder_flow) |
-| 📝 Meeting Assistant Flow | Productivity | Organizes meetings, scheduling and agenda preparation | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/meeting_assistant_flow) |
-| 🔄 Self Evaluation Loop Flow | Human Resources | Facilitates self-assessment for performance reviews | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/self_evaluation_loop_flow) |
-| 📈 Lead Score Flow | Sales | Evaluates and scores potential leads to prioritize outreach | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/lead-score-flow) |
-| 📊 Marketing Strategy Generator | Marketing | Develops marketing strategies by analyzing market trends | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/marketing_strategy) |
-| 📝 Job Posting Generator | Recruitment | Creates job postings by analyzing job requirements | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/job-posting) |
-| 🔄 Recruitment Workflow | Recruitment | Streamlines recruitment by automating hiring tasks | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/recruitment) |
-| 🔍 Match Profile to Positions | Recruitment | Matches candidate profiles to suitable job positions | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/match_profile_to_positions) |
-| 📸 Instagram Post Generator | Social Media | Generates and schedules Instagram posts automatically | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/instagram_post) |
-| 🌐 Landing Page Generator | Web Development | Automates creation of landing pages for websites | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/landing_page_generator) |
-| 🎮 Game Builder Crew | Game Development | Assists in game development by automating aspects of creation | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/game-builder-crew) |
-| 💹 Stock Analysis Tool | Finance | Provides tools for analyzing stock market data | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/stock_analysis) |
-| 🗺️ Trip Planner | Travel | Assists in planning trips with itineraries | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/trip_planner) |
-| 🎁 Surprise Trip Planner | Travel | Plans surprise trips based on user preferences | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/surprise_trip) |
-| 📚 Write a Book with Flows | Creative Writing | Assists authors with structured writing workflows | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/flows/write_a_book_with_flows) |
-| 🎬 Screenplay Writer | Creative Writing | Aids in writing screenplays with templates and guidance | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/screenplay_writer) |
-| ✅ Markdown Validator | Documentation | Validates Markdown files for proper formatting | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/markdown_validator) |
-| 🧠 Meta Quest Knowledge | Knowledge Management | Manages Meta Quest knowledge for information retrieval | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/meta_quest_knowledge) |
-| 🤖 NVIDIA Models Integration | AI Integration | Integrates NVIDIA AI models into workflows | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/integrations/nvidia_models) |
-| 🗂️ Prep for a Meeting | Productivity | Prepares meeting materials and sets agendas | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/prep-for-a-meeting) |
-| 🛠️ Starter Template | Development | Starter template for new CrewAI projects | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/crews/starter_template) |
-| 🔗 CrewAI + LangGraph Integration | AI Integration | Integration between CrewAI and LangGraph | [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/crewAIInc/crewAI-examples/tree/main/integrations/CrewAI-LangGraph) |
+### Payments
+Money in: date, client, invoice number, amount, method, reference and receipt
+number. A summary block at the top shows money received this month, this year
+and the outstanding total, and the reconciliation column shows how much of an
+invoice is still open.
 
----
+### Expenses
+Money out: date, category, supplier, description, amount, payment method,
+whether it is billable to a client, the VAT you can reclaim and the running
+total. Categories feed straight into the expense chart on the Dashboard.
 
-### AutoGen
+### Mileage
+Every trip: date, sitter, purpose, start and end distance, distance travelled,
+rate per distance unit, claim amount and the tax year it belongs to. A summary
+block gives total distance, total claim and the current tax-year figure.
 
-Microsoft's framework for code generation, execution, and multi-agent research.
+### Staff
+Name, role, contact details, start date, hourly rate, commission percentage,
+certificate expiry and status, plus calculated visits completed, hours worked,
+revenue collected and pay due. `Action needed` flags expired and due
+certificates.
 
-**Code Generation, Execution, and Debugging**
+### Inventory
+Stock control: item, category, supplier, quantity in stock, minimum level,
+unit cost, reorder quantity and value. `Stock status` and `Order now` tell you
+what to buy before you run out.
 
-| Use Case | Industry | Description | Notebook |
-|---|---|---|---|
-| 🤖 Automated Task Solving with Code Gen, Execution & Debugging | Software Development | Demonstrates automated task-solving by generating, executing, and debugging code | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_auto_feedback_from_code_execution) |
-| 🧑‍💻 Code Generation and Q&A with Retrieval Augmented Agents | Software Development | Generates code and answers questions using retrieval-augmented methods | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_RetrieveChat) |
-| 🧠 Code Generation and Q&A with Qdrant-based Retrieval | Software Development | Utilizes Qdrant for enhanced retrieval-augmented agent performance | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_RetrieveChat_qdrant) |
+### Reminders
+The tab that saves the day. Four alert blocks — upcoming bookings in the next
+seven days, overdue invoices, stock items to reorder and certificates to renew
+— plus the vaccination and treatment due dates from the Health Log. Each block
+counts down from `Total alerts`.
 
-**Multi-Agent Collaboration**
+### Reports
+A period report with a start and end date (a chart of who owes you money by
+invoice age sits under the ageing table): revenue, expenses and profit for
+the period, a breakdown by service and by expense category, the top five
+clients, sitter performance and the best and worst days. `RepFrom` and `RepTo`
+are the two dates you change.
 
-| Use Case | Industry | Description | Notebook |
-|---|---|---|---|
-| 🤝 Group Chat (3 members, 1 manager) | Collaboration | Demonstrates group task-solving via multi-agent collaboration | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat) |
-| 📊 Data Visualization by Group Chat | Data Analysis | Uses multi-agent collaboration to create data visualizations | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat_vis) |
-| 🧩 Complex Task Solving by Group Chat (6 members) | Collaboration | Solves complex tasks collaboratively with a larger group | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat_research) |
-| 🧑‍💻 Task Solving with Coding & Planning Agents | Planning & Dev | Combines coding and planning agents for solving tasks | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_planning.ipynb) |
-| 📐 Task Solving with Graph Transition Paths | Collaboration | Uses predefined transition paths in a graph for solving tasks | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/docs/notebooks/agentchat_groupchat_finite_state_machine) |
-| 🧠 SocietyOfMindAgent Inner-Monologue | Cognitive Sciences | Simulates inner-monologue for problem-solving using group chats | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_society_of_mind) |
-| 🔧 Group Chat with Custom Speaker Selection | Collaboration | Implements a custom function for speaker selection | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat_customized) |
+### Budget
+A planning tab: target revenue and expenses, fixed costs, growth rate, opening
+cash and the savings target, with a budget-versus-actual chart for the twelve
+months. It shows the budget-versus-actual variance for
+revenue, expenses and profit, a monthly forecast with a year total and the
+progress towards the savings target.
 
-**Sequential Multi-Agent Chats**
+### Print Invoice, Print Pet Care, Print Visit
+Three clean, formatted one-page documents — a client invoice, a pet care
+instruction sheet and a visit summary — that fill themselves in from the
+record you pick in the drop-down at the top of the tab. Print areas, print
+titles and A4 page set-up are already configured.
 
-| Use Case | Industry | Description | Notebook |
-|---|---|---|---|
-| 🔄 Sequential Task-Solving (single initiating agent) | Workflow Automation | Automates sequential task-solving with a single initiating agent | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_multi_task_chats) |
-| ⏳ Async Sequential Task-Solving | Workflow Automation | Handles asynchronous task-solving in a sequence of chats | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_multi_task_async_chats) |
-| 🤝 Sequential Chats with Different Initiating Agents | Workflow Automation | Sequential task-solving with different agents initiating each chat | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchats_sequential_chats) |
+### Print Forms
+Six blank forms to print and hand to a client or take on a job: client intake,
+pet information, booking request, emergency contact, incident report and the
+walk sign-in sheet.
 
-**Nested Chats**
+### Help
+Every column explained: what it means, whether it is typed in or calculated,
+and which tab the calculated ones come from. Plus a colour legend, a formula
+cheat-sheet and the protection rules.
 
-| Use Case | Industry | Description | Notebook |
-|---|---|---|---|
-| 🧠 Solving Complex Tasks with Nested Chats | Problem Solving | Uses nested chats to solve hierarchical and complex problems | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_nestedchat) |
-| 🔄 Sequence of Nested Chats | Problem Solving | Demonstrates sequential task-solving using nested chats | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_nested_sequential_chats) |
-| 🏭 OptiGuide Supply Chain with Nested Chats | Supply Chain | Solves supply chain optimization using nested chats | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_nestedchat_optiguide) |
-| ♟️ Conversational Chess with Nested Chats | Gaming | Uses nested chats for playing conversational chess with tools | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_nested_chats_chess) |
-
-**Tools**
-
-| Use Case | Industry | Description | Notebook |
-|---|---|---|---|
-| 🌐 Web Search: Solve Tasks Requiring Web Info | Information Retrieval | Searches the web to gather information for completing tasks | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_web_info.ipynb) |
-| 🔧 Use Provided Tools as Functions | Tool Integration | Demonstrates how to use pre-provided tools as callable functions | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_function_call_currency_calculator) |
-| 📚 RAG Group Chat | Collaboration | Enables group chat with Retrieval Augmented Generation | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_groupchat_RAG) |
-| 🔊 Agent Chat with Whisper | Audio Processing | AI agent for transcription and translation using Whisper | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://microsoft.github.io/autogen/0.2/docs/notebooks/agentchat_video_transcript_translate_with_whisper) |
-| 📊 SQL: Natural Language to SQL Query | Database Management | Converts natural language inputs into SQL queries | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_sql_spider.ipynb) |
-
-**Multimodal Agents**
-
-| Use Case | Industry | Description | Notebook |
-|---|---|---|---|
-| 🎨 Multimodal Agent with DALLE and GPT-4V | Multimedia AI | Combines DALLE and GPT-4V for multimodal agent communication | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_dalle_and_gpt4v.ipynb) |
-| 🖌️ Multimodal Agent with Llava | Image Processing | Uses Llava for multimodal agent conversations | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_lmm_llava.ipynb) |
-| 🖼️ Multimodal Agent with GPT-4V | Multimedia AI | Leverages GPT-4V for visual and conversational interactions | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_lmm_gpt-4v.ipynb) |
-
-**Observability & Evaluation**
-
-| Use Case | Industry | Description | Notebook |
-|---|---|---|---|
-| 📊 AgentEval: Multi-Agent Assessment System | Performance Evaluation | Evaluating LLM-based application utility | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agenteval_cq_math.ipynb) |
-| 📊 Track LLM Calls and Errors using AgentOps | Monitoring & Analytics | Monitors LLM interactions, tool usage, and errors | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/agentchat_agentops.ipynb) |
-| 🏗️ Auto Build Multi-agent System with AgentBuilder | AI Development | Automatically builds multi-agent systems | [![Notebook](https://img.shields.io/badge/View-Notebook-blue?logo=jupyter)](https://github.com/microsoft/autogen/blob/0.2/notebook/autobuild_basic.ipynb) |
+### Calc *(hidden)*
+The engine. Helper tables, drop-down sources, ranking lists and the lookup
+ranges the report tabs read. It is hidden and protected on purpose — leave it
+alone and everything keeps working.
 
 ---
 
-### Agno
+## 3. How the colours work
 
-Lightweight, fast agent framework. Best for single-agent tools and rapid prototyping.
+The palette is defined once in `pet_sitting_spreadsheet/config.py` and every
+sheet module reads it from there, so the whole workbook stays consistent.
 
-| Use Case | Industry | Description | Code |
-|---|---|---|---|
-| 🤖 Support Agent | AI Framework Support | Real-time answers, explanations, and code examples for Agno framework | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/agno_support_agent.py) |
-| 🎥 YouTube Agent | Media & Content | Analyzes YouTube videos: summaries, timestamps, themes | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/youtube_agent.py) |
-| 📊 Finance Agent (Thinking) | Finance | Real-time stock insights, analyst recommendations, financial deep-dives | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/thinking_finance_agent.py) |
-| 📚 Study Partner | Education | Finds resources, answers questions, creates study plans | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/study_partner.py) |
-| 🛍️ Shopping Partner Agent | E-commerce | Product recommender based on preferences from Amazon, Flipkart | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/shopping_partner.py) |
-| 🎓 Research Scholar Agent | Education / Research | Advanced academic searches, publication analysis, structured reports | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/research_agent_exa.py) |
-| 🧠 Research Agent | Media & Journalism | Deep investigations, NYT-style reports | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/research_agent.py) |
-| 🍳 Recipe Creator | Food & Culinary | Personalized recipes based on ingredients and preferences | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/recipe_creator.py) |
-| 🧠 Financial Reasoning Agent | Finance | Claude 3.5 Sonnet-based stock analysis with Yahoo Finance data | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/reasoning_finance_agent.py) |
-| 🤖 Readme Generator Agent | Software Dev | Generates high-quality READMEs for GitHub repos | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/readme_generator.py) |
-| 🎬 Movie Recommendation Agent | Entertainment | Personalized movie recommendations using Exa and GPT-4o | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/movie_recommedation.py) |
-| 🔍 Media Trend Analysis Agent | Media & News | Analyzes emerging trends and influencers from digital platforms | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/media_trend_analysis_agent.py) |
-| ⚖️ Legal Document Analysis Agent | Legal Tech | Analyzes legal PDFs and provides insights using vector embeddings | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/legal_consultant.py) |
-| 🤔 DeepKnowledge | Research | Iterative search through knowledge base with deep reasoning | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/deep_knowledge.py) |
-| 📚 Book Recommendation Agent | Publishing & Media | Personalized book suggestions using literary data and reader preferences | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/book_recommendation.py) |
-| 🏠 MCP Airbnb Agent | Hospitality | Search Airbnb listings with MCP and Llama 4 | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/airbnb_mcp.py) |
-| 🤖 Agno Assist Agent | AI Framework | GPT-4o agent for Agno framework Q&A with hybrid search | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/agno-agi/agno/blob/main/cookbook/examples/agents/agno_assist.py) |
+| Colour | Where | Meaning |
+| --- | --- | --- |
+| Indigo `#4338CA` / `#6366F1` | banners, section bars, titles | structure and headings |
+| Indigo-50 `#EEF2FF` | table headers, soft panels | table furniture |
+| Amber `#F59E0B` / `#FFFBEB` | KPI tiles, accents, cover | the things to notice |
+| Cream `#FFFDF5` | value cells | **type here** |
+| Slate-100 `#F1F5F9` | calculated cells | calculated, do not touch |
+| Slate-900 `#0F172A` | body text | text |
+| Slate-500 `#64748B` | notes, secondary text | secondary text |
+| Emerald `#D1FAE5` / `#047857` | status flags | good |
+| Amber-100 `#FEF3C7` / `#B45309` | status flags | attention |
+| Rose `#FFE4E6` / `#BE123C` | status flags | bad |
+| Blue-100 `#DBEAFE` / `#1D4ED8` | status flags | information |
+| Slate-50 `#F8FAFC` | note boxes | background notes |
 
----
+Tab colours follow the same logic: dark slate for the overview tabs, indigo for
+data tabs, amber for the working tabs, emerald for the money tabs and rose for
+the risk tabs.
 
-### LangGraph
-
-State-machine framework for complex, stateful agent workflows and RAG pipelines.
-
-| Use Case | Industry | Description | Code |
-|---|---|---|---|
-| 🤖 Chatbot Simulation Evaluation | AI / QA | Simulate user interactions to evaluate chatbot performance | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/chatbot-simulation-evaluation/agent-simulation-evaluation.ipynb) |
-| 🧠 Information Gathering via Prompting | Research | LangGraph workflow using prompting to gather information | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/chatbots/information-gather-prompting.ipynb) |
-| 🧠 Code Assistant with LangGraph | Software Development | Resilient code assistant with error checking and iterative refinement | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/code_assistant/langgraph_code_assistant.ipynb) |
-| 🧑‍💼 Customer Support Agent | Customer Support | Graph-based agent for handling customer inquiries | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/customer-support/customer-support.ipynb) |
-| 🔁 Extraction with Retries | Data Extraction | Retry mechanisms for robust data extraction | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/extraction/retries.ipynb) |
-| 🧠 Multi-Agent Workflow (Supervisor) | Workflow Orchestration | Supervisor agent orchestrating multiple specialized agents | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/agent_supervisor.ipynb) |
-| 🧠 Hierarchical Agent Teams | Workflow Orchestration | Top-level supervisor delegates to specialized sub-agents | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/hierarchical_agent_teams.ipynb) |
-| 🤝 Multi-Agent Collaboration | Workflow Orchestration | Multiple specialized agents working together on complex tasks | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/multi-agent-collaboration.ipynb) |
-| 🧠 Plan-and-Execute Agent | Workflow Orchestration | Agent generates multi-step plan then executes sequentially | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/plan-and-execute/plan-and-execute.ipynb) |
-| 🧠 SQL Agent | Database Interaction | Agent answers questions about SQL databases | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/sql-agent.ipynb) |
-| 🧠 Reflection Agent | Workflow Orchestration | Agent critiques and revises its own outputs | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/reflection/reflection.ipynb) |
-| 🧠 Reflexion Agent | Workflow Orchestration | Agent reflects on actions for iterative improvement | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/reflexion/reflexion.ipynb) |
-| 🧠 Adaptive RAG | Information Retrieval | Dynamic retrieval adjusting based on query complexity | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_adaptive_rag.ipynb) |
-| 🤖 Agentic RAG | Intelligent Agents | Agent determines best retrieval strategy before generating response | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_agentic_rag.ipynb) |
-| 🧠 Corrective RAG (CRAG) | Information Retrieval | Evaluates and refines retrieved documents before generation | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_crag.ipynb) |
-| 🧠 Self-RAG | Information Retrieval | System reflects on responses and retrieves additional info if needed | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_self_rag.ipynb) |
-| 🧠 Adaptive RAG (Local) | Information Retrieval | Adaptive RAG with local models for offline use | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_adaptive_rag_local.ipynb) |
-| 🧠 Self-RAG (Local) | Information Retrieval | Self-RAG using local models and data sources | [![Python](https://img.shields.io/static/v1?label=AI+Agent+Code&message=Python&color=%23244cd1)](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_self_rag_local.ipynb) |
+**The rule that matters:** cream cells are for typing in, grey cells are
+calculated. Every formula cell is locked and every sheet is protected with the
+password `premium`, so the maths cannot be typed over by accident.
 
 ---
 
-## 🤝 Contributing
+## 4. How it is built
 
-Contributions are welcome! 🎉 This repo grows through community contributions.
+```
+build_pet_sitting_workbook.py      entry point: python build_pet_sitting_workbook.py
+pet_sitting_spreadsheet/
+  __init__.py      package + version
+  __main__.py      python -m pet_sitting_spreadsheet
+  cli.py           command line options
+  config.py        palette, defaults, named cells, row counts
+  layout.py        column widths, page set-up, print areas
+  formats.py       every cell format, built from the palette
+  writer.py        SheetWriter: banners, sections, KPI tiles, tables
+  names.py         defined names, dynamic ranges, cross-sheet references
+  build.py         assembles the 27 sheets in order
+  sample_data.py   the example records
+  sheets/
+    common.py      Col, conditional formatting and validation helpers
+    lists.py       drop-down source data
+    settings.py    services.py   clients.py   pets.py   bookings.py
+    visits.py      health.py     incidents.py messages.py
+    invoices.py    payments.py   expenses.py  mileage.py
+    staff.py       inventory.py  reminders.py calc.py
+    dashboard.py   reports.py    budget.py    start_here.py
+    printables.py  help_tab.py
+tools/
+  validate_workbook.py   structural check of the finished file
+  check_sample_data.py   every example record joins up
+  recalc_check.py        recalculates every formula and looks for errors
+  export_source_md.py    the whole program in one markdown document
+  make_download_zip.py   a shareable zip of the source
+```
 
-**Ways to contribute:**
-1. **Add a working agent** — create a folder in `agents/` with runnable code
-2. **Add an external link** — add a row to the industry or framework tables
-3. **Fix a broken link** — open an issue or PR
-4. **Improve documentation** — fix typos, add context, improve examples
+Each sheet module exports one `spec(book, fmts, cfg, reg)` function that
+receives the workbook, the format bank, the configuration and a registry of
+named ranges. It declares its columns as `Col(key, header, width, kind, ...)`
+records — a column's header, width, format, formula, conditional formatting and
+validation all live in one line — then calls `writer.table()` to write the
+header, the formulas and the rules. Changing a column means editing one line.
 
-**To contribute:**
-1. Fork the repository
-2. Create a branch: `feat/agent-name` or `fix/description`
-3. Add your changes following the [Contributing Guidelines](CONTRIBUTION.md)
-4. Open a PR using the PR template
+### Running the checks
 
-See [CONTRIBUTION.md](CONTRIBUTION.md) for full requirements (metadata.yaml, requirements.txt, etc.).
+```bash
+python tools/validate_workbook.py "output/Pet Sitting Business Spreadsheet.xlsx"
+python tools/check_sample_data.py "output/Pet Sitting Business Spreadsheet.xlsx"
+
+# real recalculation, needs `formulas`; check a smaller build first
+python build_pet_sitting_workbook.py --rows 120 -o /tmp/small.xlsx
+python tools/recalc_check.py /tmp/small.xlsx
+```
+
+`recalc_check.py` loads the file into a formula engine, calculates all
+16,000-plus formulas of a small build and reports any cell that does not
+evaluate to a real answer. The full 50,800-formula workbook takes several
+minutes and a lot of memory, so build small first.
 
 ---
 
-## Star History
+## 5. Things worth knowing
 
-<picture>
-  <source
-    media="(prefers-color-scheme: dark)"
-    srcset="https://api.star-history.com/svg?repos=ashishpatel26/500-AI-Agents-Projects&type=date&legend=top-left"
-  />
-  <source
-    media="(prefers-color-scheme: light)"
-    srcset="https://api.star-history.com/svg?repos=ashishpatel26/500-AI-Agents-Projects&type=date&legend=top-left"
-  />
-  <img
-    alt="Star History Chart"
-    src="https://api.star-history.com/svg?repos=ashishpatel26/500-AI-Agents-Projects&type=date&legend=top-left"
-  />
-</picture>
-
----
-
-## 📜 License
-
-This repository is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
-
----
-
-<div align="center">
-
-**⭐ Star this repo if you find it useful — it helps others discover it!**
-
-[Report Issue](https://github.com/ashishpatel26/500-AI-Agents-Projects/issues) • [Request Agent](https://github.com/ashishpatel26/500-AI-Agents-Projects/issues/new?template=feature_request.md) • [Contribute](CONTRIBUTION.md)
-
-</div>
+* **Everything is a formula.** Row IDs (`BK-0001`, `INV-1001`), totals, taxes,
+  balances, statuses, reminders and the dashboard are all calculated. Type a
+  booking and the invoice, the payment status, the client's lifetime revenue,
+  the sitter's pay and the dashboard all move on their own.
+* **The registers are pre-formatted for 250–400 rows** depending on the tab,
+  with data validation and conditional formatting already applied down the
+  whole range. Use `--rows` if you need more.
+* **Cross-tab references go through named ranges** (`[[Clients.name]]`,
+  `[[Calc.top_clients#1]]`), never raw `Sheet1!A1` addresses, so inserting a
+  column never breaks a formula.
+* **Three real charts** (Dashboard: revenue/expenses/profit, Reports: invoice
+  ageing, Budget: budget versus actual) plus sparklines on the Dashboard and
+  Budget for a twelve-month trend in a single row.
+* **Sample data is illustrative.** The clients, pets and staff names are made
+  up. Delete the rows you do not want and the workbook keeps working.
