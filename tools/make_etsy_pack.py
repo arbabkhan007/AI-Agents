@@ -21,7 +21,9 @@ DEFAULT_OUT = os.path.join("download", "pet-sitting-spreadsheet-etsy-pack.zip")
 FILLED = os.path.join("output", "Pet Sitting Business Spreadsheet.xlsx")
 BLANK = os.path.join(
     "output", "Pet Sitting Business Spreadsheet (Blank - No Example Data).xlsx")
-IMAGES = "etsy-images"
+#: 2000 x 2000 versions - Etsy asks for at least 2000 px on the
+#: shortest side.  The 1024 px originals stay in etsy-images/.
+IMAGES = "etsy-images-2000px"
 DOCS = ["README.md", "SOURCE_CODE.md", "ETSY_LISTING.md"]
 SOURCE_TREES = ["pet_sitting_spreadsheet", "tools"]
 BUILD_SCRIPT = "build_pet_sitting_workbook.py"
@@ -49,7 +51,7 @@ def gather() -> list:
     folder = os.path.join(ROOT, IMAGES)
     for name in sorted(os.listdir(folder)):
         if name.lower().endswith((".jpg", ".jpeg", ".png")):
-            add(f"{IMAGES}/{name}", os.path.join(IMAGES, name))
+            add(f"etsy-images/{name}", os.path.join(IMAGES, name))
 
     for tree in SOURCE_TREES:
         base = os.path.join(ROOT, tree)

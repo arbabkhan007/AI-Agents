@@ -138,10 +138,16 @@ images are square and safe to crop.
 **Listing photo tips**
 
 * Image 1 is the thumbnail — keep it bright and uncluttered.
-* Etsy recommends at least 2000 × 2000 px per image; resize up if your
-  source files are smaller.
+* Every image in the pack is **2000 × 2000 px**, which meets Etsy's minimum
+  for the zoom feature. They were upscaled from 1024 px with Lanczos and a
+  light unsharp mask, so they are clean but not extra-detailed — if you want
+  pin-sharp zoom, run them through an AI upscaler (Topaz, Upscayl or
+  Magnific) before uploading.
 * Add text overlays to images 5 and 14 ("27 tabs", "Instant download") in
   Canva using the same indigo `#4338CA` and amber `#F59E0B` as the workbook.
+* The 1024 px originals are kept in the project folder
+  `etsy-images-2000px/../etsy-images/` (i.e. `etsy-images/` in the project
+  root) in case you would rather re-crop than upscale.
 
 ---
 
