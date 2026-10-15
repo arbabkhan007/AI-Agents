@@ -173,7 +173,7 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
                          f'TEXT(COUNTIFS({mp_date},$B{r}),"0")&" cooked")',
                          f["calc_center"])
         row += 1
-    ws.write_formula(row, 0, "Week", f["total_label"])
+    ws.write(row, 0, "Week", f["total_label"])
     ws.write_blank(row, 1, None, f["total_label"])
     for i in range(2, 6):
         ws.write_blank(row, i, None, f["total_label"])

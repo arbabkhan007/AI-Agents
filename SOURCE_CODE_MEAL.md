@@ -106,7 +106,7 @@ Excel 2010 safe throughout: no dynamic arrays, no `XLOOKUP`, no `IFS`, nothing t
 | 5 | [`tools/check_meal_sample.py`](#toolscheck_meal_samplepy) | 223 | Check that the example data in a built workbook hangs together |
 | 5 | [`tools/recalc_check.py`](#toolsrecalc_checkpy) | 212 | Recalculate a small build and check the numbers come out right |
 | 5 | [`tools/export_source_md.py`](#toolsexport_source_mdpy) | 555 | Write every source file of a generator into one clean markdown document |
-| 5 | [`tools/make_download_zip.py`](#toolsmake_download_zippy) | 124 | Pack the generator into a single zip people can download and run |
+| 5 | [`tools/make_download_zip.py`](#toolsmake_download_zippy) | 191 | Pack a generator into a single zip people can download and run |
 
 ---
 
@@ -6529,7 +6529,7 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
                          f'TEXT(COUNTIFS({mp_date},$B{r}),"0")&" cooked")',
                          f["calc_center"])
         row += 1
-    ws.write_formula(row, 0, "Week", f["total_label"])
+    ws.write(row, 0, "Week", f["total_label"])
     ws.write_blank(row, 1, None, f["total_label"])
     for i in range(2, 6):
         ws.write_blank(row, i, None, f["total_label"])
@@ -10021,21 +10021,26 @@ if __name__ == "__main__":
 
 ### `tools/make_download_zip.py`
 
-Pack the generator into a single zip people can download and run *(124 lines)*
+Pack a generator into a single zip people can download and run *(191 lines)*
 
 ````python
-"""Pack the generator into a single zip people can download and run.
+#!/usr/bin/env python3
+"""
+Pack a generator into a single zip people can download and run.
 
-    python tools/make_download_zip.py
+    python tools/make_download_zip.py                    # pet sitting
+    python tools/make_download_zip.py --product meal     # meal planner
 
-Writes `download/pet-sitting-spreadsheet-source.zip` containing the
-generator, the quality tools, the documentation and a `requirements.txt`,
-all under one folder so it unpacks tidily.
+Writes one of
 
-The vendored copy of XlsxWriter in this repository is deliberately left
-out: the zip is meant to be unpacked anywhere and run against a normal
-`pip install XlsxWriter`.  Timestamps are fixed so rebuilding the zip
-without changing any source produces exactly the same bytes.
+    download/pet-sitting-spreadsheet-source.zip
+    download/meal-planner-grocery-list-source.zip
+
+containing the generator, the quality tools, the documentation and a
+`requirements.txt`, all under one folder so it unpacks tidily.
+
+Timestamps are fixed so rebuilding the zip without changing any source
+produces exactly the same bytes.
 """
 
 from __future__ import annotations
@@ -10046,29 +10051,28 @@ import sys
 import zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FOLDER = "pet-sitting-spreadsheet"
-DEFAULT_OUT = os.path.join("download", "pet-sitting-spreadsheet-source.zip")
 
 #: Same date for every entry, so the zip only changes when the code does.
 STAMP = (2026, 1, 1, 0, 0, 0)
-
-FILES = [
-    "build_pet_sitting_workbook.py",
-    "README.md",
-    "SOURCE_CODE.md",
-]
-TREES = ["pet_sitting_spreadsheet", "tools"]
 
 REQUIREMENTS = """\
 # The generator needs one package.
 XlsxWriter>=3.0
 
 # Only for the optional checks in tools/
-# openpyxl>=3.1     validate_workbook.py, check_sample_data.py
+# openpyxl>=3.1     validate_*.py, check_*.py
 # formulas>=1.3     recalc_check.py
 """
 
-HOW_TO_RUN = """\
+PRODUCTS = {
+    "pet": {
+        "folder": "pet-sitting-spreadsheet",
+        "output": os.path.join("download",
+                               "pet-sitting-spreadsheet-source.zip"),
+        "files": ["build_pet_sitting_workbook.py", "README.md",
+                  "SOURCE_CODE.md"],
+        "trees": ["pet_sitting_spreadsheet", "tools"],
+        "how_to_run": """\
 Pet Sitting & Dog Walking Business Spreadsheet
 ==============================================
 
@@ -10083,7 +10087,7 @@ Useful options
 --------------
     --blank                 empty workbook, no example data
     --business "My Name"    your business name on the cover and invoices
-    --currency EUR-symbol   e.g. --currency "\u20ac" --currency-code EUR
+    --currency EUR-symbol   e.g. --currency "\\u20ac" --currency-code EUR
     --unit miles            mileage in miles instead of km
     --password secret       change the sheet protection password
     --author "Your Name"    change the document author
@@ -10096,53 +10100,116 @@ cream coloured cells are the ones meant for typing in.
 README.md explains how it is built, what is on each of the 27 tabs and
 how to change things.  SOURCE_CODE.md is the whole program in one
 readable document.
-"""
+""",
+    },
+    "meal": {
+        "folder": "meal-planner-grocery-list",
+        "output": os.path.join("download",
+                               "meal-planner-grocery-list-source.zip"),
+        "files": ["build_meal_planner_workbook.py", "README_MEAL.md",
+                  "HOW_TO_USE_MEAL.md", "SOURCE_CODE_MEAL.md"],
+        "trees": ["meal_planner_spreadsheet", "tools"],
+        "how_to_run": """\
+Automated Meal Planner & Grocery List Spreadsheet
+================================================
+
+    pip install XlsxWriter
+    python build_meal_planner_workbook.py
+
+The workbook appears in:
+
+    output/Meal Planner & Grocery List.xlsx
+
+Useful options
+--------------
+    --blank                 empty workbook, no example data
+    --household "My Name"   household name on the Settings tab
+    --cook "My Name"        main cook's name
+    --currency "GBP-symbol" e.g. --currency "\\u00a3" --currency-code GBP
+    --units Imperial        ounces and fluid ounces instead of g and ml
+    --week-start Sunday     start the week on a Sunday
+    --year 2027             planning year
+    --budget 150            weekly grocery budget
+    --servings 2            default servings per meal
+    --password secret       change the sheet protection password
+    --author "Your Name"    change the document author
+    --rows 300              more rows of capacity in the big registers
+
+Every formula cell is locked and every sheet is protected with the
+password `premium` so the maths cannot be typed over by accident; the
+cream coloured cells are the ones meant for typing in.
+
+HOW_TO_USE_MEAL.md is the walkthrough: set up, plan a week, shop, cook.
+README_MEAL.md explains how the workbook is built and what is on each of
+the 36 tabs.  SOURCE_CODE_MEAL.md is the whole program in one readable
+document.
+""",
+    },
+}
 
 
-def gather() -> list:
-    """`[(archive name, text)]` for everything that goes in the zip."""
+def gather(product: dict) -> list:
+    """`[(archive name, disk path)]` for everything that goes in the zip."""
     items = []
-    for name in FILES:
-        with open(os.path.join(ROOT, name), encoding="utf-8") as handle:
-            items.append((name, handle.read()))
-    for tree in TREES:
-        for folder, dirs, names in os.walk(os.path.join(ROOT, tree)):
-            dirs[:] = sorted(d for d in dirs if d != "__pycache__")
-            for name in sorted(names):
+    folder = product["folder"]
+
+    def add(archive_name: str, path: str) -> None:
+        full = os.path.join(ROOT, path)
+        if not os.path.isfile(full):
+            raise SystemExit(f"missing file: {path}")
+        items.append((archive_name, full))
+
+    for name in product["files"]:
+        add(f"{folder}/{name}", name)
+
+    for tree in product["trees"]:
+        base = os.path.join(ROOT, tree)
+        for dirpath, dirnames, filenames in os.walk(base):
+            dirnames[:] = sorted(d for d in dirnames if d != "__pycache__")
+            for name in sorted(filenames):
                 if not name.endswith(".py"):
                     continue
-                full = os.path.join(folder, name)
-                rel = os.path.relpath(full, ROOT).replace(os.sep, "/")
-                with open(full, encoding="utf-8") as handle:
-                    items.append((rel, handle.read()))
-    items.append(("requirements.txt", REQUIREMENTS))
-    items.append(("HOW TO RUN.txt", HOW_TO_RUN))
+                rel = os.path.relpath(os.path.join(dirpath, name), ROOT)
+                add(f"{folder}/{rel.replace(os.sep, '/')}", rel)
     return items
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("-o", "--output", default=DEFAULT_OUT)
+    parser.add_argument("--product", choices=sorted(PRODUCTS), default="pet")
+    parser.add_argument("-o", "--output", default=None)
     args = parser.parse_args(argv)
 
-    out = args.output
-    folder = os.path.dirname(os.path.abspath(out))
+    product = PRODUCTS[args.product]
+    out = os.path.join(ROOT, args.output or product["output"])
+    folder = os.path.dirname(out)
     if folder and not os.path.isdir(folder):
         os.makedirs(folder)
 
-    items = gather()
+    items = gather(product)
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zf:
-        for name, text in items:
-            info = zipfile.ZipInfo(f"{FOLDER}/{name}", date_time=STAMP)
+        for archive_name, disk_path in items:
+            info = zipfile.ZipInfo.from_file(disk_path, archive_name)
+            info.date_time = STAMP
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o644 << 16
+            with open(disk_path, "rb") as handle:
+                zf.writestr(info, handle.read())
+
+        for name, text in (("requirements.txt", REQUIREMENTS),
+                           ("HOW-TO-RUN.txt", product["how_to_run"])):
+            info = zipfile.ZipInfo(f"{product['folder']}/{name}", STAMP)
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o644 << 16
             zf.writestr(info, text)
 
     size = os.path.getsize(out)
-    lines = sum(len(text.splitlines()) for name, text in items
-                if name.endswith(".py"))
-    print(f"{out}  ({len(items)} files, {lines:,} lines of Python, "
-          f"{size / 1024:.0f} KB)")
+    print(f"{os.path.relpath(out, ROOT)}  ({len(items) + 2} files, "
+          f"{size / 1024 / 1024:.1f} MB)")
+    for archive_name, _ in items:
+        print(f"    {archive_name}")
+    print(f"    {product['folder']}/requirements.txt")
+    print(f"    {product['folder']}/HOW-TO-RUN.txt")
     return 0
 
 
@@ -10252,4 +10319,4 @@ tools/
 ```
 
 
-*53 files, 9,634 lines of Python.*
+*53 files, 9,701 lines of Python.*
