@@ -114,9 +114,9 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
          "rows on the Meal Plan", 0),
         ("Calories a day", f'=IFERROR(SUMIFS({mp_cal},{mp_week},$C$7)/'
                            f'MAX(1,Household_Size)/7,0)', "kpi_value",
-         f'= "target "&TEXT(Calorie_Target,"#,##0")', 3),
+         '="target "&TEXT(Calorie_Target,"#,##0")', 3),
         ("Grocery cost", f'=SUMIFS({mp_cost},{mp_week},$C$7)',
-         "kpi_value_money", f'= "budget "&TEXT(Weekly_Budget,"#,##0.00")',
+         "kpi_value_money", '="budget "&TEXT(Weekly_Budget,"#,##0.00")',
          6),
         ("Budget left", f'=Weekly_Budget-SUMIFS({mp_cost},{mp_week},$C$7)',
          "kpi_value_money", "planned vs budget", 9),

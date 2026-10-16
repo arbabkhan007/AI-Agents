@@ -30,6 +30,32 @@ except ImportError:                       # pragma: no cover
                         TITLE_ROW, Col, Registry, SheetSpec, col_letter)
 
 
+#: Worksheet protection options.  In XlsxWriter a True value means the
+#: action is *allowed* while the sheet is protected.  Formula cells are
+#: locked by their format and input cells are unlocked by theirs, so the
+#: only thing protection has to do is stop the calculated columns being
+#: overtyped.  Selection of both locked and unlocked cells must stay
+#: allowed, otherwise the buyer cannot click into the cream input cells
+#: at all; the filter and sort buttons have to keep working too.
+PROTECT_OPTIONS: Dict[str, bool] = {
+    "objects": False,
+    "scenarios": False,
+    "format_cells": True,
+    "format_columns": True,
+    "format_rows": True,
+    "insert_columns": False,
+    "insert_rows": True,
+    "insert_hyperlinks": True,
+    "delete_columns": False,
+    "delete_rows": True,
+    "select_locked_cells": True,
+    "sort": True,            # filtering / sorting stays available
+    "autofilter": True,
+    "pivot_tables": False,
+    "select_unlocked_cells": True,
+}
+
+
 #: style key -> format name.  `text` deliberately falls back to the calc
 #: version when the column is a formula column, so a column can be declared
 #: as a plain text column and still be written as a locked formula.
@@ -87,11 +113,10 @@ class Writer:
     def sheet(self, name: str):
         ws = self.wb.add_worksheet(name)
         if self.cfg.protect_sheets:
-            # Empty options so every cell defaults to locked; input cells
-            # are unlocked by their format's `locked: False`.
-            options = {"select_locked_cells": False,
-                       "select_unlocked_cells": False}
-            ws.protect(self.cfg.password or "", options)
+            # Formula cells are locked by their format and input cells are
+            # unlocked by theirs, so the sheet stays fully usable while the
+            # calculated columns are protected.
+            ws.protect(self.cfg.password or "", dict(PROTECT_OPTIONS))
         return ws
 
     def style_for(self, col: Col) -> Any:

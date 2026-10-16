@@ -128,7 +128,7 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
         ("Waste cost", sumifs(fw_cost, fw_date), "money", ""),
         ("Waste quantity", sumifs(fw_qty, fw_date), "number", ""),
         ("Waste as % of spend", f'IFERROR({sumifs(fw_cost, fw_date)}/'
-                                f'MAX(0.01,{sumifs(gs_total, gs_date)}),0)',
+                                f'MAX(1,{sumifs(gs_total, gs_date)}),0)',
          "percent", "Target is set on Settings."),
         ("Average calories a day", f'IFERROR({sumifs(nu_cal, nu_date)}/'
                                    f'MAX(1,COUNTIFS({nu_date},">="&$A$7,'
@@ -178,7 +178,7 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
         ws.write_formula(row, 2,
                          f'=IFERROR(SUMIFS({gs_total},{gs_cat},'
                          f'$A{row + 1},{gs_date},">="&$A$7,'
-                         f'{gs_date},"<="&$B$7)/MAX(0.01,'
+                         f'{gs_date},"<="&$B$7)/MAX(1,'
                          f'SUMIFS({gs_total},{gs_date},">="&$A$7,'
                          f'{gs_date},"<="&$B$7)),0)', f["total_percent"])
         ws.write(row, 3, "of spend", f["note"])

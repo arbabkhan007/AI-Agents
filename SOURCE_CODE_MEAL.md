@@ -61,7 +61,7 @@ Excel 2010 safe throughout: no dynamic arrays, no `XLOOKUP`, no `IFS`, nothing t
 | 2 | [`meal_planner_spreadsheet/config.py`](#meal_planner_spreadsheetconfigpy) | 241 | Configuration for the Automated Meal Planner & Grocery List Spreadsheet |
 | 2 | [`meal_planner_spreadsheet/layout.py`](#meal_planner_spreadsheetlayoutpy) | 306 | Layout engine |
 | 2 | [`meal_planner_spreadsheet/formats.py`](#meal_planner_spreadsheetformatspy) | 286 | The format book |
-| 2 | [`meal_planner_spreadsheet/writer.py`](#meal_planner_spreadsheetwriterpy) | 397 | The writer |
+| 2 | [`meal_planner_spreadsheet/writer.py`](#meal_planner_spreadsheetwriterpy) | 422 | The writer |
 | 2 | [`meal_planner_spreadsheet/names.py`](#meal_planner_spreadsheetnamespy) | 144 | Defined names |
 | 2 | [`meal_planner_spreadsheet/build.py`](#meal_planner_spreadsheetbuildpy) | 235 | Workbook assembly |
 | 2 | [`meal_planner_spreadsheet/sample_data.py`](#meal_planner_spreadsheetsample_datapy) | 1066 | Example data |
@@ -1194,7 +1194,7 @@ class Formats:
 
 ### `meal_planner_spreadsheet/writer.py`
 
-The writer *(397 lines)*
+The writer *(422 lines)*
 
 ````python
 """
@@ -1227,6 +1227,32 @@ except ImportError:                       # pragma: no cover
     from config import Config, Palette
     from layout import (DATA_ROW, HEADER_ROW, NAV_ROW, SUBTITLE_ROW,
                         TITLE_ROW, Col, Registry, SheetSpec, col_letter)
+
+
+#: Worksheet protection options.  In XlsxWriter a True value means the
+#: action is *allowed* while the sheet is protected.  Formula cells are
+#: locked by their format and input cells are unlocked by theirs, so the
+#: only thing protection has to do is stop the calculated columns being
+#: overtyped.  Selection of both locked and unlocked cells must stay
+#: allowed, otherwise the buyer cannot click into the cream input cells
+#: at all; the filter and sort buttons have to keep working too.
+PROTECT_OPTIONS: Dict[str, bool] = {
+    "objects": False,
+    "scenarios": False,
+    "format_cells": True,
+    "format_columns": True,
+    "format_rows": True,
+    "insert_columns": False,
+    "insert_rows": True,
+    "insert_hyperlinks": True,
+    "delete_columns": False,
+    "delete_rows": True,
+    "select_locked_cells": True,
+    "sort": True,            # filtering / sorting stays available
+    "autofilter": True,
+    "pivot_tables": False,
+    "select_unlocked_cells": True,
+}
 
 
 #: style key -> format name.  `text` deliberately falls back to the calc
@@ -1286,11 +1312,10 @@ class Writer:
     def sheet(self, name: str):
         ws = self.wb.add_worksheet(name)
         if self.cfg.protect_sheets:
-            # Empty options so every cell defaults to locked; input cells
-            # are unlocked by their format's `locked: False`.
-            options = {"select_locked_cells": False,
-                       "select_unlocked_cells": False}
-            ws.protect(self.cfg.password or "", options)
+            # Formula cells are locked by their format and input cells are
+            # unlocked by theirs, so the sheet stays fully usable while the
+            # calculated columns are protected.
+            ws.protect(self.cfg.password or "", dict(PROTECT_OPTIONS))
         return ws
 
     def style_for(self, col: Col) -> Any:
@@ -6470,9 +6495,9 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
          "rows on the Meal Plan", 0),
         ("Calories a day", f'=IFERROR(SUMIFS({mp_cal},{mp_week},$C$7)/'
                            f'MAX(1,Household_Size)/7,0)', "kpi_value",
-         f'= "target "&TEXT(Calorie_Target,"#,##0")', 3),
+         '="target "&TEXT(Calorie_Target,"#,##0")', 3),
         ("Grocery cost", f'=SUMIFS({mp_cost},{mp_week},$C$7)',
-         "kpi_value_money", f'= "budget "&TEXT(Weekly_Budget,"#,##0.00")',
+         "kpi_value_money", '="budget "&TEXT(Weekly_Budget,"#,##0.00")',
          6),
         ("Budget left", f'=Weekly_Budget-SUMIFS({mp_cost},{mp_week},$C$7)',
          "kpi_value_money", "planned vs budget", 9),
@@ -7730,7 +7755,7 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
         ("Waste cost", sumifs(fw_cost, fw_date), "money", ""),
         ("Waste quantity", sumifs(fw_qty, fw_date), "number", ""),
         ("Waste as % of spend", f'IFERROR({sumifs(fw_cost, fw_date)}/'
-                                f'MAX(0.01,{sumifs(gs_total, gs_date)}),0)',
+                                f'MAX(1,{sumifs(gs_total, gs_date)}),0)',
          "percent", "Target is set on Settings."),
         ("Average calories a day", f'IFERROR({sumifs(nu_cal, nu_date)}/'
                                    f'MAX(1,COUNTIFS({nu_date},">="&$A$7,'
@@ -7780,7 +7805,7 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
         ws.write_formula(row, 2,
                          f'=IFERROR(SUMIFS({gs_total},{gs_cat},'
                          f'$A{row + 1},{gs_date},">="&$A$7,'
-                         f'{gs_date},"<="&$B$7)/MAX(0.01,'
+                         f'{gs_date},"<="&$B$7)/MAX(1,'
                          f'SUMIFS({gs_total},{gs_date},">="&$A$7,'
                          f'{gs_date},"<="&$B$7)),0)', f["total_percent"])
         ws.write(row, 3, "of spend", f["note"])
@@ -10319,4 +10344,4 @@ tools/
 ```
 
 
-*53 files, 9,701 lines of Python.*
+*53 files, 9,726 lines of Python.*
