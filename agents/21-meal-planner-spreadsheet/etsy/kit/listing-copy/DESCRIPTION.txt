@@ -1,0 +1,122 @@
+MEAL PLANNER & GROCERY LIST SPREADSHEET | 36-Tab Excel Workbook
+
+Plan the week, shop the list, cook the food, waste less. This is a complete
+meal planning system in one Excel workbook - recipes, meal plans, an
+automatic grocery list, pantry stock with use-by dates, batch cooking, food
+waste, nutrition and a food budget, all connected to each other.
+
+You get TWO workbooks: a filled sample packed with example data so you can
+see exactly how it works, and a blank template ready for your own kitchen.
+
+-----------------------------------------------------------------------
+WHAT'S INCLUDED
+-----------------------------------------------------------------------
+
+* Filled sample workbook (.xlsx) - 38 recipes, 62 ingredients, 107 planned
+  meals, real prices, dates and a full worked month of data.
+* Blank template (.xlsx) - the same 36 tabs with clean input cells, ready
+  for your own recipes, budget and household.
+* How-to guide - the 45-minute set-up and the 15-minute weekly routine.
+* Print-ready pages - Print Week (fridge door), Print Shopping (store),
+  Print Recipe (kitchen counter).
+
+-----------------------------------------------------------------------
+THE 36 TABS
+-----------------------------------------------------------------------
+
+PLAN: Meal Plan, Weekly Planner, Monthly Planner, Rotation, Events, Meal
+Prep
+RECIPES: Recipes, Recipe Ingredients, Ingredients, Recipe Costs, Dietary
+Filters, Food Safety
+SHOP: Grocery List, Staples, Grocery Spending, Store Prices, Stores, Pantry
+COOK: Leftovers, Fridge & Freezer, Converter, Print Recipe, Print Week,
+Print Shopping
+TRACK: Food Waste, Nutrition, Budget, Goals, Sustainability, Reports
+START: Start Here, Dashboard, Settings, Household, Lists, Help
+
+-----------------------------------------------------------------------
+HOW IT WORKS
+-----------------------------------------------------------------------
+
+Every tab is connected:
+
+* Plan a meal and its ingredients flow to the grocery list automatically -
+  scaled to your servings and reduced by what the pantry already has.
+* Record what you spent and the Budget tab compares it with the plan, month
+  by month.
+* Log what you bin on the Food Waste tab and it is priced, ranked and
+  counted against your waste target.
+* The Dashboard shows the whole week at a glance: meals, calories, cost,
+  what is about to expire and which meals are overdue for another turn.
+
+-----------------------------------------------------------------------
+HOW TO USE IT
+-----------------------------------------------------------------------
+
+SET UP (about 45 minutes, once)
+
+1. Settings - household size, weekly budget, prep day, shopping day,
+   calorie target, how long leftovers keep.
+2. Household - who eats with you and anything they avoid.
+3. Dietary Filters - allergies and things to avoid (checked automatically
+   against every recipe and plan).
+4. Recipes + Recipe Ingredients - start with the 5-10 meals you cook most.
+5. Ingredients - your ingredient list with a price, a unit and a shelf life.
+6. Staples and Stores - the things you buy every week, and where you shop.
+
+EVERY WEEK (about 15 minutes)
+
+1. Plan the meals on the Meal Plan tab - one row per meal.
+2. Open the Grocery List: it is already built, grouped by aisle and priced.
+   Tick off what you already have and shop the rest.
+3. Record what you actually spent on Grocery Spending.
+4. Log anything you bin on Food Waste - with the reason.
+5. On prep day, batch cook from the Meal Prep tab and log the portions on
+   Leftovers and Fridge & Freezer.
+
+EVERY MONTH (about 10 minutes)
+
+Add a Budget row, read the Reports tab, check the Rotation tab for overdue
+meals, and set a Goal - waste under 5%, four home-cooked meals a week,
+whatever matters to you.
+
+-----------------------------------------------------------------------
+FEATURES
+-----------------------------------------------------------------------
+
+* Automatic grocery list - built from your plan, adjusted for the pantry
+* Use-by dates calculated per ingredient and per batch
+* Cost per recipe, per meal and per serving, from your own prices
+* Nutrition tracking against your own calorie and macro targets
+* Food waste log with costs, reasons and monthly shares
+* Budget: planned vs actual groceries, eating out and waste
+* Rotation guard - flags meals that are coming round too fast
+* Dietary filter checks on every planned meal
+* Printable week plan, shopping list and recipe card
+* Named ranges and guided Start Here and Help tabs
+
+-----------------------------------------------------------------------
+THE SPECS
+-----------------------------------------------------------------------
+
+* File format: .xlsx (two workbooks)
+* Works in: Microsoft Excel 2010 and later, LibreOffice Calc, Google Sheets
+* No macros, no add-ins, no subscription - classic spreadsheet formulas
+* Sheets are protected to keep the formulas safe (password is in the guide;
+  input cells stay unlocked so you can just type)
+* Sample data: a UK family of four with a GBP 120 weekly budget - the
+  currency and labels are easy to change
+* Language: English
+
+-----------------------------------------------------------------------
+LICENCE & SUPPORT
+-----------------------------------------------------------------------
+
+For personal use. Make copies for your own household - please do not
+resell, redistribute or share the files.
+
+This is an instant digital download; nothing will be shipped. If anything
+is unclear, or you need a hand opening the file, message the shop - we
+usually reply within a day.
+
+Thank you for shopping with us. Plan the week. Shop the list. Waste less.

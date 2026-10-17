@@ -3,3 +3,5 @@ download/
 SOURCE_CODE_MEAL.md
 __pycache__/
 *.pyc
+etsy/kit/etsy-listing-images/
+esty/kit/spreadsheets/

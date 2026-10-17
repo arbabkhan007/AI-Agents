@@ -1,0 +1,16 @@
+SHORT BULLET POINTS (for the listing highlights / social posts)
+==================================================
+
+- 36-tab Excel meal planner: plan, shop, cook and track
+- Automatic grocery list - built from your meal plan
+- Pantry tracker with calculated use-by dates
+- Food budget: planned vs actual, month by month
+- Nutrition log against your own targets
+- Recipe book with cost per serving and diet checks
+- Batch cooking, leftovers and freezer tracking
+- Food waste log that prices what you bin
+- 3 printables: week plan, shopping list, recipe card
+- Filled sample + blank template included
+- Excel 2010+, LibreOffice and Google Sheets
+- No macros - protected sheets, easy to use
+- Instant digital download

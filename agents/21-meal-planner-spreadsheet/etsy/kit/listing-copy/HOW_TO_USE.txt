@@ -1,0 +1,71 @@
+HOW TO USE THE MEAL PLANNER & GROCERY LIST
+==========================================
+
+Thank you for your purchase! Here is the short version of how to get
+running. (The workbook itself has Start Here and Help tabs that say the
+same thing, with pictures.)
+
+WHAT YOU HAVE
+-------------
+* Meal Planner & Grocery List.xlsx          - filled sample
+* Meal Planner & Grocery List (Blank).xlsx  - blank template
+* This guide
+
+Open either workbook in Excel 2010+, LibreOffice Calc or Google Sheets.
+Every sheet is protected so the formulas cannot be overwritten - the
+yellow/cream cells are yours to type in. The password to unprotect any
+sheet is: premium
+
+THE 45-MINUTE SET-UP (once)
+---------------------------
+1. Settings tab: household size, weekly food budget, prep day, shopping
+   day, calorie target, how many days leftovers keep, and your waste
+   reduction target.
+2. Household tab: one row per person, with anything they will not eat.
+3. Dietary Filters tab: allergies and avoidances - these are checked
+   automatically on every planned meal.
+4. Recipes + Recipe Ingredients tabs: add the 5-10 meals you cook most
+   and what goes into them.
+5. Ingredients tab: the same ingredients, with a price, a unit and a
+   shelf life in days. (Names must match exactly between tabs - that is
+   the golden rule.)
+6. Staples + Stores: weekly basics and where you shop.
+
+THE 15-MINUTE WEEKLY ROUTINE
+----------------------------
+1. Meal Plan tab: one row per meal - date, slot, recipe, servings.
+   Nutrition, cost and diet checks appear as you go.
+2. Grocery List tab: already built from your plan, grouped by aisle and
+   reduced by the pantry. Tick things off as you shop.
+3. Grocery Spending tab: record what you actually spent.
+4. Food Waste tab: log anything you bin, with the reason and the cost.
+5. Prep day: batch cook from the Meal Prep tab; log portions on
+   Leftovers and Fridge & Freezer.
+
+THE 10-MINUTE MONTHLY ROUTINE
+-----------------------------
+* Budget tab: add a row for the new month (planned/actual fill in).
+* Reports tab: favourites, most expensive dishes, biggest waste, where
+  the money goes.
+* Rotation tab: which meals are overdue for another turn.
+* Goals tab: set one habit target and watch the progress bar fill up.
+
+THE PRINTABLES
+--------------
+* Print Week   - one page for the fridge door
+* Print Shopping - one page for the store, sorted by aisle
+* Print Recipe  - one recipe in a big friendly layout
+All are formatted to fit one page. Change the week or the recipe at the
+top and print.
+
+TIPS
+----
+* Plan around what is already in the house - the Dashboard's
+  "Use it or lose it" tile shows the most urgent items.
+* Cook double: a second portion costs minutes, not pounds.
+* Log the waste for one month - most households cut it just by seeing it.
+* Ingredient names must match exactly between tabs.
+
+QUESTIONS?
+-----------
+Message the shop any time - we usually reply within a day.
