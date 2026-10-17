@@ -1,5 +1,6 @@
 output/
-download/
+download/*
+!download/meal-planner-etsy-kit.zip
 SOURCE_CODE_MEAL.md
 __pycache__/
 *.pyc
