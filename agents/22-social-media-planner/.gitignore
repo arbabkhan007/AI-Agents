@@ -1,0 +1,7 @@
+output/
+download/*
+!download/social-media-content-planner.zip
+!download/social-media-content-planner-source.zip
+SOURCE_CODE_SOCIAL.md
+__pycache__/
+*.pyc
