@@ -87,7 +87,7 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
         ws.write(hrow, i, col.header, f["header"])
 
     for offset in range(7):
-        row = spec.first_data_row + offset
+        row = spec.first_data_row - 1 + offset   # 0-based writer row
         r = row + 1
         ws.write_formula(row, 0, f'=TEXT($B$7+{offset},"dddd")',
                          f["calc_bold"])
@@ -114,9 +114,9 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
     ws.write(total_row, 0, "Week", f["total_label"])
     for i in range(1, 6):
         ws.write_blank(total_row, i, None, f["total_label"])
-    ws.write_formula(total_row, 6, f'=SUM($G${spec.first_data_row + 1}:'
+    ws.write_formula(total_row, 6, f'=SUM($G${spec.first_data_row}:'
                                    f'$G${total_row})', f["total_number"])
-    ws.write_formula(total_row, 7, f'=SUM($H${spec.first_data_row + 1}:'
+    ws.write_formula(total_row, 7, f'=SUM($H${spec.first_data_row}:'
                                    f'$H${total_row})', f["total_money"])
     ws.write_formula(total_row, 8,
                      f'=TEXT(COUNTIFS(' + reg.rng("Meal Plan", "week_start")

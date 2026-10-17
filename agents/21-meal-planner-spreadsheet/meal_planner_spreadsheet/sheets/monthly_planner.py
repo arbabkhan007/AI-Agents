@@ -91,7 +91,7 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
         ws.write(hrow, i, col.header, f["header"])
 
     for offset in range(6):
-        row = spec.first_data_row + offset
+        row = spec.first_data_row - 1 + offset   # 0-based writer row
         r = row + 1
         ws.write_number(row, 0, offset + 1, f["calc_center"])
         ws.write_formula(row, 1,

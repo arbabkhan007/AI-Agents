@@ -95,20 +95,17 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
     pulls = ["aisle", "item", "quantity", "unit", "packs", "store",
              "price", "line_total", "bought"]
     for n in range(1, 25):
-        row = spec.first_data_row + n - 1
-        r = row + 1
-        ws.write_number(row, 0, n, f["calc_center"])
-        ws.write_blank(row, 0, None, f["calc_text"])
+        xrow = spec.first_data_row - 1 + n - 1   # 0-based writer row
         for i, key in enumerate(pulls):
             rng = reg.rng("Grocery List", key)
             ws.write_formula(
-                row, i,
-                f'=IFERROR(INDEX({rng},MATCH($I{r},{gl_buy_rank},0)),"")',
+                xrow, i,
+                f'=IFERROR(INDEX({rng},MATCH({n},{gl_buy_rank},0)),"")',
                 f["calc_money"] if key in ("price", "line_total")
                 else (f["calc_number"] if key in ("quantity", "packs")
                       else (f["calc_center"] if key == "bought"
                             else f["calc_text"])))
-        ws.set_row(row, 20)
+        ws.set_row(xrow, 20)
 
     total_row = spec.last_data_row
     tr = total_row + 1

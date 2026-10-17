@@ -134,7 +134,7 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
                 f'({ri_recipe}=$B$6)*({ri_line}={n}),0),0)),"")')
 
     for n in range(1, 21):
-        row = spec.first_data_row + n - 1
+        row = spec.first_data_row - 1 + n - 1   # 0-based writer row
         ws.write_formula(row, 2, pick(ri_ing, n), f["calc_text"])
         ws.write_formula(row, 3, pick(ri_qty, n), f["calc_number"])
         ws.write_formula(row, 4, pick(ri_unit, n), f["calc_text"])

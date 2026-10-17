@@ -109,7 +109,7 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
 
     # ---- the seven days ------------------------------------------------------
     for offset in range(7):
-        row = spec.first_data_row + offset
+        row = spec.first_data_row - 1 + offset   # 0-based writer row
         r = row + 1                       # Excel row number
         ws.write_formula(row, 0, f'=TEXT($B$8+{offset},"dddd")',
                          f["calc_bold"])
@@ -136,13 +136,13 @@ def render(ws, spec: SheetSpec, writer: Writer, cfg: Config) -> None:
     ws.write(total_row, 0, "Week total", f["total_label"])
     for i in range(1, 7):
         ws.write_blank(total_row, i, None, f["total_label"])
-    ws.write_formula(total_row, 7, f'=SUM($H${spec.first_data_row + 1}:'
+    ws.write_formula(total_row, 7, f'=SUM($H${spec.first_data_row}:'
                                    f'$H${spec.last_data_row})',
                      f["total_number"])
-    ws.write_formula(total_row, 8, f'=SUM($I${spec.first_data_row + 1}:'
+    ws.write_formula(total_row, 8, f'=SUM($I${spec.first_data_row}:'
                                    f'$I${spec.last_data_row})',
                      f["total_number"])
-    ws.write_formula(total_row, 9, f'=SUM($J${spec.first_data_row + 1}:'
+    ws.write_formula(total_row, 9, f'=SUM($J${spec.first_data_row}:'
                                    f'$J${spec.last_data_row})',
                      f["total_money"])
     ws.write_formula(total_row, 10,
