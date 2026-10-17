@@ -1,0 +1,21 @@
+name: Meal Planner & Grocery List Spreadsheet
+description: >-
+  Generates a 36-tab Excel meal planning system: recipes, meal plans,
+  automatic grocery lists, pantry stock with use-by dates, batch cooking,
+  food waste tracking, nutrition logs and a food budget. Excel 2010 safe
+  formulas, protected sheets, printable layouts and realistic sample data.
+category: spreadsheet
+tags:
+  - excel
+  - xlsxwriter
+  - meal-planning
+  - grocery
+  - household
+  - budget
+  - nutrition
+outputs:
+  - Meal Planner & Grocery List.xlsx
+entry_point: build_meal_planner_workbook.py
+requirements:
+  - XlsxWriter>=3.1
+  - openpyxl>=3.1

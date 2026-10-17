@@ -1,0 +1,5 @@
+output/
+download/
+SOURCE_CODE_MEAL.md
+__pycache__/
+*.pyc
