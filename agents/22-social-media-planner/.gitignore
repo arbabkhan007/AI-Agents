@@ -2,6 +2,9 @@ output/
 download/*
 !download/social-media-content-planner.zip
 !download/social-media-content-planner-source.zip
+!download/social-media-content-planner-etsy-kit.zip
 SOURCE_CODE_SOCIAL.md
 __pycache__/
 *.pyc
+etsy/kit/etsy-listing-images/
+etsy/kit/spreadsheets/

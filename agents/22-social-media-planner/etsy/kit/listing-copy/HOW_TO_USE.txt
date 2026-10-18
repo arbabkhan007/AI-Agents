@@ -1,0 +1,64 @@
+HOW TO USE YOUR SOCIAL MEDIA CONTENT PLANNER
+============================================
+
+WHAT IS IN THE FOLDER
+
+  * Social Media Content Planner.xlsx
+      The full planner, filled with a worked example. Explore this one
+      first - every formula, drop down and dashboard is live.
+
+  * Social Media Content Planner (Blank).xlsx
+      The same workbook with empty registers. Start here once you know
+      your way around.
+
+  * HOW TO RUN.txt
+      This guide.
+
+FIRST HOUR: SET UP
+
+  1. Open the workbook in Excel (2010 or newer), LibreOffice Calc or
+     upload it to Google Sheets.
+  2. Start on 'Start Here' - it walks you through the tabs.
+  3. Go to 'Settings': brand name, currency, planning year, default
+     owner and your average order value.
+  4. Fill 'Accounts' with the profiles you post from.
+  5. Define 4-6 'Content Pillars' - the themes everything hangs on.
+  6. Sketch 3-5 'Audience Personas' like real people.
+  7. Check the 'Lists' tab - every drop down in the workbook reads
+     from it. Edit the words there and the change applies everywhere.
+
+EVERY WEEK (ABOUT 20 MINUTES)
+
+  1. Open the Dashboard. The queue shows what is waiting to go live.
+  2. Fill the Content Calendar - one row per post. IDs and weekdays
+     fill themselves; pick pillar, platform, owner and status from the
+     drop downs.
+  3. Write or pull captions from the Caption Bank and tag the hashtag
+     sets you will use.
+  4. Post natively on each platform, then log the numbers on the
+     'Performance' and 'Analytics' tabs within a week.
+  5. First of the month: open 'Reports', write the story beside the
+     numbers, and copy the summary straight into an email.
+
+PROTECTION
+
+  Every sheet is protected so formula cells cannot be overwritten by
+  accident. The password is: premium
+  (Review > Unprotect Sheet if you need to change something structural.
+  Cream cells are input cells and stay editable without unprotecting.)
+
+TROUBLESHOOTING
+
+  * A drop down is empty - add items to the matching Lists column.
+  * A grey column is blank - its input columns are still empty.
+  * You see #REF! after deleting a row - undo. IDs are calculated from
+    row order; deleting rows in the middle renumbers the rest.
+  * Google Sheets looks different - formulas still work; some
+    formatting shifts are normal.
+
+LICENSE
+
+  Personal use. Make copies for your own business. Please do not
+  resell or redistribute the files.
+
+Questions? Message the shop any time - we usually reply within a day.
