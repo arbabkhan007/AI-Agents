@@ -4,6 +4,10 @@ output/
 # source export (rebuild with tools/export_source_md.py)
 SOURCE_CODE_CLEANING.md
 
+# generated kit output (rebuild with tools/make_etsy_kit.py);
+# the AI background photos in etsy/assets/ are tracked
+etsy/kit/
+
 # python junk
 __pycache__/
 *.pyc
@@ -12,3 +16,4 @@ __pycache__/
 download/*
 !download/cleaning-business-crm.zip
 !download/cleaning-business-crm-source.zip
+!download/cleaning-business-crm-etsy-kit.zip
