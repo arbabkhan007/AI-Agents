@@ -1,0 +1,14 @@
+# generated workbooks (rebuild with build_cleaning_workbook.py)
+output/
+
+# source export (rebuild with tools/export_source_md.py)
+SOURCE_CODE_CLEANING.md
+
+# python junk
+__pycache__/
+*.pyc
+
+# keep the delivered zips, ignore any others
+download/*
+!download/cleaning-business-crm.zip
+!download/cleaning-business-crm-source.zip
