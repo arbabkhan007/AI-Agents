@@ -90,7 +90,10 @@ class SheetWriter:
                 if col.is_formula:
                     formula = reg.render(col.formula, row=r, spec=spec)
                     style = fmts.formula_style(col)
-                    ws.write_formula(xr, i, formula, fmts[style], None)
+                    # cache a numeric 0 - NEVER None: xlsxwriter would write
+                    # <v>None</v> into a numeric cell and Excel's recovery
+                    # reports "Repaired Records: Cell information".
+                    ws.write_formula(xr, i, formula, fmts[style], 0)
                     continue
 
                 style = col.style

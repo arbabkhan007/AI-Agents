@@ -101,7 +101,7 @@ def build_page(workbook: Any, fmts: FormatBook, reg: Registry,
            "No job within the inactive window on Settings.")
     metric("Open complaints",
            f'=COUNTIF({CO_status},"Open")+COUNTIF({CO_status},'
-           '"Investigating")+COUNTIF({CO_status},"Escalated")',
+           f'"Investigating")+COUNTIF({CO_status},"Escalated")',
            "calc_int", "")
     metric("Refunds / credits given",
            f'=SUM({CO_refund})', "calc_money",

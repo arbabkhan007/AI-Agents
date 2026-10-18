@@ -49,7 +49,7 @@ BANNED_RE = re.compile(
 # cells that must remain editable formulas that the user overwrites
 SEEDED_INPUTS = ["Calendar!C5", "Staff Schedule!C5", "Quote Calculator!C6"]
 
-TOKEN_LEFTOVER = re.compile(r"\{[a-z_]{2,}\}")
+TOKEN_LEFTOVER = re.compile(r"\{[A-Za-z_][A-Za-z0-9_]*\}")
 
 
 def paren_depth(formula: str):
@@ -100,8 +100,36 @@ def precedence_slip(formula: str):
     return False, ""
 
 
+def raw_xml_problems(path: Path):
+    """Open the xlsx as a zip and scan raw sheet XML.
+
+    Catches what openpyxl's view hides: formula cells whose cached <v>
+    is the literal string 'None' (written when value=None is passed to
+    xlsxwriter). Excel reports those as "Repaired Records: Cell
+    information" in its recovery log.
+    """
+    import zipfile
+    out = []
+    with zipfile.ZipFile(path) as z:
+        for name in z.namelist():
+            if not (name.startswith("xl/worksheets/")
+                    and name.endswith(".xml")):
+                continue
+            data = z.read(name).decode("utf-8", "replace")
+            for bad in ("<v>None</v>", "<v>NaN</v>", "<v>Infinity</v>"):
+                n = data.count(bad)
+                if n:
+                    out.append(f"{name}: {n} cached {bad} values")
+            for m in re.finditer(r"<f[^>]*>([^<]*)</f>", data):
+                if "{" in m.group(1) or "}" in m.group(1):
+                    out.append(f"{name}: braces in raw formula "
+                               f":: {m.group(1)[:70]}")
+    return out
+
+
 def validate(path: Path, blank: bool = False) -> int:
     problems = []
+    problems += raw_xml_problems(path)
     wb = openpyxl.load_workbook(path, data_only=False)
 
     # ---------------------------------------------------------- metadata
@@ -158,6 +186,11 @@ def validate(path: Path, blank: bool = False) -> int:
                     problems.append(
                         f"{where}: unreplaced template token "
                         f"'{leftover.group(0)}'")
+
+                if "{" in value or "}" in value:
+                    problems.append(
+                        f"{where}: braces in formula (unrendered token) "
+                        f":: {value[:80]}")
 
                 upper = value.upper()
                 for m in BANNED_RE.finditer(upper):
