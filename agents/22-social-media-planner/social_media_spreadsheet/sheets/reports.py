@@ -134,19 +134,20 @@ def build(book, fmts, cfg, reg) -> SheetWriter:
         fmt_text = f.cell("text", "calc")
         sheet.merge(row, 0, 1, month, fmt_label)
         # Month window as real dates from the label text ('1-Mar-26').
-        bounds = ("DATEVALUE(\"1-\"&$A" + str(row + 1) + "),"
-                  "EDATE(DATEVALUE(\"1-\"&$A" + str(row + 1) + "),1)")
+        cell = f"$A{row + 1}"
+        lower = f'DATEVALUE("1-"&{cell})'
+        upper = f'EDATE(DATEVALUE("1-"&{cell}),1)'
         sheet.merge(row, 2, 3, "", fmt_int)
         sheet.ws.write_formula(row, 2, sheet.reg.render(
             "=COUNTIFS([[Content Calendar.status]],\"Posted\","
-            "[[Content Calendar.date]],\">=\"&" + bounds.split(",")[0] + ","
-            "[[Content Calendar.date]],\"<\"&" + bounds.split(",")[1]),
+            "[[Content Calendar.date]],\">=\"&" + lower + ","
+            "[[Content Calendar.date]],\"<\"&" + upper + ")"),
             fmt_int)
         sheet.merge(row, 4, 5, "", fmt_money)
         sheet.ws.write_formula(row, 4, sheet.reg.render(
             "=SUMIFS([[Performance.est_revenue]],[[Performance.date]],"
-            "\">=\"&" + bounds.split(",")[0] + ",[[Performance.date]],"
-            "\"<\"&" + bounds.split(",")[1]), fmt_money)
+            "\">=\"&" + lower + ",[[Performance.date]],"
+            "\"<\"&" + upper + ")"), fmt_money)
         sheet.merge(row, 6, LAST_COL, "", fmt_text)
         sheet.ws.write_formula(row, 6, sheet.reg.render(
             "=IF($E" + str(row + 1) + "=0,\"Quiet\",\"Revenue logged\")"),

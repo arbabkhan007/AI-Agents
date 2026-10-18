@@ -138,6 +138,7 @@ def check(path: Path) -> int:
     # 5. Formula functions are Excel 2010 safe -------------------------------
     banned_hits = 0
     unsafe_hits = 0
+    syntax_hits = 0
     formula_count = 0
     for ws in wb.worksheets:
         for row in ws.iter_rows():
@@ -146,6 +147,15 @@ def check(path: Path) -> int:
                 if not (isinstance(value, str) and value.startswith("=")):
                     continue
                 formula_count += 1
+                # Excel REPAIRS the file and deletes formulas whose
+                # parentheses or quotes are unbalanced - catch that here.
+                stripped = re.sub(r'"[^"]*"', '""', value)
+                if stripped.count('"') % 2 or stripped.count("(") != \
+                        stripped.count(")"):
+                    print(f"FAIL {ws.title}!{cell.coordinate}: formula "
+                          f"has unbalanced parentheses or quotes")
+                    problems += 1
+                    syntax_hits += 1
                 funcs = formula_functions(value)
                 for fn in funcs:
                     if fn in MODERN_ONLY:
