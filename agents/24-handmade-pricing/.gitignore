@@ -1,0 +1,14 @@
+# generated workbooks (rebuild with build_handmade_workbook.py)
+output/
+
+# source export (rebuild with tools/export_source_md.py)
+SOURCE_CODE_HANDMADE.md
+
+# python junk
+__pycache__/
+*.pyc
+
+# keep the delivered zips, ignore any others
+download/*
+!download/handmade-pricing-calculator.zip
+!download/handmade-pricing-calculator-source.zip
