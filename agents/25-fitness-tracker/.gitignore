@@ -1,0 +1,11 @@
+# generated workbooks (rebuild with build_fitness_workbook.py)
+output/
+
+# python junk
+__pycache__/
+*.pyc
+
+# keep the delivered zips, ignore any others
+download/*
+!download/fitness-weight-loss-tracker.zip
+!download/fitness-weight-loss-tracker-source.zip
