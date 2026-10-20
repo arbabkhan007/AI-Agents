@@ -8,7 +8,11 @@ SOURCE_CODE_HANDMADE.md
 __pycache__/
 *.pyc
 
+# etsy kit build output (rebuild with tools/make_etsy_kit.py); assets are tracked
+etsy/kit/
+
 # keep the delivered zips, ignore any others
 download/*
 !download/handmade-pricing-calculator.zip
 !download/handmade-pricing-calculator-source.zip
+!download/handmade-pricing-calculator-etsy-kit.zip
