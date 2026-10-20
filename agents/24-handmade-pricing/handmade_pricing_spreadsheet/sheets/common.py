@@ -573,10 +573,51 @@ def price_from(cost: str, fixed: str, margin: str, rate: str) -> str:
     """The whole pricing model in one line.
 
         price = (cost + fixed fees) / (1 - target margin - fee rate)
+
+    Only use this when `cost`, `fixed` and `rate` are short cell references.
+    The rounding rule repeats its argument eight times, so a long cost
+    expression multiplied by eight runs past Excel's 8,192 character limit
+    for a single formula - and Excel answers that by deleting the formula
+    and showing a repair log. For anything long, put :func:`raw_price` in a
+    hidden helper column and round the cell with :func:`round_ref`.
     """
     room = f"(1-{margin}-{rate})"
     core = f"({cost}+{fixed})/{room}"
     return f'IFERROR({round_price(f"IF({room}<=0,0,{core})")},"")'
+
+
+def raw_price(cost: str, fixed: str, margin: str, rate: str) -> str:
+    """The unrounded model price, evaluated ONCE.
+
+    This is the half of :func:`price_from` that costs characters: the cost
+    expression and the fee-rate lookup appear once here instead of eight
+    times inside the rounding branches.
+    """
+    room = f"(1-{margin}-{rate})"
+    core = f"({cost}+{fixed})/{room}"
+    return f'IFERROR(IF({room}<=0,0,{core}),"")'
+
+
+def round_ref(raw_ref: str) -> str:
+    """Apply the rounding rule from Settings to a price already calculated.
+
+    `raw_ref` should be a short cell reference (a hidden helper column), so
+    the eight rounding branches stay eight short references rather than eight
+    copies of the whole cost model.
+    """
+    return f'IFERROR({round_price(f"N({raw_ref})")},"")'
+
+
+def raw_price_col(cost: str, fixed: str, margin: str, rate: str,
+                  guard: str = "") -> Col:
+    """A hidden column holding the unrounded price, for :func:`round_ref`."""
+    body = raw_price(cost, fixed, margin, rate)
+    formula = f'IF({guard},"",{body})' if guard else body
+    return calc_col("price_raw", "raw price", formula, 9.0, "money4",
+                    hidden=True,
+                    note="Hidden - the price before rounding, kept in its own "
+                         "cell so the rounding rule does not have to repeat "
+                         "the whole cost model eight times.")
 
 
 def channel_lookup(channel: str, key: str, fallback: str) -> str:
@@ -741,7 +782,6 @@ def craft_tail(material_expr: str, *, has_difficulty: bool = True,
     unit_cost = (f"N({row_ref('material_total')})+N({row_ref('labor_cost')})"
                  f"+N({row_ref('packaging_cost')})"
                  f"+N({row_ref('overhead_cost')})")
-    suggested = price_from(unit_cost, fixed, "TargetRetailMargin", rate)
     profit = f"N({price})-({rate}*N({price})+{fixed})-{unit_cost}"
     margin = f'IF(N({price})=0,"",({profit})/N({price}))'
     hourly = f'IF(N({mins})=0,"",({profit})/(N({mins})/60))'
@@ -783,8 +823,14 @@ def craft_tail(material_expr: str, *, has_difficulty: bool = True,
         calc_col("cost_a_minute", "Cost a minute",
                  f'IF(OR({iid}="",N({mins})=0),"",'
                  f'N({row_ref("unit_cost")})/N({mins}))', 11.0, "money4"),
+        # the unrounded model price lives in its own hidden cell: rounding
+        # repeats its argument eight times, and eight copies of the whole
+        # cost model would pass Excel's 8,192 character formula limit
+        raw_price_col(unit_cost, fixed, "TargetRetailMargin", rate,
+                      guard=f'{iid}=""'),
         calc_col("suggested_price", "Suggested price",
-                 f'IF({iid}="","",{suggested})', 13.0, "money",
+                 f'IF({iid}="","",{round_ref(row_ref("price_raw"))})', 13.0,
+                 "money",
                  note="(cost + fixed fees) / (1 - target margin - fee rate), "
                       "rounded the way Settings says."),
         calc_col("wholesale_price", "Wholesale price",

@@ -183,7 +183,7 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
         sheet.merge(r, col, col + 1, label, fmts.chrome("kpi_label"))
         fmt = fmts.chrome("kpi_value", num_format="#,##0")
         sheet.ws.write_blank(r, col + 2, None, fmt)
-        sheet.ws.write_formula(r, col + 2, _expand(formula), fmt)
+        sheet.formula(r, col + 2, _expand(formula), fmt)
         sheet.merge(r, col + 3, col + 6, note, fmts.chrome("kpi_note"))
         sheet.ws.conditional_format(
             r, col + 2, r, col + 2,
@@ -225,9 +225,9 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
             value_formula = _expand(top_value("Products", rank_key, "Products",
                                               value_key, n))
             sheet.merge(r, col + 1, col + 3, "", fmts.cell("text", "plain"))
-            sheet.ws.write_formula(r, col + 1, name_formula,
+            sheet.formula(r, col + 1, name_formula,
                                    fmts.cell("text", "plain"))
-            sheet.ws.write_formula(r, col + 4, value_formula,
+            sheet.formula(r, col + 4, value_formula,
                                    fmts.cell(style, "plain"))
         r += 1
     r += 1
@@ -267,7 +267,7 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
             sheet.row_height(r, 17)
             sheet.write(r, 1, n, fmts.cell("int", "plain"))
             sheet.merge(r, 2, 5, "", fmts.cell("text", "plain"))
-            sheet.ws.write_formula(
+            sheet.formula(
                 r, 2, _expand(flag_list(source, rank_key, "name", n)),
                 fmts.cell("text", "plain"))
             col = 6
@@ -276,7 +276,7 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
                                             value_key=key))
                 sheet.ws.merge_range(r, col, r, col + 1, "",
                                      fmts.cell(style, "plain"))
-                sheet.ws.write_formula(r, col, formula,
+                sheet.formula(r, col, formula,
                                        fmts.cell(style, "plain"))
                 col += 2
             r += 1
@@ -316,7 +316,7 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
                   f"{other('Sales', 'date')},\"<=\"&MonthEnd),0)")
         sheet.row_height(r, 17)
         sheet.ws.merge_range(r, 1, r, 2, "", fmts.cell("text", "plain"))
-        sheet.ws.write_formula(
+        sheet.formula(
             r, 1, _expand(f"IFERROR({chan_cell},\"\")"),
             fmts.cell("text", "plain"))
         for i, (formula, style) in enumerate([
@@ -327,7 +327,7 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
             col = 3 + i * 2
             sheet.ws.merge_range(r, col, r, col + 1, "",
                                  fmts.cell(style, "plain"))
-            sheet.ws.write_formula(r, col, _expand(formula),
+            sheet.formula(r, col, _expand(formula),
                                    fmts.cell(style, "plain"))
         r += 1
     r += 1
@@ -368,7 +368,7 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
             col = 3 + i * 2
             sheet.ws.merge_range(r, col, r, col + 1, "",
                                  fmts.cell(style, "plain"))
-            sheet.ws.write_formula(r, col, _expand(formula),
+            sheet.formula(r, col, _expand(formula),
                                    fmts.cell(style, "plain"))
         r += 1
     r += 1
@@ -390,7 +390,7 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
         orders = _count("Sales", start, end)
         sheet.row_height(r, 17)
         sheet.ws.merge_range(r, 1, r, 2, "", fmts.cell("text", "plain"))
-        sheet.ws.write_formula(r, 1, f'=TEXT({start},"mmm")',
+        sheet.formula(r, 1, f'=TEXT({start},"mmm")',
                                fmts.cell("text", "plain"))
         for i, (formula, style) in enumerate([
                 (orders, "int"), (units, "int"), (revenue, "money"),
@@ -400,7 +400,7 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
             col = 3 + i * 2
             sheet.ws.merge_range(r, col, r, col + 1, "",
                                  fmts.cell(style, "plain"))
-            sheet.ws.write_formula(r, col, _expand(formula),
+            sheet.formula(r, col, _expand(formula),
                                    fmts.cell(style, "plain"))
         r += 1
     r += 1
@@ -442,7 +442,7 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
                                  other("Products", key)))
         fmt = fmts.cell(style, "plain")
         sheet.ws.merge_range(r, col + 2, r, col + 4, "", fmt)
-        sheet.ws.write_formula(r, col + 2, formula, fmt)
+        sheet.formula(r, col + 2, formula, fmt)
         if i % 3 == 2:
             r += 1
     if len(spotlight) % 3:
@@ -489,10 +489,10 @@ def _target_row(sheet, fmts, row: int, col: int, last_col: int,
         start = col + i * 5
         sheet.merge(row, start, start + 1, label, fmts.chrome("label_bold"))
         fmt = fmts.cell(style, "plain")
-        sheet.ws.write_formula(row, start + 2, f"={name}", fmt)
+        sheet.formula(row, start + 2, f"={name}", fmt)
         sheet.ws.merge_range(row, start + 3, row, start + 4, "",
                              fmts.cell(style, "plain"))
-        sheet.ws.write_formula(
+        sheet.formula(
             row, start + 3,
             _expand(f"IF({name}=0,\"\",({actual})/{name}-1)"),
             fmts.cell("percent", "plain"))

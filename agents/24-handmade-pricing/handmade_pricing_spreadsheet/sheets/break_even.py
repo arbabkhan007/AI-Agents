@@ -174,13 +174,13 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
         sheet.row_height(r, 18)
         label = str(step)
         sheet.ws.merge_range(r, 1, r, 2, "", fmts.cell("int", "plain"))
-        sheet.ws.write_formula(r, 1, f"={units}", fmts.cell("int", "plain"))
+        sheet.formula(r, 1, f"={units}", fmts.cell("int", "plain"))
         for i, formula in enumerate([revenue, fees, cogs, contribution,
                                      profit]):
             col = 3 + i * 2
             sheet.ws.merge_range(r, col, r, col + 1, "",
                                  fmts.cell("money", "plain"))
-            sheet.ws.write_formula(r, col, "=" + formula,
+            sheet.formula(r, col, "=" + formula,
                                    fmts.cell("money", "plain"))
         sheet.ws.conditional_format(
             r, 11, r, 12,
@@ -213,12 +213,12 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
         sheet.row_height(r, 18)
         sheet.ws.merge_range(r, 1, r, 3, label, fmts.cell("text", "plain"))
         sheet.ws.merge_range(r, 4, r, 6, "", fmts.cell("money", "plain"))
-        sheet.ws.write_formula(r, 4, "=" + contribution,
+        sheet.formula(r, 4, "=" + contribution,
                                fmts.cell("money", "plain"))
         sheet.ws.merge_range(r, 7, r, 9, "", fmts.cell("int", "plain"))
-        sheet.ws.write_formula(r, 7, "=" + units, fmts.cell("int", "plain"))
+        sheet.formula(r, 7, "=" + units, fmts.cell("int", "plain"))
         sheet.ws.merge_range(r, 10, r, 12, "", fmts.cell("percent", "plain"))
-        sheet.ws.write_formula(
+        sheet.formula(
             r, 10, f'=IFERROR(IF(N(BeUnits)=0,"",{units}/N(BeUnits)-1),"")',
             fmts.cell("percent", "plain"))
         r += 1

@@ -102,11 +102,11 @@ def _bom_row(sheet, fmts, reg, row: int, n: int, qty_multiplier: str = "") -> No
     fmt_money = fmts.cell("money", "plain")
     # merge first, then put the formula in the top left cell of the merge
     sheet.merge(row, 1, 3, None, fmt_text)
-    sheet.ws.write_formula(row, 1, reg.render("=" + material), fmt_text)
-    sheet.ws.write_formula(row, 4, reg.render("=" + qty), fmt_num)
-    sheet.ws.write_formula(row, 5, reg.render("=" + unit_cost), fmt_money4)
+    sheet.formula(row, 1, reg.render("=" + material), fmt_text)
+    sheet.formula(row, 4, reg.render("=" + qty), fmt_num)
+    sheet.formula(row, 5, reg.render("=" + unit_cost), fmt_money4)
     sheet.merge(row, 6, 7, None, fmt_money)
-    sheet.ws.write_formula(row, 6, reg.render("=" + line_cost), fmt_money)
+    sheet.formula(row, 6, reg.render("=" + line_cost), fmt_money)
 
 
 def _bom_head(sheet, fmts, row: int, qty_header: str = "Qty") -> int:
@@ -179,7 +179,7 @@ def build_costing(book, fmts, cfg: Config, reg) -> SheetWriter:
     sheet.merge(r, 1, 3, "Total cost of one item",
                 fmts.chrome("total_label"))
     sheet.merge(r, 4, 5, None, fmts.chrome("total_value"))
-    sheet.ws.write_formula(r, 4,
+    sheet.formula(r, 4,
                            reg.render(f'=IFERROR({prod("total_cost")},"")'),
                            fmts.chrome("total_value"))
     sheet.merge(r, 6, last_col,
@@ -228,7 +228,7 @@ def build_costing(book, fmts, cfg: Config, reg) -> SheetWriter:
     sheet.row_height(r, 22)
     sheet.merge(r, 1, 3, "", fmts.chrome("form_line"))
     sheet.merge(r, 4, 5, "=TodayDate", fmts.chrome("form_line"))
-    sheet.ws.write_formula(r, 4, "=TodayDate", fmts.cell("date", "plain"))
+    sheet.formula(r, 4, "=TodayDate", fmts.cell("date", "plain"))
     sheet.merge(r, 6, last_col, "Name and date", fmts.chrome("note"))
     r += 2
     r = sheet.note(r, f"{cfg.product_name} - created by {cfg.author}, "
@@ -319,16 +319,16 @@ def build_quote(book, fmts, cfg: Config, reg) -> SheetWriter:
         qty_cell = f"$E${r + 1}"
         retail = (f"IFERROR(INDEX({other('Products', 'retail_price')},"
                   f"MATCH({product_cell},{other('Products', 'id')},0)),0)")
-        sheet.ws.write_formula(r, 5, reg.render("=" + retail),
+        sheet.formula(r, 5, reg.render("=" + retail),
                                fmts.cell("money", "plain"))
-        sheet.ws.write_formula(r, 6, "=QuoteDiscount",
+        sheet.formula(r, 6, "=QuoteDiscount",
                                fmts.cell("percent", "plain"))
         trade = f"{round_price(f'{retail}*(1-QuoteDiscount)')}"
         sheet.ws.merge_range(r, 7, r, 8, "", fmts.cell("money", "plain"))
-        sheet.ws.write_formula(r, 7, reg.render("=" + trade),
+        sheet.formula(r, 7, reg.render("=" + trade),
                                fmts.cell("money", "plain"))
         total = (f"IF(N({qty_cell})=0,\"\",N({qty_cell})*N($H${r + 1}))")
-        sheet.ws.write_formula(r, last_col, reg.render("=" + total),
+        sheet.formula(r, last_col, reg.render("=" + total),
                                fmts.cell("money", "plain"))
         r += 1
     last_line = r - 1
@@ -351,7 +351,7 @@ def build_quote(book, fmts, cfg: Config, reg) -> SheetWriter:
                 fmts.chrome("note"))
     sheet.merge(r, 6, 7, "Quote total", fmts.chrome("total_label"))
     sheet.merge(r, 8, 8, None, fmts.chrome("total_value"))
-    sheet.ws.write_formula(
+    sheet.formula(
         r, 8, reg.render("=IFERROR(SUM(QuoteLines)+QuotePostage+QuoteTax,0)"),
         fmts.chrome("total_value"))
     book.define_name("QuoteTotal", f"={quote_sheet(QUOTE)}!$I${total_row + 1}")
@@ -368,7 +368,7 @@ def build_quote(book, fmts, cfg: Config, reg) -> SheetWriter:
     ]:
         sheet.row_height(r, 15)
         sheet.merge(r, 1, last_col, "", fmts.chrome("label"))
-        sheet.ws.write_formula(r, 1, reg.render(line), fmts.chrome("label"))
+        sheet.formula(r, 1, reg.render(line), fmts.chrome("label"))
         r += 1
     r += 1
     sheet.row_height(r, 24)

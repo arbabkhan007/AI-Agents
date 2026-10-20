@@ -218,7 +218,7 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
             col = 3 + i * 2
             sheet.ws.merge_range(r, col, r, col + 1, "",
                                  fmts.cell(style, "plain"))
-            sheet.ws.write_formula(r, col, "=" + formula,
+            sheet.formula(r, col, "=" + formula,
                                    fmts.cell(style, "plain"))
         r += 1
     r += 1

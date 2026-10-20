@@ -52,7 +52,7 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
         fmt = fmts.cell(style, "plain")
         if span > 1:
             sheet.ws.merge_range(row, col, row, col + span - 1, "", fmt)
-        sheet.ws.write_formula(row, col, x(formula), fmt)
+        sheet.formula(row, col, x(formula), fmt)
 
     def put_text(row: int, col: int, text: str, style: str = "text",
                  span: int = 1) -> None:
@@ -131,7 +131,7 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
         profit = window("Sales", "profit", start, end)
         sheet.row_height(r, 17)
         put_text(r, 1, "", "text", span=2)
-        sheet.ws.write_formula(r, 1, f'=TEXT({start},"mmm")',
+        sheet.formula(r, 1, f'=TEXT({start},"mmm")',
                                fmts.cell("text", "plain"))
         put(r, 3, count_window("Sales", start, end), "int")
         put(r, 4, window("Sales", "qty", start, end), "int")
@@ -202,7 +202,7 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
                         [(other("Sales", "channel"), chan)])
         sheet.row_height(r, 17)
         put_text(r, 1, "", "text", span=3)
-        sheet.ws.write_formula(r, 1, f'=IFERROR({chan},"")',
+        sheet.formula(r, 1, f'=IFERROR({chan},"")',
                                fmts.cell("text", "plain"))
         put(r, 4, orders, "int")
         put(r, 5, revenue, "money", span=2)
@@ -247,13 +247,13 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
         sheet.row_height(r, 17)
         put_text(r, 1, n, "int")
         put_text(r, 2, "", "text", span=4)
-        sheet.ws.write_formula(r, 2, x(by_revenue), fmts.cell("text", "plain"))
+        sheet.formula(r, 2, x(by_revenue), fmts.cell("text", "plain"))
         put(r, 6, rev_value, "money", span=2)
         put_text(r, 8, "", "text", span=4)
-        sheet.ws.write_formula(r, 8, x(by_profit), fmts.cell("text", "plain"))
+        sheet.formula(r, 8, x(by_profit), fmts.cell("text", "plain"))
         put(r, 12, profit_value, "money", span=2)
         put_text(r, 14, "", "text", span=2)
-        sheet.ws.write_formula(r, 14, x(worst), fmts.cell("text", "plain"))
+        sheet.formula(r, 14, x(worst), fmts.cell("text", "plain"))
         put(r, 16, worst_margin, "percent", span=2)
         r += 1
     r += 1

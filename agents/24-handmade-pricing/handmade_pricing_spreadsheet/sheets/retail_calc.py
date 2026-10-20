@@ -207,12 +207,12 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
         sheet.ws.merge_range(r, 1, r, 2, scenario, fmts.cell("text", "plain"))
         sheet.ws.merge_range(r, 3, r, 4, margin, fmts.cell("percent", "plain"))
         sheet.ws.merge_range(r, 5, r, 6, "", fmts.cell("money", "plain"))
-        sheet.ws.write_formula(r, 5, "=" + price, fmts.cell("money", "plain"))
+        sheet.formula(r, 5, "=" + price, fmts.cell("money", "plain"))
         sheet.ws.merge_range(r, 7, r, 8, "", fmts.cell("money", "plain"))
-        sheet.ws.write_formula(r, 7, "=" + profit,
+        sheet.formula(r, 7, "=" + profit,
                                fmts.cell("money", "plain"))
         sheet.ws.merge_range(r, 9, r, 10, "", fmts.cell("money", "plain"))
-        sheet.ws.write_formula(
+        sheet.formula(
             r, 9, f"=IF(N(RcMinutes)=0,\"\",({profit})/(N(RcMinutes)/60))",
             fmts.cell("money", "plain"))
         r += 1

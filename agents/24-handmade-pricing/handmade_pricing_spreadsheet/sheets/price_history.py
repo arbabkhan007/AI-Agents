@@ -18,8 +18,9 @@ from typing import Any, List
 from ..config import Config, Palette
 from ..layout import SheetSpec
 from .common import (calc_col, channel_fee_rate, channel_fixed_fee, date_col,
-                     fetch, id_col, int_col, list_col, money_col, price_from,
-                     product_col, row_ref, samples, spec_defaults, wrap_col)
+                     fetch, id_col, int_col, list_col, money_col,
+                     product_col, raw_price_col, round_ref, row_ref, samples,
+                     spec_defaults, wrap_col)
 
 P = Palette
 
@@ -124,8 +125,13 @@ def spec(cfg: Config) -> SheetSpec:
         calc_col("hourly_after", "Hourly since",
                  f'IF({has_id},"",IF(N({minutes})=0,"",{profit_after}'
                  f'/(N({minutes})/60)))', 12.0, "money"),
+        # the unrounded model price gets its own hidden cell: the rounding
+        # rule repeats its argument eight times, and eight copies of this
+        # expression pass Excel's 8,192 character formula limit
+        raw_price_col(cost_then, fixed, "TargetRetailMargin", rate,
+                      guard=has_id),
         calc_col("suggested_now", "Model price at that cost",
-                 f'IF({has_id},"",{price_from(cost_then, fixed, "TargetRetailMargin", rate)})',
+                 f'IF({has_id},"",{round_ref(row_ref("price_raw"))})',
                  14.0, "money",
                  note="(cost + fixed fees) / (1 - target margin - fee rate) "
                       "at the cost recorded on this row."),

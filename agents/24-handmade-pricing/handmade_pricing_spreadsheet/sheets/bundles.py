@@ -20,9 +20,10 @@ from ..config import Config, Palette
 from ..layout import SheetSpec
 from .common import (FLAG_LOSS, calc_col, channel_fee_rate,
                      channel_fixed_fee, countifs, date_col, id_col, int_col,
-                     list_col, money_col, other, pct_col, price_from,
-                     rank_desc, review_flag, row_ref, round_price, samples,
-                     spec_defaults, sumifs, text_col, wrap_col, yesno_col)
+                     list_col, money_col, other, pct_col, rank_desc,
+                     raw_price_col, review_flag, round_ref, row_ref,
+                     round_price, samples, spec_defaults, sumifs, text_col,
+                     wrap_col, yesno_col)
 
 P = Palette
 
@@ -50,7 +51,9 @@ def spec(cfg: Config) -> SheetSpec:
     cost = (f'N({row_ref("parts_cost")})+N({row_ref("packaging_cost")})'
             f'+N({row_ref("shipping_absorbed")})')
     profit = f'{bundle_price}-({rate}*{bundle_price}+{fixed})-{cost}'
-    suggested = price_from(cost, fixed, "TargetRetailMargin", rate)
+    # rounding repeats its argument eight times, so the unrounded model price
+    # gets its own hidden cell rather than being inlined eight times
+    suggested = round_ref(row_ref("price_raw"))
     wholesale_base = f"{bundle_price}*(1-WholesaleDiscount)"
     products = row_ref("products")
 
@@ -137,6 +140,7 @@ def spec(cfg: Config) -> SheetSpec:
                       "value": "THIN", "fmt": "warn"},
                      {"type": "text", "criteria": "containing",
                       "value": "OK", "fmt": "good"}]),
+        raw_price_col(cost, fixed, "TargetRetailMargin", rate, guard=has_id),
         calc_col("suggested_price", "Suggested bundle price",
                  f'IF({has_id},"",{suggested})', 14.0, "money",
                  note="(cost + fixed fees) / (1 - target margin - fee rate)."),

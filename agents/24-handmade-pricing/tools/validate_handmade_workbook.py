@@ -64,6 +64,15 @@ BANNED_RE = re.compile(r"(?<![A-Z0-9_.])(" + "|".join(BANNED) + r")\s*\(")
 
 TOKEN_LEFTOVER = re.compile(r"\{[A-Za-z_][A-Za-z0-9_]*\}")
 
+#: Excel's hard limit for one formula. Past it Excel deletes the formula and
+#: reports "Removed Records: Formula from /xl/worksheets/sheetN.xml part".
+MAX_FORMULA_LEN = 8192
+
+#: a structured reference needs an Excel table; this workbook has none, so a
+#: token that reaches the file is a broken reference
+STRUCTURED_REF = re.compile(r"\[\[|\]\]")
+
+
 CELLTOKEN = r"(?:\$?[A-Z]{1,3}\$?\d+)"
 
 #: defined names that must point at an UNLOCKED cell the owner can type in
@@ -187,6 +196,13 @@ def raw_xml_problems(path: Path) -> List[str]:
                 if text.startswith("="):
                     out.append(f"{name}: stored formula starts with '=' "
                                f":: {text[:70]}")
+                if STRUCTURED_REF.search(text):
+                    out.append(f"{name}: unrendered [[Sheet.key]] in raw "
+                               f"formula :: {text[:70]}")
+                if len(text) > MAX_FORMULA_LEN:
+                    out.append(f"{name}: raw formula of {len(text):,} "
+                               f"characters exceeds Excel's "
+                               f"{MAX_FORMULA_LEN:,} limit")
             if data.count("<mergeCells ") and "ref=\"A1:A1\"" in data:
                 out.append(f"{name}: single-cell merge present")
     return out
@@ -319,6 +335,18 @@ def validate(path: Path, blank: bool = False) -> int:
                 if "{" in value or "}" in value:
                     problems.append(f"{where}: braces in formula :: "
                                     f"{value[:80]}")
+
+                if STRUCTURED_REF.search(value):
+                    problems.append(f"{where}: unrendered [[Sheet.key]] token "
+                                    f"- there are no tables in this workbook, "
+                                    f"so Excel cannot resolve it :: "
+                                    f"{value[:80]}")
+
+                if len(value) > MAX_FORMULA_LEN:
+                    problems.append(f"{where}: formula is {len(value):,} "
+                                    f"characters, over Excel's "
+                                    f"{MAX_FORMULA_LEN:,} limit - Excel "
+                                    f"removes it and shows a repair log")
 
                 upper = value.upper()
                 for m in BANNED_RE.finditer(upper):

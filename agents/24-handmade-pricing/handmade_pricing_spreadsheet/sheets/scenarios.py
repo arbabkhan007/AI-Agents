@@ -10,6 +10,11 @@ The point of the page is the two rows at the bottom. `Monthly revenue` and
 turns a percentage argument into money: a budget price that needs three times
 the sales to earn the same is a different business, not just a different
 number.
+
+Every row below the price row reads the cells above it rather than repeating
+the pricing model. That is how a spreadsheet should be built anyway, and it
+also keeps each formula far inside Excel's 8,192 character limit - inlining
+the model eight times over, once per row, runs past it.
 """
 
 from __future__ import annotations
@@ -17,7 +22,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from ..config import PRICING_SCENARIOS, Config, Palette
-from ..layout import lookup
+from ..layout import col_letter, lookup
 from ..writer import SheetWriter, list_from
 from .common import (channel_fee_rate, channel_fixed_fee, other, price_from,
                      round_price)
@@ -31,6 +36,25 @@ SUBTITLE = ("One product at five margins, side by side, with what each would "
 
 HELP = ("Pick a product. Every column below is the same item at a different "
         "target margin; the last column is the price you charge today.")
+
+#: the rows of the comparison table, top to bottom
+ROWS: Sequence[Tuple[str, str]] = (
+    ("Target margin", "percent"),
+    ("Price", "money"),
+    ("Profit an item", "money"),
+    ("Margin after fees", "percent"),
+    ("Effective hourly", "money"),
+    ("Wholesale price", "money"),
+    ("Monthly revenue", "money"),
+    ("Monthly profit", "money"),
+    ("Sales needed for the same profit", "number1"),
+)
+
+MARGIN = "Target margin"
+PRICE = "Price"
+PROFIT = "Profit an item"
+MARGIN_NET = "Margin after fees"
+HOURLY = "Effective hourly"
 
 
 def build(book, fmts, cfg: Config, reg) -> SheetWriter:
@@ -94,93 +118,84 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
                              fmts.chrome("header"))
     r += 1
 
-    def margin_expr(i: int) -> str:
+    first = r
+    row_of = {label: first + i for i, (label, _style) in enumerate(ROWS)}
+    verdict_row = first + len(ROWS)
+
+    def cell(label: str, i: int) -> str:
+        """Absolute reference to one scenario column on one table row."""
+        return f"${col_letter(3 + i * 2)}${row_of[label] + 1}"
+
+    def put(row: int, i: int, formula: str, style: str) -> None:
+        col = 3 + i * 2
+        fmt = fmts.cell(style, "plain")
+        sheet.ws.merge_range(row, col, row, col + 1, "", fmt)
+        sheet.formula(row, col, formula, fmt)
+
+    def margin_formula(i: int) -> str:
         if scenarios[i][1] is None:
-            return ('IF(N(ScPriceToday)=0,0,(N(ScPriceToday)'
+            return ('=IF(N(ScPriceToday)=0,0,(N(ScPriceToday)'
                     '-(N(ScFeeRate)*N(ScPriceToday)+N(ScFixedFees))'
                     '-N(ScCost))/N(ScPriceToday))')
-        return str(scenarios[i][1])
+        return "=" + str(scenarios[i][1])
 
-    def price_expr(i: int) -> str:
+    def price_formula(i: int) -> str:
         if scenarios[i][1] is None:
-            return "N(ScPriceToday)"
-        return ("N(" + price_from("N(ScCost)", "N(ScFixedFees)",
-                                  margin_expr(i), "N(ScFeeRate)") + ")")
+            return "=N(ScPriceToday)"
+        return "=" + price_from("N(ScCost)", "N(ScFixedFees)",
+                                f"N({cell(MARGIN, i)})", "N(ScFeeRate)")
 
-    def profit_expr(i: int) -> str:
-        price = price_expr(i)
-        return (f"{price}-(N(ScFeeRate)*{price}+N(ScFixedFees))-N(ScCost)")
+    # ------------------------------------------------------------- table rows
+    for i in range(columns):
+        put(row_of[MARGIN], i, margin_formula(i), "percent")
+        put(row_of[PRICE], i, price_formula(i), "money")
 
-    rows: List[Tuple[str, str, Sequence[str]]] = [
-        ("Target margin", "percent", [margin_expr(i) for i in range(columns)]),
-        ("Price", "money", [price_expr(i) for i in range(columns)]),
-        ("Profit an item", "money", [profit_expr(i) for i in range(columns)]),
-        ("Margin after fees", "percent",
-         [f'IF({price_expr(i)}=0,"",{profit_expr(i)}/{price_expr(i)})'
-          for i in range(columns)]),
-        ("Effective hourly", "money",
-         [f'IF(N(ScMinutes)=0,"",({profit_expr(i)})/(N(ScMinutes)/60))'
-          for i in range(columns)]),
-        ("Wholesale price", "money",
-         [round_price(f"{price_expr(i)}*(1-WholesaleDiscount)")
-          for i in range(columns)]),
-        ("Monthly revenue", "money",
-         [f"{price_expr(i)}*N(ScUnits)" for i in range(columns)]),
-        ("Monthly profit", "money",
-         [f"({profit_expr(i)})*N(ScUnits)-0" for i in range(columns)]),
-        ("Sales needed for the same profit", "number1",
-         [f'IF({profit_expr(0)}<=0,"n/a",{profit_expr(0)}'
-          f'/IF({profit_expr(i)}<=0,0.0001,{profit_expr(i)}))'
-          for i in range(columns)]),
-    ]
+    for i in range(columns):
+        price = cell(PRICE, i)
+        profit = cell(PROFIT, i)
+        hourly = cell(HOURLY, i)
+        net = cell(MARGIN_NET, i)
+        base_profit = cell(PROFIT, 0)
+        put(row_of[PROFIT], i,
+            f"=N({price})-(N(ScFeeRate)*N({price})+N(ScFixedFees))-N(ScCost)",
+            "money")
+        put(row_of[MARGIN_NET], i,
+            f'=IF(N({price})=0,"",N({profit})/N({price}))', "percent")
+        put(row_of[HOURLY], i,
+            f'=IF(N(ScMinutes)=0,"",N({profit})/(N(ScMinutes)/60))', "money")
+        put(row_of["Wholesale price"], i,
+            f'=IF(N({price})=0,"",'
+            f'{round_price(f"N({price})*(1-WholesaleDiscount)")})', "money")
+        put(row_of["Monthly revenue"], i, f"=N({price})*N(ScUnits)", "money")
+        put(row_of["Monthly profit"], i, f"=N({profit})*N(ScUnits)", "money")
+        put(row_of["Sales needed for the same profit"], i,
+            f'=IF(N({base_profit})<=0,"n/a",N({base_profit})'
+            f'/IF(N({profit})<=0,0.0001,N({profit})))', "number1")
+        put(verdict_row, i,
+            f'=IF(N({price})=0,"NO PRICE",'
+            f'IF(N({profit})<=0,"LOSES MONEY",'
+            f'IF(N(ScMinutes)=0,"NO TIME RECORDED",'
+            f'IF(N({hourly})<MinimumWage,"BELOW THE MINIMUM WAGE",'
+            f'IF(N({net})<MarginWarning,"THIN MARGIN","WORKS")))))', "status")
 
-    for label, style, formulas in rows:
-        sheet.row_height(r, 18)
-        sheet.merge(r, 1, 2, label, fmts.chrome("label_bold"))
-        for i, formula in enumerate(formulas):
-            col = 3 + i * 2
-            fmt = fmts.cell(style, "plain")
-            sheet.ws.merge_range(r, col, r, col + 1, "", fmt)
-            sheet.ws.write_formula(r, col,
-                                   formula if formula.startswith("=")
-                                   else "=" + formula, fmt)
-        r += 1
-
-    # verdict row
-    sheet.row_height(r, 30)
-    sheet.merge(r, 1, 2, "Verdict", fmts.chrome("label_bold"))
+    # ---------------------------------------------------------- row furniture
+    for label, _style in ROWS:
+        row = row_of[label]
+        sheet.row_height(row, 18)
+        bold = label in (PRICE, PROFIT)
+        sheet.merge(row, 1, 2, label,
+                    fmts.chrome("label_bold" if bold else "label"))
+    sheet.row_height(verdict_row, 30)
+    sheet.merge(verdict_row, 1, 2, "Verdict", fmts.chrome("label_bold"))
     for i in range(columns):
         col = 3 + i * 2
-        verdict = (f'=IF(N({price_expr(i)})=0,"NO PRICE",'
-                   f'IF({profit_expr(i)}<=0,"LOSES MONEY",'
-                   f'IF(({profit_expr(i)})/(N(ScMinutes)/60+0.0001)'
-                   f'<MinimumWage,"BELOW THE MINIMUM WAGE",'
-                   f'IF(({profit_expr(i)})/N({price_expr(i)})'
-                   f'<MarginWarning,"THIN MARGIN","WORKS"))))')
-        if scenarios[i][1] is None:
-            verdict = (f'=IF(N(ScPriceToday)=0,"NO PRICE",'
-                       f'IF({profit_expr(i)}<=0,"LOSES MONEY",'
-                       f'IF(N(ScMinutes)=0,"NO TIME RECORDED",'
-                       f'IF(({profit_expr(i)})/(N(ScMinutes)/60)'
-                       f'<MinimumWage,"BELOW THE MINIMUM WAGE",'
-                       f'IF(({profit_expr(i)})/N(ScPriceToday)'
-                       f'<MarginWarning,"THIN MARGIN","WORKS")))))')
-        fmt = fmts.cell("status", "plain")
-        sheet.ws.merge_range(r, col, r, col + 1, "", fmt)
-        sheet.ws.write_formula(r, col, verdict, fmt)
-        sheet.ws.conditional_format(
-            r, col, r, col + 1,
-            {"type": "text", "criteria": "containing", "value": "LOSES",
-             "format": fmts.cf("bold_bad")})
-        sheet.ws.conditional_format(
-            r, col, r, col + 1,
-            {"type": "text", "criteria": "containing", "value": "BELOW",
-             "format": fmts.cf("warn")})
-        sheet.ws.conditional_format(
-            r, col, r, col + 1,
-            {"type": "text", "criteria": "containing", "value": "WORKS",
-             "format": fmts.cf("good")})
-    r += 2
+        for word, kind in (("LOSES", "bold_bad"), ("BELOW", "warn"),
+                           ("WORKS", "good")):
+            sheet.ws.conditional_format(
+                verdict_row, col, verdict_row, col + 1,
+                {"type": "text", "criteria": "containing", "value": word,
+                 "format": fmts.cf(kind)})
+    r = verdict_row + 2
 
     r = sheet.note(
         r,

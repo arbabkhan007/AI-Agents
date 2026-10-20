@@ -83,6 +83,20 @@ class SheetWriter:
             "&R&\"Calibri,Italic\"&8&D")
 
     # ------------------------------------------------------------- plumbing
+    def formula(self, row: int, col: int, formula: str, fmt=None):
+        """Write a formula, rendering ``[[Sheet.key]]`` tokens first.
+
+        Every formula in the workbook goes through here (or through
+        :meth:`write` / :meth:`merge`, which call it). A token that reaches
+        the file unrendered is not a formula Excel can resolve - there are no
+        tables in this workbook, so ``[[Sales.gross]]`` would sit in the cell
+        as a broken reference.
+        """
+        text = (formula or "").strip()
+        if not text.startswith("="):
+            text = "=" + text
+        self.ws.write_formula(row, col, self.reg.render(text), fmt)
+
     def write(self, row: int, col: int, value: Any, fmt=None):
         """Type aware write (0 based row/col, like XlsxWriter)."""
         if value is None:
@@ -90,7 +104,7 @@ class SheetWriter:
                 self.ws.write_blank(row, col, None, fmt)
             return
         if isinstance(value, str) and value.startswith("="):
-            self.ws.write_formula(row, col, value, fmt)
+            self.formula(row, col, value, fmt)
         elif isinstance(value, (_dt.datetime, _dt.date, _dt.time)):
             self.ws.write_datetime(row, col, value, fmt)
         elif isinstance(value, bool):
@@ -105,13 +119,17 @@ class SheetWriter:
         row2 = row if row2 is None else row2
         if first_col == last_col and row == row2:
             self.write(row, first_col, value, fmt)
+            return
+        text = "" if value is None else value
+        if isinstance(text, (_dt.datetime, _dt.date, _dt.time)):
+            self.ws.merge_range(row, first_col, row2, last_col, "", fmt)
+            self.ws.write_datetime(row, first_col, text, fmt)
+        elif isinstance(text, str) and text.startswith("="):
+            # merge first, then put the rendered formula in the anchor cell
+            self.ws.merge_range(row, first_col, row2, last_col, "", fmt)
+            self.formula(row, first_col, text, fmt)
         else:
-            text = "" if value is None else value
-            if isinstance(text, (_dt.datetime, _dt.date, _dt.time)):
-                self.ws.merge_range(row, first_col, row2, last_col, "", fmt)
-                self.ws.write_datetime(row, first_col, text, fmt)
-            else:
-                self.ws.merge_range(row, first_col, row2, last_col, text, fmt)
+            self.ws.merge_range(row, first_col, row2, last_col, text, fmt)
 
     def set_col(self, first: int, last: int, width: float, fmt=None,
                 hidden: bool = False):

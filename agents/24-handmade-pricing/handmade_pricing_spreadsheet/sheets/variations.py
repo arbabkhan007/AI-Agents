@@ -19,8 +19,9 @@ from ..config import Config, Palette
 from ..layout import SheetSpec
 from .common import (calc_col, channel_fee_rate, channel_fixed_fee, countifs,
                      date_col, fetch, id_col, int_col, list_col, money_col,
-                     other, price_from, product_col, rank_desc, row_ref,
-                     samples, spec_defaults, text_col, wrap_col, yesno_col)
+                     other, product_col, rank_desc, raw_price_col, round_ref,
+                     row_ref, samples, spec_defaults, text_col, wrap_col,
+                     yesno_col)
 
 P = Palette
 
@@ -114,8 +115,12 @@ def spec(cfg: Config) -> SheetSpec:
                       "value": "THIN", "fmt": "warn"},
                      {"type": "text", "criteria": "containing",
                       "value": "OK", "fmt": "good"}]),
+        # the unrounded model price gets its own hidden cell: the rounding
+        # rule repeats its argument eight times, and eight copies of this
+        # cost expression pass Excel's 8,192 character formula limit
+        raw_price_col(vcost, fixed, "TargetRetailMargin", rate, guard=has_id),
         calc_col("suggested_price", "Suggested price",
-                 f'IF({has_id},"",{price_from(vcost, fixed, "TargetRetailMargin", rate)})',
+                 f'IF({has_id},"",{round_ref(row_ref("price_raw"))})',
                  13.0, "money"),
         calc_col("price_gap", "Gap to suggested",
                  f'IF(OR({has_id},{vprice}=0),"",'
