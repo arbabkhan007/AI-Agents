@@ -164,10 +164,15 @@ def build(book, fmts, cfg: Config, reg) -> SheetWriter:
     row += 1
 
     row = sheet.section(row, "WEIGHT TREND", last_col)
-    spark_cell = f"$B${row + 1}"
-    sheet.merge(row, 0, 5, "7-day average, oldest to newest:",
+    # The sparkline must live in a cell of its own: a sparkline (or any
+    # content) inside a merged range that it does not anchor makes Excel
+    # strip the part's formula records on open.
+    spark_cell = f"$D${row + 2}"
+    sheet.set_col(3, 3, 36)
+    sheet.merge(row, 0, 2, "7-day average, oldest to newest:",
                 sheet.f.chrome("label_bold"))
-    sheet.merge(row + 1, 0, 5, "", sheet.f.chrome("label"))
+    sheet.merge(row + 1, 0, 2, "", sheet.f.chrome("label"))
+    sheet.write(row + 1, 3, None, sheet.f.cell("text", "calc"))
     sheet.ws.add_sparkline(spark_cell, {
         "range": f"{qw}!${wt.letter('ma7')}${wt.first_data_row}:"
                  f"${wt.letter('ma7')}${wt.last_data_row}",

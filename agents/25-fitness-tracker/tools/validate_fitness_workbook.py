@@ -143,6 +143,51 @@ def main(path: str, expect_inputs: bool = True) -> int:
             problems.append(f"{name}: no unlocked input cells")
         locked_formulas += sheet_locked_formula
 
+    # Merged ranges: only the anchor cell may carry content, and no
+    # sparkline may sit inside a merge - Excel strips the part's formula
+    # records on open when either happens (recovery-log defect class).
+    import re as _re
+    from openpyxl.utils import range_boundaries as _bounds
+    from openpyxl.utils import column_index_from_string as _cidx
+    with zipfile.ZipFile(path) as zf:
+        rels = zf.read("xl/_rels/workbook.xml.rels").decode()
+        wbxml = zf.read("xl/workbook.xml").decode()
+        relmap = dict(_re.findall(
+            r'Id="(rId\d+)" Type="[^"]*worksheet" Target="([^"]+)"', rels))
+        order = _re.findall(
+            r'<sheet name="([^"]+)"[^>]*r:id="(rId\d+)"', wbxml)
+        part_of = {}
+        for sname, rid in order:
+            target = relmap.get(rid, "")
+            part_of["xl/" + target.lstrip("/")] = sname.replace("&amp;", "&")
+        for part, sname in part_of.items():
+            try:
+                raw = zf.read(part).decode("utf-8", "replace")
+            except KeyError:
+                continue
+            ws = book[sname]
+            merges = [str(r) for r in ws.merged_cells.ranges]
+            for sq in _re.findall(r"<xm:sqref>([A-Z]+\d+)</xm:sqref>", raw):
+                col = _cidx(_re.match(r"([A-Z]+)", sq).group(1))
+                rown = int(_re.search(r"(\d+)", sq).group(1))
+                for mr in merges:
+                    c1, r1, c2, r2 = _bounds(mr)
+                    if c1 <= col <= c2 and r1 <= rown <= r2:
+                        problems.append(
+                            f"{sname}: sparkline at {sq} sits inside "
+                            f"merged range {mr}")
+            for mr in merges:
+                c1, r1, c2, r2 = _bounds(mr)
+                for rr in range(r1, r2 + 1):
+                    for cc in range(c1, c2 + 1):
+                        if rr == r1 and cc == c1:
+                            continue
+                        value = ws.cell(row=rr, column=cc).value
+                        if value not in (None, ""):
+                            problems.append(
+                                f"{sname}: content in non-anchor merged "
+                                f"cell {ws.cell(row=rr, column=cc).coordinate}")
+
     for name, defined in book.defined_names.items():
         if "#REF" in (defined.value or ""):
             problems.append(f"defined name {name} broken: {defined.value}")
