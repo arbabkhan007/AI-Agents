@@ -1,0 +1,11 @@
+# generated workbooks (rebuild with build_salon_workbook.py)
+output/
+
+# python junk
+__pycache__/
+*.pyc
+
+# keep the delivered zips, ignore any others
+download/*
+!download/salon-business-system.zip
+!download/salon-business-system-source.zip
