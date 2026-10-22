@@ -5,7 +5,11 @@ output/
 __pycache__/
 *.pyc
 
+# etsy kit build output (rebuild with tools/make_etsy_kit.py); assets tracked
+etsy/kit/
+
 # keep the delivered zips, ignore any others
 download/*
 !download/fitness-weight-loss-tracker.zip
 !download/fitness-weight-loss-tracker-source.zip
+!download/fitness-weight-loss-tracker-etsy-kit.zip
