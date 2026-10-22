@@ -133,6 +133,12 @@ def main(path: str, expect_inputs: bool = True) -> int:
                                 f"{name}!{cell.coordinate}: banned "
                                 f"function {pattern} in {value[:60]}")
                             break
+                    stripped = re.sub(r'"(?:[^"]|"")*"', '""', value)
+                    stripped = re.sub(r"'[^']*'", "S", stripped)
+                    if re.search(r"\b(AND|OR)\b(?!\s*\()", stripped):
+                        problems.append(
+                            f"{name}!{cell.coordinate}: infix logic "
+                            f"operator in {value[:60]}")
                 elif cell.protection is not None and \
                         cell.protection.locked is False and \
                         cell.data_type != "f":
