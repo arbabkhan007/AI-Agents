@@ -5,7 +5,11 @@ output/
 __pycache__/
 *.pyc
 
+# etsy kit build output (rebuild with tools/make_etsy_kit.py); assets tracked
+etsy/kit/
+
 # keep the delivered zips, ignore any others
 download/*
 !download/salon-business-system.zip
 !download/salon-business-system-source.zip
+!download/salon-business-etsy-kit.zip
