@@ -1,0 +1,54 @@
+DAYCARE & CHILDCARE BUSINESS MANAGEMENT SPREADSHEET
+Novality Store
+
+FILES
+- Daycare-Demo.xlsx: example records, dated October 2026. Use it to explore.
+- Daycare-Blank.xlsx: empty registers; use this as your starting template.
+
+START HERE
+1. Open the blank workbook in Microsoft Excel and save your own copy. Allow
+   formulas to recalculate when it opens. The dashboard and reports update
+   from the registers after recalculation.
+2. Read the Getting Started tab. Set the centre name, reporting year, local
+   age bands and reference ratios in Settings & Lists. Default ratios are
+   examples, not recommendations or licensing standards.
+3. Use a unique Family ID, Child ID and Staff ID consistently. Enter data in
+   white cells; shaded cells calculate automatically. Registers have filters
+   and fixed capacity. The headers are on row 6.
+4. Add each invoice, payment, credit, write-off, deposit or refund as one
+   ledger row with a positive amount, a unique transaction ID, date and family
+   ID. Resolve the Review column warnings. Amounts include any applicable tax.
+   A deposit is already a credit: do not record it again as a payment when
+   applied. Refunds increase the family balance and reduce cash. Reconcile
+   with your bank and accounting system.
+5. Monthly and annual reports summarize the date of each transaction. Net
+   charges = invoices minus credits and write-offs. Net cash = payments plus
+   deposits minus refunds. Cash less costs subtracts expenses and payroll.
+   Do not also enter payroll in expenses or costs will be counted twice.
+
+IMPORTANT LIMITATIONS
+- Settings for tax, fees, age bands and payroll burden are references; they do
+  not automatically create invoices, calculate tax, apply discounts, or calculate
+  employer payroll costs. Enter amounts manually and verify them.
+- Staff Schedule and Classroom Management are planning tools only. They do
+  not measure actual live coverage, calculate compliance, or guarantee safety.
+- Pickup names are notes, not proof of authorization. Verify identity and
+  authorization independently before releasing a child.
+- Sensitive records need proper encrypted, access-controlled storage and
+  backups. Worksheet protection is not encryption or access control. Formula
+  protection password: premium. Inputs are unlocked, formulas locked.
+- This workbook does not send messages, process payments, file returns, or
+  replace official medical, safeguarding, payroll or accounting records. It is
+  not medical, legal, licensing, tax, payroll or accounting advice.
+- The workbook is built with Excel 2010-compatible functions. It was checked
+  structurally and its key money formulas were tested, but it was not opened
+  in Windows Excel during generation. Please confirm it opens normally in
+  your version before entering real information.
+
+CAPACITY (rows per register)
+Children 150; families 200; waitlist 120; attendance 2,000; tuition 700;
+ledger 700; daily reports 600; meals 600; medical 180; incidents 150;
+staff 60; schedule 750; payroll 350; rooms 30; expenses 500; inventory 180;
+communication 350; documents 500. Do not enter beyond the prepared rows:
+reports and formulas only include those ranges. IDs are not generated and
+unique IDs are not enforced except for ledger review warnings.
