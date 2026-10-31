@@ -1,2 +1,5 @@
 __pycache__/
 *.py[cod]
+# Generated Etsy working files; the finished distributable is in download/.
+etsy/kit/
+etsy/qa-*.jpg
