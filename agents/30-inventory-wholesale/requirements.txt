@@ -1,0 +1,4 @@
+XlsxWriter>=3.2.0
+# Optional for structural and independent formula-engine tests:
+openpyxl>=3.1
+formulas>=1.2
