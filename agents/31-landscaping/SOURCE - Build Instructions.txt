@@ -1,0 +1,17 @@
+LANDSCAPING WORKBOOK SOURCE
+
+Python 3.9+ and XlsxWriter are required to build. Example:
+  python -m pip install XlsxWriter
+  python build_landscaping_workbook.py -o demo.xlsx
+  python build_landscaping_workbook.py --blank -o blank.xlsx
+
+Optional tests need openpyxl and formulas:
+  python -m pip install openpyxl formulas
+  python tools/check_landscaping_specs.py
+  python tools/check_landscaping_sample.py
+  python tools/validate_landscaping_workbook.py demo.xlsx
+  python tools/check_parens.py demo.xlsx
+  python tools/check_final.py demo.xlsx blank.xlsx
+  PYTHONPATH=. python tools/test_scenarios.py
+
+--today YYYY-MM-DD controls sample-data dates and initial report year/month; live Today cells still use Excel TODAY(). --rows N scales all registers relative to the jobs register for quick tests, not production capacity. Use --help for all arguments. Formula results need recalculation in Excel. The formula engine used in the optional test is not Excel and is not a Windows Excel compatibility test.
